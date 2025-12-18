@@ -1,0 +1,55 @@
+﻿@model OnlineLibrary.Infrastructure.Domain.Entities.Category
+
+@{
+    ViewData["Title"] = "Create Category";
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+
+    <h2 class="mb-4">Add New Category</h2>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger">
+            @ViewBag.Error
+        </div>
+    }
+
+    <form asp-action="Create" method="post" class="card shadow-sm p-4">
+
+        <div class="mb-3">
+            <label class="form-label">Category Name</label>
+            <input asp-for="CategoryName"
+                   class="form-control"
+                   placeholder="Enter category name"
+                   required />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Order No</label>
+            <input asp-for="OrderNo"
+                   type="number"
+                   class="form-control"
+                   placeholder="Display order"
+                   required />
+
+            <small class="text-muted">
+                Current highest order number: @ViewBag.MaxOrderNo
+            </small>
+        </div>
+
+
+        <div class="mt-3">
+            <button type="submit" class="btn btn-success">
+                Save
+            </button>
+
+            <a asp-action="Index" class="btn btn-secondary ms-2">
+                Cancel
+            </a>
+        </div>
+
+    </form>
+
+</div>

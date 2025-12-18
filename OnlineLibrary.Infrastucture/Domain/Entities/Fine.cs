@@ -7,15 +7,16 @@ using System.Threading.Tasks;
 
 namespace OnlineLibrary.Infrastructure.Domain.Entities
 {
-    public class Category
+    public class Fine
     {
         [Key]
-        public Guid CategoryId { get; set; }
+        public Guid FineId { get; set; }
 
-        public string CategoryName { get; set; }
+        public Guid BorrowId { get; set; }
 
-        public int OrderNo { get; set; }
+        public int LateDays { get; set; }
+        public decimal FineAmount { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public bool IsPaid { get; set; }
     }
 }

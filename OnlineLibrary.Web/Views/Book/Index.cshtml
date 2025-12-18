@@ -1,0 +1,163 @@
+﻿@model IEnumerable<OnlineLibrary.Web.Models.BookListViewModel>
+
+@{
+    ViewData["Title"] = "Books";
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Book Management</h2>
+
+        <a asp-action="Create" class="btn btn-success">
+            + Add Book
+        </a>
+    </div>
+
+    <table class="table table-bordered table-striped shadow-sm align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th style="width:90px;">Image</th>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Category</th>
+                <th>Price (TK)</th>
+                <th>Copies</th>
+                <th>Purchase Date</th>
+                <th style="width:180px;">Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="7" class="text-center text-muted">
+                        No books found.
+                    </td>
+                </tr>
+            }
+            else
+            {
+                foreach (var book in Model)
+                {
+                    <tr>
+                        <!-- IMAGE -->
+                        <td class="text-center">
+                            @if (!string.IsNullOrEmpty(book.ImageUrl))
+                            {
+                                <img src="@book.ImageUrl"
+                                     alt="Book Image"
+                                     style="width:60px; height:80px; object-fit:cover;"
+                                     class="border rounded" />
+                            }
+                            else
+                            {
+                                <span class="text-muted">No Image</span>
+                            }
+                        </td>
+
+                        <!-- TITLE -->
+                        <td>
+                            <strong>@book.Title</strong>
+                        </td>
+
+                        <!-- AUTHOR -->
+                        <td>
+                            @book.Author
+                        </td>
+
+                        <!-- CATEGORY -->
+                        <td>
+                            @book.CategoryName
+                        </td>
+
+                        <!-- PRICE -->
+                        <td>
+                            @book.Price.ToString("0.00") TK
+                        </td>
+
+                        <!-- COPIES -->
+                        <td>
+                            @book.TotalCopies
+                        </td>
+
+                        <!-- PURCHASE DATE -->
+                        <td>
+                            @book.PurchaseDate.ToString("yyyy-MM-dd")
+                        </td>
+
+                        <!-- ACTIONS -->
+                        <td>
+                            <a asp-action="Edit"
+                               asp-route-id="@book.BookId"
+                               class="btn btn-sm btn-warning me-1">
+                                Edit
+                            </a>
+
+                            <button class="btn btn-sm btn-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal"
+                                    data-id="@book.BookId"
+                                    data-title="@book.Title">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <form asp-action="Delete" method="post">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                    <button type="button" class="btn-close"
+                            data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="deleteBookId" />
+                    Are you sure you want to delete
+                    <strong id="deleteBookTitle"></strong>?
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger">
+                        Yes, Delete
+                    </button>
+                    <button type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var deleteModal = document.getElementById('deleteModal');
+
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+
+            var bookId = button.getAttribute('data-id');
+            var bookTitle = button.getAttribute('data-title');
+
+            document.getElementById('deleteBookId').value = bookId;
+            document.getElementById('deleteBookTitle').textContent = bookTitle;
+        });
+    </script>
+}

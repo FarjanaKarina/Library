@@ -1,0 +1,32 @@
+﻿@model IEnumerable<OnlineLibrary.Infrastructure.Domain.Entities.User>
+
+<h2>Librarians</h2>
+
+<a asp-action="CreateLibrarian"
+   class="btn btn-primary mb-3">
+    + Add Librarian
+</a>
+
+<table class="table table-bordered">
+    <thead class="table-dark">
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var lib in Model)
+        {
+            <tr>
+                <td>@lib.FullName</td>
+                <td>@lib.Email</td>
+                <td>@lib.Phone</td>
+                <td>
+                    @(lib.IsActive ? "Active" : "Inactive")
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,141 @@
+﻿@model OnlineLibrary.Infrastructure.Domain.Entities.Book
+
+@{
+    ViewData["Title"] = "Edit Book";
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+    <h2>Edit Book</h2>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger">
+            @ViewBag.Error
+        </div>
+    }
+
+    <form asp-action="Edit"
+          method="post"
+          enctype="multipart/form-data"
+          class="card shadow-sm p-4">
+
+        <input type="hidden" asp-for="BookId" />
+
+        <!-- CATEGORY -->
+        <div class="mb-3">
+            <label class="form-label">Category</label>
+            <select asp-for="CategoryId"
+                    asp-items="ViewBag.Categories"
+                    class="form-select category-select"
+                    required>
+            </select>
+        </div>
+
+        <!-- TITLE -->
+        <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input asp-for="Title" class="form-control" required />
+        </div>
+
+        <!-- AUTHOR -->
+        <div class="mb-3">
+            <label class="form-label">Author</label>
+            <input asp-for="Author" class="form-control" />
+        </div>
+
+        <!-- PUBLISHER -->
+        <div class="mb-3">
+            <label class="form-label">Publisher</label>
+            <input asp-for="Publisher" class="form-control" />
+        </div>
+
+        <!-- ISBN -->
+        <div class="mb-3">
+            <label class="form-label">ISBN</label>
+            <input asp-for="ISBN" class="form-control" />
+        </div>
+
+        <!-- DESCRIPTION -->
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea asp-for="Description"
+                      class="form-control"
+                      rows="3"></textarea>
+        </div>
+
+        <!-- PUBLISH DATE -->
+        <div class="mb-3">
+            <label class="form-label">Publish Date</label>
+            <input asp-for="PublishDate"
+                   type="date"
+                   class="form-control" />
+        </div>
+
+        <!-- PURCHASE DATE (SYSTEM) -->
+        <div class="mb-3">
+            <label class="form-label">Purchase Date</label>
+            <input type="date"
+                   class="form-control"
+                   value="@Model.PurchaseDate.ToString("yyyy-MM-dd")"
+                   readonly />
+        </div>
+
+        <!-- PRICE -->
+        <div class="mb-3">
+            <label class="form-label">Price (TK)</label>
+            <input asp-for="Price"
+                   type="number"
+                   step="0.01"
+                   min="0"
+                   class="form-control" />
+        </div>
+
+        <!-- COPIES -->
+        <div class="mb-3">
+            <label class="form-label">Total Copies</label>
+            <input asp-for="TotalCopies"
+                   type="number"
+                   min="0"
+                   class="form-control" />
+        </div>
+
+        <!-- CURRENT IMAGE -->
+        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+        {
+            <div class="mb-3">
+                <label class="form-label">Current Image</label><br />
+                <img src="@Model.ImageUrl"
+                     style="width:80px;height:110px;object-fit:cover;"
+                     class="border rounded" />
+            </div>
+        }
+
+        <!-- NEW IMAGE -->
+        <div class="mb-3">
+            <label class="form-label">Change Image (optional)</label>
+            <input type="file"
+                   name="imageFile"
+                   class="form-control"
+                   accept="image/*" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            Update
+        </button>
+
+        <a asp-action="Index" class="btn btn-secondary ms-2">
+            Cancel
+        </a>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.category-select').select2({
+                width: '100%'
+            });
+        });
+    </script>
+}

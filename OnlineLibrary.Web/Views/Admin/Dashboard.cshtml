@@ -1,0 +1,112 @@
+﻿@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+
+    <h2 class="mb-4">Admin Dashboard</h2>
+
+    <div class="row">
+
+        <!-- Total Users -->
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-primary shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Total Users</h5>
+                    <h3>@ViewBag.TotalUsers</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Books -->
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-success shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Total Books</h5>
+                    <h3>@ViewBag.TotalBooks</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Categories -->
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-black shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Categories</h5>
+                    <h3>@ViewBag.TotalCategories</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Memberships -->
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-info shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Active Memberships</h5>
+                    <h3>@ViewBag.ActiveMemberships</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-warning shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Active Librarians</h5>
+                    <h3>@ViewBag.ActiveLibrarians</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-danger shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Memberships</h5>
+                    <h3>@ViewBag.PendingMemberships</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-secondary shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Approved Memberships</h5>
+                    <h3>@ViewBag.ApprovedMemberships</h3>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <hr />
+
+    <!-- Quick Actions -->
+    <div class="row mt-3">
+        <div class="col-md-12">
+            <h5>Quick Actions</h5>
+
+            <a asp-controller="Category" asp-action="Index" class="btn btn-outline-primary me-2">
+                Manage Categories
+            </a>
+
+            <a asp-controller="Book" asp-action="Index" class="btn btn-outline-success me-2">
+                Manage Books
+            </a>
+
+            <a asp-controller="User" asp-action="Index" class="btn btn-outline-secondary">
+                Manage Users
+            </a>
+            <a asp-action="Librarians"
+               class="btn btn-outline-dark">
+                Manage Librarians
+            </a>
+
+            <a asp-action="Memberships"
+               class="btn btn-outline-warning">
+                Manage Requests
+            </a>
+
+        </div>
+    </div>
+
+</div>

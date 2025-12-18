@@ -7,15 +7,10 @@ using System.Threading.Tasks;
 
 namespace OnlineLibrary.Infrastructure.Domain.Entities
 {
-    public class Category
+    public class Role
     {
         [Key]
-        public Guid CategoryId { get; set; }
-
-        public string CategoryName { get; set; }
-
-        public int OrderNo { get; set; }
-
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public Guid RoleId { get; set; }
+        public string? RoleName { get; set; }
     }
 }

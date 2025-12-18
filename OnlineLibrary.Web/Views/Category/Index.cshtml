@@ -1,0 +1,116 @@
+﻿@model IEnumerable<OnlineLibrary.Infrastructure.Domain.Entities.Category>
+
+@{
+    ViewData["Title"] = "Categories";
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Category Management</h2>
+
+        <a asp-action="Create" class="btn btn-primary">
+            + Add Category
+        </a>
+    </div>
+
+    <table class="table table-bordered table-striped shadow-sm">
+        <thead class="table-dark">
+            <tr>
+                <th>Order No</th>
+                <th>Category Name</th>
+                <th style="width: 180px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="3" class="text-center text-muted">
+                        No categories found.
+                    </td>
+                </tr>
+            }
+            else
+            {
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.OrderNo</td>
+                        <td>@item.CategoryName</td>
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@item.CategoryId"
+                               class="btn btn-sm btn-warning me-1">
+                                Edit
+                            </a>
+
+                            <button class="btn btn-sm btn-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal"
+                                    data-id="@item.CategoryId"
+                                    data-name="@item.CategoryName">
+                                Delete
+                            </button>
+
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+
+</div>
+
+
+<!-- DELETE CONFIRMATION MODAL -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <form asp-action="Delete" method="post">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="hidden" id="deleteCategoryId" name="id" />
+
+                    <p>
+                        Are you sure you want to delete
+                        <strong id="deleteCategoryName"></strong>?
+                    </p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger">
+                        Yes, Delete
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+
+<script>
+    var deleteModal = document.getElementById('deleteModal');
+
+    deleteModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+
+        var categoryId = button.getAttribute('data-id');
+        var categoryName = button.getAttribute('data-name');
+
+        document.getElementById('deleteCategoryId').value = categoryId;
+        document.getElementById('deleteCategoryName').textContent = categoryName;
+    });
+</script>
+

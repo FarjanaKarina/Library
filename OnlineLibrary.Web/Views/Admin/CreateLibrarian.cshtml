@@ -1,0 +1,44 @@
+﻿@model OnlineLibrary.Web.Models.LibrarianCreateViewModel
+
+<h2>Create Librarian</h2>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">@ViewBag.Error</div>
+}
+
+<form asp-action="CreateLibrarian" method="post"
+      class="card shadow-sm p-4">
+
+    <div class="mb-3">
+        <label>Full Name</label>
+        <input asp-for="FullName" class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+        <label>Email</label>
+        <input asp-for="Email" type="email"
+               class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+        <label>Password</label>
+        <input asp-for="Password" type="password"
+               class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+        <label>Phone</label>
+        <input asp-for="Phone" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label>Address</label>
+        <textarea asp-for="Address"
+                  class="form-control"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-success">
+        Create Librarian
+    </button>
+</form>

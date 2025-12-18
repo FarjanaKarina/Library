@@ -1,0 +1,96 @@
+﻿@model IEnumerable<OnlineLibrary.Infrastructure.Domain.Entities.BorrowTransaction>
+
+@{
+    ViewData["Title"] = "Librarian Dashboard";
+}
+
+<div class="container mt-4">
+
+    <h2>Librarian Dashboard</h2>
+    <p class="text-muted">Manage borrowed and returned books</p>
+
+    <hr />
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            No active borrow records found.
+        </div>
+    }
+    else
+    {
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Borrow Date</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Fine (TK)</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var b in Model)
+                {
+                    var isOverdue = !b.IsReturned && b.DueDate < DateTime.Today;
+
+                    <tr>
+                        <td>@b.BorrowDate.ToString("yyyy-MM-dd")</td>
+                        <td>@b.DueDate.ToString("yyyy-MM-dd")</td>
+
+                        <td>
+                            @if (b.IsReturned)
+                            {
+                                <span class="badge bg-secondary">Returned</span>
+                            }
+                            else if (isOverdue)
+                            {
+                                <span class="badge bg-danger">Overdue</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                        </td>
+
+                        <td>
+                            @if (b.FineAmount > 0)
+                            {
+                                <span class="text-danger fw-bold">
+                                    @b.FineAmount TK
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </td>
+
+                        <td>
+                            @if (!b.IsReturned)
+                            {
+                                <form asp-action="Return"
+                                      method="post"
+                                      style="display:inline">
+                                    <input type="hidden"
+                                           name="borrowId"
+                                           value="@b.BorrowId" />
+
+                                    <button type="submit"
+                                            class="btn btn-sm btn-primary">
+                                        Return Book
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Completed</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+</div>
