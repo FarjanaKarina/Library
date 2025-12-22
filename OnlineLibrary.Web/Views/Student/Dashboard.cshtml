@@ -1,6 +1,10 @@
 ﻿@model OnlineLibrary.Web.Models.StudentDashboardViewModel
 
 @{
+    Layout = "_StudentLayout";
+}
+
+@{
     ViewData["Title"] = "Student Dashboard";
 }
 
@@ -10,6 +14,12 @@
     <p class="text-muted">@Model.Email</p>
 
     <hr />
+
+    <a asp-action="BrowseBooks"
+       class="btn btn-primary mb-3">
+        Browse Books
+    </a>
+
 
     <!-- MEMBERSHIP STATUS -->
     <div class="card mb-4">
@@ -54,6 +64,8 @@
                             <th>Due Date</th>
                             <th>Fine (TK)</th>
                             <th>Status</th>
+                            <th>Action</th>
+
                         </tr>
                     </thead>
                     <tbody>
@@ -82,6 +94,30 @@
                                 @item.Status
                             </span>
                         </td>
+                        <td>
+                            <a asp-controller="Book"
+                               asp-action="Details"
+                               asp-route-id="@item.BookId"
+                               class="btn btn-sm btn-info mb-1">
+                                View Details
+                            </a>
+
+                            @if (item.Status == "Active" || item.Status == "Overdue")
+                                    {
+                                        <form asp-action="ReturnBook"
+                                              method="post"
+                                              style="display:inline">
+                                            <input type="hidden"
+                                                   name="borrowId"
+                                                   value="@item.BorrowId" />
+
+                                            <button class="btn btn-sm btn-warning">
+                                                Return
+                                            </button>
+                                        </form>
+                                    }
+                                </td>
+
                     </tr>
                                         }
                     </tbody>

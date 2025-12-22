@@ -1,0 +1,56 @@
+﻿@model IEnumerable<dynamic>
+
+@{
+    Layout = "_LibrarianLayout";
+}
+
+<div class="container mt-4">
+
+    <h2>Fine Verification</h2>
+    <p class="text-muted">
+        Verify fine payments submitted by users
+    </p>
+
+    <hr />
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-success">
+            No pending fine payments.
+        </div>
+    }
+    else
+    {
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>User</th>
+                    <th>Book</th>
+                    <th>Due Date</th>
+                    <th>Fine (TK)</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var f in Model)
+                {
+                    <tr>
+                        <td>@f.UserName</td>
+                        <td>@f.BookTitle</td>
+                        <td>@f.DueDate.ToString("yyyy-MM-dd")</td>
+                        <td>@f.FineAmount</td>
+                        <td>
+                            <form asp-action="ConfirmFine" method="post">
+                                <input type="hidden" name="borrowId" value="@f.BorrowId" />
+                                <button class="btn btn-success btn-sm">
+                                    Confirm Payment
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+</div>

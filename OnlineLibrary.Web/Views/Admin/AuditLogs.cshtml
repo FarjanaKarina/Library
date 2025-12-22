@@ -1,0 +1,68 @@
+﻿@model IEnumerable<OnlineLibrary.Web.Models.AdminAuditLogViewModel>
+
+@{
+    ViewData["Title"] = "Audit Logs";
+}
+
+<div class="container mt-4">
+
+    <h2>Audit Logs</h2>
+    <p class="text-muted">
+        System activity log (Admin & Librarian actions)
+    </p>
+
+    <hr />
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            No audit records found.
+        </div>
+    }
+    else
+    {
+        <table class="table table-bordered table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Date</th>
+                    <th>User</th>
+                    <th>Role</th>
+                    <th>Action</th>
+                    <th>Entity</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var log in Model)
+                {
+                    <tr>
+                        <td>
+                            @log.CreatedAt.ToLocalTime()
+                            .ToString("yyyy-MM-dd HH:mm")
+                        </td>
+
+                        <td>@log.ActorName</td>
+
+                        <td>
+                            <span class="badge
+                                        @(log.ActorRole == "Admin"
+                                                                      ? "bg-danger"
+                                                                      : "bg-primary")">
+                        @log.ActorRole
+                    </span>
+                </td>
+
+                        <td>
+                            <strong>@log.Action</strong>
+                        </td>
+
+                        <td>@log.EntityName</td>
+
+                        <td>@log.Description</td>
+                    </tr>
+                        }
+            </tbody>
+        </table>
+    }
+
+</div>

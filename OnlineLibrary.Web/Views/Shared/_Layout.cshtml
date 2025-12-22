@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@using OnlineLibrary.Infrastructure.Data
+@inject ApplicationDbContext Db
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -7,6 +9,7 @@
     <script type="importmap"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/OnlineLibrary.Web.styles.css" asp-append-version="true" />
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -51,18 +54,42 @@
                         }
                         else
                         {
-                            <li class="nav-item">
-                                <form asp-controller="Account"
-                                      asp-action="Logout"
-                                      method="post"
-                                      class="d-inline">
-                                    <button type="submit"
-                                            class="btn btn-link nav-link"
-                                            style="padding: 0;">
-                                        Logout
-                                    </button>
-                                </form>
-                            </li>
+                            <ul class="navbar-nav d-flex align-items-center">
+
+                                @if (Context.Session.GetString("UserId") != null)
+                                {
+                                    var uid = Guid.Parse(Context.Session.GetString("UserId"));
+                                    var unread = Db.Notifications.Count(n => n.UserId == uid && !n.IsRead);
+
+                                    <li class="nav-item">
+                                        <a class="nav-link position-relative"
+                                           asp-controller="Notification"
+                                           asp-action="Index">
+                                            <i class="bi bi-bell"></i>
+
+                                            @if (unread > 0)
+                                            {
+                                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
+                                                    @unread
+                                                </span>
+                                            }
+                                        </a>
+                                    </li>
+                                }
+
+                                <li class="nav-item">
+                                    <form asp-controller="Account"
+                                          asp-action="Logout"
+                                          method="post"
+                                          class="d-inline">
+                                        <button type="submit" class="nav-link btn btn-link p-0 text-danger">
+                                            <i class="bi bi-box-arrow-right"></i> Logout
+                                        </button>
+                                    </form>
+                                </li>
+
+                            </ul>
+
                         }
                     </ul>
                 </div>

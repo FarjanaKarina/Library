@@ -21,6 +21,7 @@ namespace OnlineLibrary.Infrastructure.Domain.Entities
 
         public bool IsReturned { get; set; }
         public decimal FineAmount { get; set; }
+        public bool IsFinePaid { get; set; } = false;
 
     }
 }

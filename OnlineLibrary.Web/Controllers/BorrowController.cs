@@ -38,6 +38,20 @@ namespace OnlineLibrary.Web.Controllers
             if (book == null || book.TotalCopies <= 0)
                 return Content("Book not available.");
 
+            var alreadyBorrowed = _context.BorrowTransactions.Any(b =>
+    b.UserId == userId &&
+    b.BookId == bookId &&
+    !b.IsReturned);
+
+            if (alreadyBorrowed)
+                return Content("You have already borrowed this book.");
+
+            var activeBorrowCount = _context.BorrowTransactions.Count(b =>
+    b.UserId == userId && !b.IsReturned);
+
+            if (activeBorrowCount >= 3)
+                return Content("You cannot borrow more than 3 books at a time.");
+
             var borrow = new BorrowTransaction
             {
                 BorrowId = Guid.NewGuid(),

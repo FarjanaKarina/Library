@@ -1,91 +1,142 @@
-﻿@model IEnumerable<OnlineLibrary.Infrastructure.Domain.Entities.BorrowTransaction>
-
+﻿@model OnlineLibrary.Web.Models.LibrarianDashboardViewModel
 @{
-    ViewData["Title"] = "Librarian Dashboard";
+    Layout = "_LibrarianLayout";
 }
+
 
 <div class="container mt-4">
 
     <h2>Librarian Dashboard</h2>
-    <p class="text-muted">Manage borrowed and returned books</p>
 
-    <hr />
-
-    @if (!Model.Any())
-    {
-        <div class="alert alert-info">
-            No active borrow records found.
+    <!-- ========================= -->
+    <!-- SUMMARY CARDS -->
+    <!-- ========================= -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-dark text-white">
+                <div class="card-body">
+                    <h6>Total Books</h6>
+                    <h3>@ViewBag.TotalBooks</h3>
+                </div>
+            </div>
         </div>
+
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h6>Active Borrows</h6>
+                    <h3>@ViewBag.ActiveBorrows</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h6>Overdue</h6>
+                    <h3>@ViewBag.OverdueBorrows</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h6>Active Memberships</h6>
+                    <h3>@ViewBag.ActiveMemberships</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- OVERDUE BORROWS -->
+    <!-- ========================= -->
+    <h4>Overdue Borrowed Books</h4>
+
+    @if (!Model.OverdueBorrows.Any())
+    {
+        <p class="text-muted">No overdue books.</p>
     }
     else
     {
-        <table class="table table-bordered table-hover">
+        <table class="table table-bordered">
             <thead class="table-dark">
                 <tr>
-                    <th>Borrow Date</th>
+                    <th>Student</th>
+                    <th>Book</th>
                     <th>Due Date</th>
-                    <th>Status</th>
+                    <th>Days</th>
                     <th>Fine (TK)</th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var b in Model)
+                @foreach (var o in Model.OverdueBorrows)
                 {
-                    var isOverdue = !b.IsReturned && b.DueDate < DateTime.Today;
-
                     <tr>
-                        <td>@b.BorrowDate.ToString("yyyy-MM-dd")</td>
-                        <td>@b.DueDate.ToString("yyyy-MM-dd")</td>
-
+                        <td>@o.StudentName</td>
+                        <td>@o.BookTitle</td>
+                        <td>@o.DueDate.ToString("yyyy-MM-dd")</td>
+                        <td>@o.OverdueDays</td>
+                        <td>@o.FineAmount</td>
                         <td>
-                            @if (b.IsReturned)
-                            {
-                                <span class="badge bg-secondary">Returned</span>
-                            }
-                            else if (isOverdue)
-                            {
-                                <span class="badge bg-danger">Overdue</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-success">Active</span>
-                            }
+                            <form asp-action="SendOverdueWarning" method="post">
+                                <input type="hidden" name="borrowId" value="@o.BorrowId" />
+                                <button class="btn btn-warning btn-sm">
+                                    Send Warning
+                                </button>
+                            </form>
                         </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
 
+    <!-- ========================= -->
+    <!-- MEMBERSHIP REQUESTS -->
+    <!-- ========================= -->
+    <h4 class="mt-5">Pending Membership Requests</h4>
+
+    @if (!Model.PendingMemberships.Any())
+    {
+        <p class="text-muted">No pending membership requests.</p>
+    }
+    else
+    {
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Student</th>
+                    <th>Email</th>
+                    <th>Applied At</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var m in Model.PendingMemberships)
+                {
+                    <tr>
+                        <td>@m.StudentName</td>
+                        <td>@m.Email</td>
+                        <td>@m.AppliedAt.ToString("yyyy-MM-dd")</td>
                         <td>
-                            @if (b.FineAmount > 0)
-                            {
-                                <span class="text-danger fw-bold">
-                                    @b.FineAmount TK
-                                </span>
-                            }
-                            else
-                            {
-                                <span class="text-muted">-</span>
-                            }
-                        </td>
+                            <form asp-controller="Admin"
+                                  asp-action="ApproveMembership"
+                                  method="post"
+                                  style="display:inline">
+                                <input type="hidden" name="id" value="@m.MembershipId" />
+                                <button class="btn btn-success btn-sm">Approve</button>
+                            </form>
 
-                        <td>
-                            @if (!b.IsReturned)
-                            {
-                                <form asp-action="Return"
-                                      method="post"
-                                      style="display:inline">
-                                    <input type="hidden"
-                                           name="borrowId"
-                                           value="@b.BorrowId" />
-
-                                    <button type="submit"
-                                            class="btn btn-sm btn-primary">
-                                        Return Book
-                                    </button>
-                                </form>
-                            }
-                            else
-                            {
-                                <span class="text-muted">Completed</span>
-                            }
+                            <form asp-controller="Admin"
+                                  asp-action="RejectMembership"
+                                  method="post"
+                                  style="display:inline">
+                                <input type="hidden" name="id" value="@m.MembershipId" />
+                                <button class="btn btn-danger btn-sm">Reject</button>
+                            </form>
                         </td>
                     </tr>
                 }

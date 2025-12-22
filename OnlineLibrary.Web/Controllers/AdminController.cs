@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OnlineLibrary.Infrastructure.Data;
 using OnlineLibrary.Infrastructure.Domain.Entities;
+using OnlineLibrary.Infrastructure.Helpers;
 using OnlineLibrary.Infrastructure.Security;
 using OnlineLibrary.Web.Models;
 
@@ -44,11 +45,11 @@ namespace OnlineLibrary.Web.Controllers
             ViewBag.TotalUsers = _context.Users.Count();
             ViewBag.TotalBooks = _context.Books.Count();
             ViewBag.TotalCategories = _context.Categories.Count();
-            ViewBag.ActiveMemberships = _context.Memberships.Count(m => m.IsActive);
+
             var librarianRoleId = _context.Roles
-    .Where(r => r.RoleName == "Librarian")
-    .Select(r => r.RoleId)
-    .FirstOrDefault();
+                .Where(r => r.RoleName == "Librarian")
+                .Select(r => r.RoleId)
+                .FirstOrDefault();
 
             ViewBag.ActiveLibrarians = _context.Users
                 .Count(u => u.RoleId == librarianRoleId && u.IsActive);
@@ -57,18 +58,37 @@ namespace OnlineLibrary.Web.Controllers
             // MEMBERSHIP REQUEST COUNTS
             // =========================
             ViewBag.PendingMemberships = _context.Memberships
-     .Count(m => m.Status == "Pending");
+                .Count(m => m.Status == "Pending");
 
             ViewBag.ApprovedMemberships = _context.Memberships
                 .Count(m => m.Status == "Approved");
 
             ViewBag.ActiveMemberships = _context.Memberships
-    .Count(m => m.Status == "Approved");
-
+                .Count(m => m.IsActive);
 
             return View();
         }
 
+        [HttpPost]
+        public IActionResult SendAnnouncement(string title, string message)
+        {
+            if (!IsAdmin())
+                return RedirectToAction("Login", "Account");
+
+            NotificationHelper.Broadcast(
+                _context,
+                title,
+                message,
+                "system"
+            );
+
+            return RedirectToAction("Dashboard");
+        }
+
+
+        // =========================
+        // Membership Requests
+        // =========================
         public IActionResult Memberships()
         {
             if (!IsAdmin())
@@ -76,8 +96,7 @@ namespace OnlineLibrary.Web.Controllers
 
             var memberships =
                 from m in _context.Memberships
-                join u in _context.Users
-                    on m.UserId equals u.UserId
+                join u in _context.Users on m.UserId equals u.UserId
                 orderby m.AppliedAt descending
                 select new MembershipRequestViewModel
                 {
@@ -107,7 +126,30 @@ namespace OnlineLibrary.Web.Controllers
             membership.ExpiryDate = DateTime.Today.AddYears(1);
             membership.IsActive = true;
 
+            // =========================
+            // AUDIT LOG: MEMBERSHIP APPROVED
+            // =========================
+            _context.AuditLogs.Add(new AuditLog
+            {
+                AuditLogId = Guid.NewGuid(),
+                ActorUserId = Guid.Parse(HttpContext.Session.GetString("UserId")),
+                ActorRole = "Admin",
+                Action = "Membership Approved",
+                EntityName = "Membership",
+                EntityId = membership.MembershipId,
+                Description = $"Membership approved for UserId {membership.UserId}",
+                CreatedAt = DateTime.UtcNow
+            });
+
             _context.SaveChanges();
+
+            NotificationHelper.Send(
+                _context,
+                membership.UserId,
+                "Membership Approved",
+                "Your membership has been approved.",
+                "success"
+            );
 
             return RedirectToAction("Memberships");
         }
@@ -125,12 +167,19 @@ namespace OnlineLibrary.Web.Controllers
             membership.Status = "Rejected";
             _context.SaveChanges();
 
+            NotificationHelper.Send(
+                _context,
+                membership.UserId,
+                "Membership Rejected",
+                "Your membership has been rejected.",
+                "warning"
+            );
+
             return RedirectToAction("Memberships");
         }
 
-
         // =========================
-        //CREATE LIBRARIAN (GET)//
+        // CREATE LIBRARIAN (GET)
         // =========================
         public IActionResult CreateLibrarian()
         {
@@ -141,7 +190,7 @@ namespace OnlineLibrary.Web.Controllers
         }
 
         // =========================
-        //CREATE LIBRARIAN (POST)//
+        // CREATE LIBRARIAN (POST)
         // =========================
         [HttpPost]
         public IActionResult CreateLibrarian(LibrarianCreateViewModel model)
@@ -179,6 +228,9 @@ namespace OnlineLibrary.Web.Controllers
             return RedirectToAction("Librarians");
         }
 
+        // =========================
+        // List Librarians
+        // =========================
         public IActionResult Librarians()
         {
             if (!IsAdmin())
@@ -195,8 +247,36 @@ namespace OnlineLibrary.Web.Controllers
 
             return View(librarians);
         }
+        // =========================
+        // AUDIT LOGS (READ ONLY)
+        // =========================
+        public IActionResult AuditLogs()
+        {
+            if (!IsAdmin())
+                return RedirectToAction("Login", "Account");
+
+            var logs =
+                from a in _context.AuditLogs
+                join u in _context.Users
+                    on a.ActorUserId equals u.UserId
+                orderby a.CreatedAt descending
+                select new AdminAuditLogViewModel
+                {
+                    ActorName = u.FullName,
+                    ActorRole = a.ActorRole,
+                    Action = a.Action,
+                    EntityName = a.EntityName,
+                    Description = a.Description,
+                    CreatedAt = a.CreatedAt
+                };
+
+            return View(logs.ToList());
+        }
 
 
+        // =========================
+        // Helper: Is Admin
+        // =========================
         private bool IsAdmin()
         {
             var roleId = HttpContext.Session.GetString("RoleId");
@@ -210,6 +290,5 @@ namespace OnlineLibrary.Web.Controllers
 
             return roleName == "Admin";
         }
-
     }
 }

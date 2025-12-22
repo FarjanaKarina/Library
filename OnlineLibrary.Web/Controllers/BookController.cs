@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using OnlineLibrary.Infrastructure.Data;
 using OnlineLibrary.Infrastructure.Domain.Entities;
+using OnlineLibrary.Infrastructure.Helpers;
 using OnlineLibrary.Web.Models;
 
 namespace OnlineLibrary.Web.Controllers
@@ -22,7 +23,7 @@ namespace OnlineLibrary.Web.Controllers
         // =========================
         public IActionResult Index()
         {
-            if (!IsAdmin())
+            if (!IsAdminOrLibrarian())
                 return RedirectToAction("Login", "Account");
 
             var books = (
@@ -88,7 +89,7 @@ namespace OnlineLibrary.Web.Controllers
         // =========================
         public IActionResult Create()
         {
-            if (!IsAdmin())
+            if (!IsAdminOrLibrarian())
                 return RedirectToAction("Login", "Account");
 
             LoadCategories();
@@ -101,7 +102,7 @@ namespace OnlineLibrary.Web.Controllers
         [HttpPost]
         public IActionResult Create(Book model, IFormFile imageFile)
         {
-            if (!IsAdmin())
+            if (!IsAdminOrLibrarian())
                 return RedirectToAction("Login", "Account");
 
             LoadCategories(model.CategoryId);
@@ -198,7 +199,42 @@ namespace OnlineLibrary.Web.Controllers
             _context.Books.Add(model);
             _context.SaveChanges();
 
+            // =========================
+            // AUDIT LOG: BOOK ADDED
+            // =========================
+            _context.AuditLogs.Add(new AuditLog
+            {
+                AuditLogId = Guid.NewGuid(),
+                ActorUserId = Guid.Parse(HttpContext.Session.GetString("UserId")),
+                ActorRole = GetCurrentRole(), // Admin or Librarian
+                Action = "Book Added",
+                EntityName = "Book",
+                EntityId = model.BookId,
+                Description = $"Book '{model.Title}' was added."
+            });
+
+            _context.SaveChanges();
+
+
+            NotificationHelper.Broadcast(
+    _context,
+    "New Book Added",
+    $"'{model.Title}' is now available in the library.",
+    "system");
+
             return RedirectToAction(nameof(Index));
+        }
+
+        private string GetCurrentRole()
+        {
+            var roleId = HttpContext.Session.GetString("RoleId");
+            if (string.IsNullOrEmpty(roleId))
+                return "Unknown";
+
+            return _context.Roles
+                .Where(r => r.RoleId == Guid.Parse(roleId))
+                .Select(r => r.RoleName)
+                .FirstOrDefault() ?? "Unknown";
         }
 
         // =========================
@@ -206,7 +242,7 @@ namespace OnlineLibrary.Web.Controllers
         // =========================
         public IActionResult Edit(Guid id)
         {
-            if (!IsAdmin())
+            if (!IsAdminOrLibrarian())
                 return RedirectToAction("Login", "Account");
 
             var book = _context.Books.Find(id);
@@ -223,7 +259,7 @@ namespace OnlineLibrary.Web.Controllers
         [HttpPost]
         public IActionResult Edit(Book model, IFormFile imageFile)
         {
-            if (!IsAdmin())
+            if (!IsAdminOrLibrarian())
                 return RedirectToAction("Login", "Account");
 
             LoadCategories(model.CategoryId);
@@ -354,7 +390,7 @@ namespace OnlineLibrary.Web.Controllers
         [HttpPost]
         public IActionResult Delete(Guid id)
         {
-            if (!IsAdmin())
+            if (!IsAdminOrLibrarian())
                 return RedirectToAction("Login", "Account");
 
             var book = _context.Books.Find(id);
@@ -391,7 +427,7 @@ namespace OnlineLibrary.Web.Controllers
             );
         }
 
-        private bool IsAdmin()
+        private bool IsAdminOrLibrarian()
         {
             var roleId = HttpContext.Session.GetString("RoleId");
             if (string.IsNullOrEmpty(roleId))
@@ -402,7 +438,9 @@ namespace OnlineLibrary.Web.Controllers
                 .Select(r => r.RoleName)
                 .FirstOrDefault();
 
-            return roleName == "Admin";
+            return roleName == "Admin" || roleName == "Librarian";
         }
+
+
     }
 }

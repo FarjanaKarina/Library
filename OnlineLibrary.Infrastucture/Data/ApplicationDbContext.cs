@@ -26,5 +26,7 @@ namespace OnlineLibrary.Infrastructure.Data
 
         // Optional
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
+
     }
 }
