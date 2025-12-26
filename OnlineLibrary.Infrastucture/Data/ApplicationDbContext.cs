@@ -18,11 +18,15 @@ namespace OnlineLibrary.Infrastructure.Data
         // Library
         public DbSet<Category> Categories { get; set; }
         public DbSet<Book> Books { get; set; }
+        public DbSet<BookCategory> BookCategories { get; set; }
+
 
         // Membership & Transactions
         public DbSet<Membership> Memberships { get; set; }
         public DbSet<BorrowTransaction> BorrowTransactions { get; set; }
         public DbSet<Fine> Fines { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+
 
         // Optional
         public DbSet<Notification> Notifications { get; set; }

@@ -21,7 +21,7 @@
                 <th style="width:90px;">Image</th>
                 <th>Title</th>
                 <th>Author</th>
-                <th>Category</th>
+                <th>Categories</th>
                 <th>Price (TK)</th>
                 <th>Copies</th>
                 <th>Purchase Date</th>
@@ -70,7 +70,19 @@
 
                         <!-- CATEGORY -->
                         <td>
-                            @book.CategoryName
+                            @if (book.Categories != null && book.Categories.Any())
+                            {
+                                @foreach (var cat in book.Categories)
+                                {
+                                    <span class="badge bg-secondary me-1">
+                                        @cat
+                                    </span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">No category</span>
+                            }
                         </td>
 
                         <!-- PRICE -->
@@ -90,6 +102,12 @@
 
                         <!-- ACTIONS -->
                         <td>
+                            <a asp-action="Details"
+                               asp-route-id="@book.BookId"
+                               class="btn btn-sm btn-info mb-1">
+                                Details
+                            </a>
+
                             <a asp-action="Edit"
                                asp-route-id="@book.BookId"
                                class="btn btn-sm btn-warning me-1">

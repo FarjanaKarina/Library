@@ -13,7 +13,7 @@
         public DateTime PurchaseDate { get; set; }
 
         public string? ImageUrl { get; set; }
+        public List<string> Categories { get; set; } = new();
 
-        public string CategoryName { get; set; }
     }
 }

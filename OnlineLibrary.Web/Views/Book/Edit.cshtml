@@ -1,4 +1,8 @@
 ﻿@model OnlineLibrary.Infrastructure.Domain.Entities.Book
+@{
+    var selectedCategoryIds =
+        ViewBag.SelectedCategoryIds as List<Guid> ?? new List<Guid>();
+}
 
 @{
     ViewData["Title"] = "Edit Book";
@@ -22,15 +26,6 @@
 
         <input type="hidden" asp-for="BookId" />
 
-        <!-- CATEGORY -->
-        <div class="mb-3">
-            <label class="form-label">Category</label>
-            <select asp-for="CategoryId"
-                    asp-items="ViewBag.Categories"
-                    class="form-select category-select"
-                    required>
-            </select>
-        </div>
 
         <!-- TITLE -->
         <div class="mb-3">
@@ -48,6 +43,34 @@
         <div class="mb-3">
             <label class="form-label">Publisher</label>
             <input asp-for="Publisher" class="form-control" />
+        </div>
+
+        <!-- CATEGORY -->
+        <div class="mb-3">
+            <label class="form-label">Categories</label>
+
+            <select name="CategoryIds"
+                    class="form-select category-select"
+                    multiple
+                    style="width:100%">
+
+                @foreach (var c in ViewBag.Categories)
+                {
+                    if (selectedCategoryIds.Contains(c.CategoryId))
+                    {
+                        <option value="@c.CategoryId" selected>
+                            @c.CategoryName
+                        </option>
+                    }
+                    else
+                    {
+                        <option value="@c.CategoryId">
+                            @c.CategoryName
+                        </option>
+                    }
+                }
+
+            </select>
         </div>
 
         <!-- ISBN -->
@@ -134,8 +157,12 @@
     <script>
         $(document).ready(function () {
             $('.category-select').select2({
+                placeholder: "Select categories",
+                allowClear: true,
+                closeOnSelect: false,
                 width: '100%'
             });
         });
     </script>
 }
+

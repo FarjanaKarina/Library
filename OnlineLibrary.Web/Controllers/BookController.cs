@@ -26,26 +26,38 @@ namespace OnlineLibrary.Web.Controllers
             if (!IsAdminOrLibrarian())
                 return RedirectToAction("Login", "Account");
 
-            var books = (
-                from b in _context.Books
-                join c in _context.Categories
-                    on b.CategoryId equals c.CategoryId
-                orderby b.CreatedAt descending
-                select new BookListViewModel
-                {
-                    BookId = b.BookId,
-                    Title = b.Title,
-                    Author = b.Author,
-                    Price = b.Price,
-                    TotalCopies = b.TotalCopies,
-                    PurchaseDate = b.PurchaseDate,
-                    ImageUrl = b.ImageUrl,
-                    CategoryName = c.CategoryName
-                }
-            ).ToList();
+            var books =
+                (from b in _context.Books
+                 orderby b.CreatedAt descending
+                 select new BookListViewModel
+                 {
+                     BookId = b.BookId,
+                     Title = b.Title,
+                     Author = b.Author,
+                     Price = b.Price,
+                     TotalCopies = b.TotalCopies,
+                     PurchaseDate = b.PurchaseDate,
+                     ImageUrl = b.ImageUrl,
+
+                     // ✅ MULTIPLE CATEGORIES
+                     Categories = (
+                         from bc in _context.BookCategories
+                         join c in _context.Categories
+                             on bc.CategoryId equals c.CategoryId
+                         where bc.BookId == b.BookId
+                         select c.CategoryName
+                     ).ToList()
+                 }).ToList();
+
+            ViewBag.CurrentRole = _context.Roles
+    .Where(r => r.RoleId == Guid.Parse(HttpContext.Session.GetString("RoleId")))
+    .Select(r => r.RoleName)
+    .FirstOrDefault();
+
 
             return View(books);
         }
+
         // =========================
         // DETAILS 
         // =========================
@@ -53,16 +65,12 @@ namespace OnlineLibrary.Web.Controllers
         {
             // 🔐 LOGIN REQUIRED
             if (HttpContext.Session.GetString("UserId") == null)
-            {
                 return RedirectToAction("Login", "Account");
-            }
 
             var book =
                 (from b in _context.Books
-                 join c in _context.Categories
-                     on b.CategoryId equals c.CategoryId
                  where b.BookId == id
-                 select new OnlineLibrary.Web.Models.BookDetailsViewModel
+                 select new BookDetailsViewModel
                  {
                      BookId = b.BookId,
                      Title = b.Title,
@@ -70,11 +78,19 @@ namespace OnlineLibrary.Web.Controllers
                      Publisher = b.Publisher,
                      ISBN = b.ISBN,
                      Description = b.Description,
-                     CategoryName = c.CategoryName,
                      PublishDate = b.PublishDate,
                      Price = b.Price,
                      TotalCopies = b.TotalCopies,
-                     ImageUrl = b.ImageUrl
+                     ImageUrl = b.ImageUrl,
+
+                     // ✅ MULTIPLE CATEGORIES
+                     Categories = (
+                         from bc in _context.BookCategories
+                         join c in _context.Categories
+                             on bc.CategoryId equals c.CategoryId
+                         where bc.BookId == b.BookId
+                         select c.CategoryName
+                     ).ToList()
                  }).FirstOrDefault();
 
             if (book == null)
@@ -100,26 +116,27 @@ namespace OnlineLibrary.Web.Controllers
         // CREATE (POST)
         // =========================
         [HttpPost]
-        public IActionResult Create(Book model, IFormFile imageFile)
+        public IActionResult Create(Book model, List<Guid> CategoryIds, IFormFile imageFile)
         {
             if (!IsAdminOrLibrarian())
                 return RedirectToAction("Login", "Account");
 
-            LoadCategories(model.CategoryId);
-
-            // -------------------------
+            // =========================
             // VALIDATIONS
-            // -------------------------
-
-            if (model.CategoryId == Guid.Empty)
+            // =========================
+            if (CategoryIds == null || !CategoryIds.Any())
             {
-                ViewBag.Error = "Please select a category.";
+                ViewBag.Error = "Please select at least one category.";
+                ViewBag.SelectedCategoryIds = CategoryIds;
+                LoadCategories();
                 return View(model);
             }
 
             if (string.IsNullOrWhiteSpace(model.Description))
             {
                 ViewBag.Error = "Description is required.";
+                ViewBag.SelectedCategoryIds = CategoryIds;
+                LoadCategories();
                 return View(model);
             }
 
@@ -128,18 +145,16 @@ namespace OnlineLibrary.Web.Controllers
             if (model.PublishDate > model.PurchaseDate)
             {
                 ViewBag.Error = "Publish date cannot be after purchase date.";
+                ViewBag.SelectedCategoryIds = CategoryIds;
+                LoadCategories();
                 return View(model);
             }
 
-            if (model.Price < 0)
+            if (model.Price < 0 || model.TotalCopies < 0)
             {
-                ViewBag.Error = "Price cannot be negative.";
-                return View(model);
-            }
-
-            if (model.TotalCopies < 0)
-            {
-                ViewBag.Error = "Total copies cannot be negative.";
+                ViewBag.Error = "Price and copies cannot be negative.";
+                ViewBag.SelectedCategoryIds = CategoryIds;
+                LoadCategories();
                 return View(model);
             }
 
@@ -149,6 +164,8 @@ namespace OnlineLibrary.Web.Controllers
                 if (model.ISBN.Length != 13)
                 {
                     ViewBag.Error = "ISBN must be exactly 13 characters.";
+                    ViewBag.SelectedCategoryIds = CategoryIds;
+                    LoadCategories();
                     return View(model);
                 }
 
@@ -156,57 +173,64 @@ namespace OnlineLibrary.Web.Controllers
                 if (isbnExists)
                 {
                     ViewBag.Error = "ISBN already exists.";
+                    ViewBag.SelectedCategoryIds = CategoryIds;
+                    LoadCategories();
                     return View(model);
                 }
             }
 
-            // -------------------------
+            // =========================
             // IMAGE UPLOAD
-            // -------------------------
+            // =========================
             if (imageFile != null && imageFile.Length > 0)
             {
-                var uploadsPath = Path.Combine(
-                    _environment.WebRootPath,
-                    "uploads",
-                    "books"
-                );
-
-                if (!Directory.Exists(uploadsPath))
-                    Directory.CreateDirectory(uploadsPath);
+                var uploadsPath = Path.Combine(_environment.WebRootPath, "uploads", "books");
+                Directory.CreateDirectory(uploadsPath);
 
                 var fileName = Guid.NewGuid() + Path.GetExtension(imageFile.FileName);
                 var filePath = Path.Combine(uploadsPath, fileName);
 
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    imageFile.CopyTo(stream);
-                }
+                using var stream = new FileStream(filePath, FileMode.Create);
+                imageFile.CopyTo(stream);
 
                 model.ImageUrl = "/uploads/books/" + fileName;
             }
 
-            // -------------------------
+            // =========================
             // SAVE BOOK
-            // -------------------------
+            // =========================
             model.BookId = Guid.NewGuid();
             model.CreatedAt = DateTime.UtcNow;
 
             if (string.IsNullOrWhiteSpace(model.ISBN))
-            {
                 model.ISBN = Guid.NewGuid().ToString("N").Substring(0, 13);
-            }
 
             _context.Books.Add(model);
             _context.SaveChanges();
 
             // =========================
-            // AUDIT LOG: BOOK ADDED
+            // SAVE CATEGORY MAPPINGS
+            // =========================
+            foreach (var categoryId in CategoryIds)
+            {
+                _context.BookCategories.Add(new BookCategory
+                {
+                    BookCategoryId = Guid.NewGuid(),
+                    BookId = model.BookId,
+                    CategoryId = categoryId
+                });
+            }
+
+            _context.SaveChanges();
+
+            // =========================
+            // AUDIT LOG
             // =========================
             _context.AuditLogs.Add(new AuditLog
             {
                 AuditLogId = Guid.NewGuid(),
                 ActorUserId = Guid.Parse(HttpContext.Session.GetString("UserId")),
-                ActorRole = GetCurrentRole(), // Admin or Librarian
+                ActorRole = GetCurrentRole(),
                 Action = "Book Added",
                 EntityName = "Book",
                 EntityId = model.BookId,
@@ -215,16 +239,17 @@ namespace OnlineLibrary.Web.Controllers
 
             _context.SaveChanges();
 
-
+            // =========================
+            // NOTIFICATION
+            // =========================
             NotificationHelper.Broadcast(
-    _context,
-    "New Book Added",
-    $"'{model.Title}' is now available in the library.",
-    "system");
+                _context,
+                "New Book Added",
+                $"'{model.Title}' is now available in the library.",
+                "system");
 
             return RedirectToAction(nameof(Index));
         }
-
         private string GetCurrentRole()
         {
             var roleId = HttpContext.Session.GetString("RoleId");
@@ -249,36 +274,38 @@ namespace OnlineLibrary.Web.Controllers
             if (book == null)
                 return NotFound();
 
-            LoadCategories(book.CategoryId);
+            LoadCategories();
+
+            ViewBag.SelectedCategoryIds = _context.BookCategories
+                .Where(bc => bc.BookId == id)
+                .Select(bc => bc.CategoryId)
+                .ToList();
+
             return View(book);
         }
 
-        // =========================
-        // EDIT (POST)
-        // =========================
         [HttpPost]
-        public IActionResult Edit(Book model, IFormFile imageFile)
+        public IActionResult Edit(Book model, List<Guid> CategoryIds, IFormFile imageFile)
         {
             if (!IsAdminOrLibrarian())
                 return RedirectToAction("Login", "Account");
 
-            LoadCategories(model.CategoryId);
-
-            if (model.CategoryId == Guid.Empty)
+            // =========================
+            // VALIDATION
+            // =========================
+            if (CategoryIds == null || !CategoryIds.Any())
             {
-                ViewBag.Error = "Please select a category.";
+                ViewBag.Error = "Please select at least one category.";
+                ViewBag.SelectedCategoryIds = CategoryIds;
+                LoadCategories();
                 return View(model);
             }
 
             if (string.IsNullOrWhiteSpace(model.Description))
             {
                 ViewBag.Error = "Description is required.";
-                return View(model);
-            }
-
-            if (imageFile == null || imageFile.Length == 0)
-            {
-                ViewBag.Error = "Book image is required.";
+                ViewBag.SelectedCategoryIds = CategoryIds;
+                LoadCategories();
                 return View(model);
             }
 
@@ -287,72 +314,41 @@ namespace OnlineLibrary.Web.Controllers
             if (model.PublishDate > model.PurchaseDate)
             {
                 ViewBag.Error = "Publish date cannot be after purchase date.";
+                ViewBag.SelectedCategoryIds = CategoryIds;
+                LoadCategories();
                 return View(model);
             }
 
-            if (model.Price < 0)
+            if (model.Price < 0 || model.TotalCopies < 0)
             {
-                ViewBag.Error = "Price cannot be negative.";
+                ViewBag.Error = "Price and copies cannot be negative.";
+                ViewBag.SelectedCategoryIds = CategoryIds;
+                LoadCategories();
                 return View(model);
-            }
-
-            if (model.TotalCopies < 0)
-            {
-                ViewBag.Error = "Total copies cannot be negative.";
-                return View(model);
-            }
-
-            // ISBN validation (exclude current)
-            if (!string.IsNullOrWhiteSpace(model.ISBN))
-            {
-                if (model.ISBN.Length != 13)
-                {
-                    ViewBag.Error = "ISBN must be exactly 13 characters.";
-                    return View(model);
-                }
-
-                var isbnExists = _context.Books.Any(b =>
-                    b.ISBN == model.ISBN && b.BookId != model.BookId);
-
-                if (isbnExists)
-                {
-                    ViewBag.Error = "ISBN already exists.";
-                    return View(model);
-                }
             }
 
             var existingBook = _context.Books.Find(model.BookId);
             if (existingBook == null)
                 return NotFound();
 
-            // -------------------------
-            // IMAGE UPDATE (OPTIONAL)
-            // -------------------------
+            // =========================
+            // IMAGE UPDATE
+            // =========================
             if (imageFile != null && imageFile.Length > 0)
             {
-                var uploadsPath = Path.Combine(
-                    _environment.WebRootPath,
-                    "uploads",
-                    "books"
-                );
-
-                if (!Directory.Exists(uploadsPath))
-                    Directory.CreateDirectory(uploadsPath);
+                var uploadsPath = Path.Combine(_environment.WebRootPath, "uploads", "books");
+                Directory.CreateDirectory(uploadsPath);
 
                 var fileName = Guid.NewGuid() + Path.GetExtension(imageFile.FileName);
                 var filePath = Path.Combine(uploadsPath, fileName);
 
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    imageFile.CopyTo(stream);
-                }
+                using var stream = new FileStream(filePath, FileMode.Create);
+                imageFile.CopyTo(stream);
 
                 if (!string.IsNullOrEmpty(existingBook.ImageUrl))
                 {
-                    var oldPath = Path.Combine(
-                        _environment.WebRootPath,
-                        existingBook.ImageUrl.TrimStart('/')
-                    );
+                    var oldPath = Path.Combine(_environment.WebRootPath,
+                        existingBook.ImageUrl.TrimStart('/'));
 
                     if (System.IO.File.Exists(oldPath))
                         System.IO.File.Delete(oldPath);
@@ -361,22 +357,38 @@ namespace OnlineLibrary.Web.Controllers
                 existingBook.ImageUrl = "/uploads/books/" + fileName;
             }
 
-            // -------------------------
-            // UPDATE FIELDS
-            // -------------------------
+            // =========================
+            // UPDATE BOOK
+            // =========================
             existingBook.Title = model.Title;
             existingBook.Author = model.Author;
             existingBook.Publisher = model.Publisher;
             existingBook.Description = model.Description;
-            existingBook.CategoryId = model.CategoryId;
             existingBook.PublishDate = model.PublishDate;
             existingBook.Price = model.Price;
             existingBook.TotalCopies = model.TotalCopies;
             existingBook.UpdatedAt = DateTime.UtcNow;
 
             if (!string.IsNullOrWhiteSpace(model.ISBN))
-            {
                 existingBook.ISBN = model.ISBN;
+
+            // =========================
+            // UPDATE CATEGORY MAPPINGS
+            // =========================
+            var oldMappings = _context.BookCategories
+                .Where(bc => bc.BookId == model.BookId)
+                .ToList();
+
+            _context.BookCategories.RemoveRange(oldMappings);
+
+            foreach (var categoryId in CategoryIds)
+            {
+                _context.BookCategories.Add(new BookCategory
+                {
+                    BookCategoryId = Guid.NewGuid(),
+                    BookId = model.BookId,
+                    CategoryId = categoryId
+                });
             }
 
             _context.SaveChanges();
@@ -417,14 +429,11 @@ namespace OnlineLibrary.Web.Controllers
         // =========================
         // HELPERS
         // =========================
-        private void LoadCategories(Guid? selectedId = null)
+        private void LoadCategories()
         {
-            ViewBag.Categories = new SelectList(
-                _context.Categories.OrderBy(c => c.OrderNo),
-                "CategoryId",
-                "CategoryName",
-                selectedId
-            );
+            ViewBag.Categories = _context.Categories
+                .OrderBy(c => c.OrderNo)
+                .ToList();
         }
 
         private bool IsAdminOrLibrarian()

@@ -43,6 +43,7 @@
         </div>
     </div>
 
+
     <!-- BORROW HISTORY -->
     <div class="card">
         <div class="card-body">
@@ -94,11 +95,11 @@
                                 @item.Status
                             </span>
                         </td>
-                        <td>
+                        <td class="text-nowrap">
                             <a asp-controller="Book"
                                asp-action="Details"
                                asp-route-id="@item.BookId"
-                               class="btn btn-sm btn-info mb-1">
+                               class="btn btn-sm btn-info me-1">
                                 View Details
                             </a>
 
@@ -106,24 +107,19 @@
                                     {
                                         <form asp-action="ReturnBook"
                                               method="post"
-                                              style="display:inline">
-                                            <input type="hidden"
-                                                   name="borrowId"
-                                                   value="@item.BorrowId" />
-
-                                            <button class="btn btn-sm btn-warning">
+                                              class="d-inline">
+                                            <input type="hidden" name="borrowId" value="@item.BorrowId" />
+                                            <button type="submit" class="btn btn-sm btn-warning">
                                                 Return
                                             </button>
                                         </form>
                                     }
-                                </td>
-
-                    </tr>
-                                        }
+                            </td>
+                        </tr>
+                      }
                     </tbody>
                 </table>
             }
         </div>
     </div>
-
 </div>

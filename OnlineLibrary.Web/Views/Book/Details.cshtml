@@ -25,7 +25,24 @@
             </p>
 
             <p>
-                <strong>Category:</strong> @Model.CategoryName
+                <div class="mb-3">
+                    <strong>Categories:</strong><br />
+
+                    @if (Model.Categories.Any())
+                    {
+                        @foreach (var cat in Model.Categories)
+                        {
+                            <span class="badge bg-info text-dark me-1">
+                                @cat
+                            </span>
+                        }
+                    }
+                    else
+                    {
+                        <span class="text-muted">No category assigned</span>
+                    }
+                </div>
+
             </p>
 
             <p>
@@ -58,14 +75,22 @@
             </p>
 
             <div class="mt-4">
-                <a asp-controller="Borrow"
-                   asp-action="Create"
-                   asp-route-bookId="@Model.BookId"
-                   class="btn btn-primary">
-                    Borrow Book
-                </a>
+                @if (ViewBag.CurrentRole == "Student")
+                {
+                    <form asp-controller="Student"
+                          asp-action="Borrow"
+                          method="post"
+                          class="mt-3">
 
-                <a asp-controller="Home"
+                        <input type="hidden" name="bookId" value="@Model.BookId" />
+
+                        <button class="btn btn-success">
+                            Borrow Book
+                        </button>
+                    </form>
+                }
+
+                <a asp-controller="Book"
                    asp-action="Index"
                    class="btn btn-secondary ms-2">
                     Back
