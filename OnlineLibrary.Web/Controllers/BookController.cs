@@ -63,10 +63,40 @@ namespace OnlineLibrary.Web.Controllers
         // =========================
         public IActionResult Details(Guid id)
         {
-            // 🔐 LOGIN REQUIRED
-            if (HttpContext.Session.GetString("UserId") == null)
-                return RedirectToAction("Login", "Account");
+            // =========================
+            // USER CONTEXT (OPTIONAL)
+            // =========================
+            var userIdStr = HttpContext.Session.GetString("UserId");
 
+            ViewBag.IsLoggedIn = !string.IsNullOrEmpty(userIdStr);
+            ViewBag.CurrentRole = null;
+            ViewBag.IsMember = false;
+
+            if (!string.IsNullOrEmpty(userIdStr))
+            {
+                var roleIdStr = HttpContext.Session.GetString("RoleId");
+
+                if (!string.IsNullOrEmpty(roleIdStr))
+                {
+                    var roleId = Guid.Parse(roleIdStr);
+
+                    ViewBag.CurrentRole = _context.Roles
+                        .Where(r => r.RoleId == roleId)
+                        .Select(r => r.RoleName)
+                        .FirstOrDefault();
+                }
+
+                var userId = Guid.Parse(userIdStr);
+
+                ViewBag.IsMember = _context.Memberships
+                    .Any(m => m.UserId == userId
+                           && m.IsActive
+                           && m.ExpiryDate >= DateTime.Today);
+            }
+
+            // =========================
+            // BOOK DETAILS
+            // =========================
             var book =
                 (from b in _context.Books
                  where b.BookId == id
@@ -82,6 +112,7 @@ namespace OnlineLibrary.Web.Controllers
                      Price = b.Price,
                      TotalCopies = b.TotalCopies,
                      ImageUrl = b.ImageUrl,
+                     PdfUrl = b.PdfUrl, 
 
                      // ✅ MULTIPLE CATEGORIES
                      Categories = (
@@ -99,7 +130,6 @@ namespace OnlineLibrary.Web.Controllers
             return View(book);
         }
 
-
         // =========================
         // CREATE (GET)
         // =========================
@@ -116,7 +146,7 @@ namespace OnlineLibrary.Web.Controllers
         // CREATE (POST)
         // =========================
         [HttpPost]
-        public IActionResult Create(Book model, List<Guid> CategoryIds, IFormFile imageFile)
+        public IActionResult Create(Book model, List<Guid> CategoryIds, IFormFile imageFile, IFormFile pdfFile)
         {
             if (!IsAdminOrLibrarian())
                 return RedirectToAction("Login", "Account");
@@ -195,7 +225,28 @@ namespace OnlineLibrary.Web.Controllers
 
                 model.ImageUrl = "/uploads/books/" + fileName;
             }
+            // =========================
+            // PDF UPLOAD
+            // =========================
+            if (pdfFile != null && pdfFile.Length > 0)
+            {
+                var pdfPath = Path.Combine(
+                    _environment.WebRootPath,
+                    "uploads",
+                    "books",
+                    "pdf"
+                );
 
+                Directory.CreateDirectory(pdfPath);
+
+                var pdfName = Guid.NewGuid() + ".pdf";
+                var fullPath = Path.Combine(pdfPath, pdfName);
+
+                using var stream = new FileStream(fullPath, FileMode.Create);
+                pdfFile.CopyTo(stream);
+
+                model.PdfUrl = "/uploads/books/pdf/" + pdfName;
+            }
             // =========================
             // SAVE BOOK
             // =========================

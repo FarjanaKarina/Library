@@ -1,122 +1,216 @@
 ﻿@using OnlineLibrary.Infrastructure.Data
 @inject ApplicationDbContext Db
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - OnlineLibrary.Web</title>
-    <script type="importmap"></script>
+    <title>@ViewData["Title"] - BookNest</title>
+    <!-- Multiple Category Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+    <!-- Site CSS -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/OnlineLibrary.Web.styles.css" asp-append-version="true" />
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
 </head>
+
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index"><img src="~/images/BookNestLogo.png" style="width:35px"/>BookNest</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+
+    <!-- =========================
+         NAVBAR
+    ========================== -->
+    @* <nav class="navbar navbar-expand-lg bg-white border-bottom shadow-sm fixed-top">
+        <div class="container">
+
+            <!-- LOGO -->
+            <a class="navbar-brand fw-bold fs-4 d-flex align-items-center"
+               asp-controller="Home"
+               asp-action="Index">
+                <img src="~/images/BookNestLogo.png" style="width:32px" class="me-2" />
+                <span class="text-danger">Book</span>Nest
+            </a>
+
+            <!-- TOGGLER -->
+            <button class="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#mainNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- NAV CONTENT -->
+            <div class="collapse navbar-collapse" id="mainNavbar">
+
+                <!-- CENTER MENU -->
+                <ul class="navbar-nav mx-auto gap-4 fw-semibold">
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Home" asp-action="About">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Book" asp-action="Browse">Books</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Home" asp-action="Contact">Contact</a>
+                    </li>
+                </ul>
+
+                <!-- RIGHT ICONS -->
+                <ul class="navbar-nav align-items-center gap-2 navbar-icons">
+
+                    <!-- 🔍 SEARCH (VISIBLE ON SCROLL) -->
+                    <li class="nav-item d-none" id="navSearchIcon">
+                        <a class="nav-link" href="#topSearch">
+                            <i class="bi bi-search fs-4"></i>
+                        </a>
+                    </li>
+
+                     🔔 NOTIFICATIONS (LOGGED IN ONLY) 
+                    @if (Context.Session.GetString("UserId") != null)
+                    {
+                        var uid = Guid.Parse(Context.Session.GetString("UserId"));
+                        var unread = Db.Notifications.Count(n => n.UserId == uid && !n.IsRead);
+
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
+                            <a class="nav-link position-relative"
+                               asp-controller="Notification"
+                               asp-action="Index">
+                                <i class="bi bi-bell fs-4"></i>
 
-                    <ul class="navbar-nav">
-                        @if (Context.Session.GetString("UserId") == null)
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link"
-                                   asp-controller="Account"
-                                   asp-action="Login">
-                                    Login
-                                </a>
-                            </li>
-
-                            <li class="nav-item">
-                                <a class="nav-link"
-                                   asp-controller="Account"
-                                   asp-action="Register">
-                                    Register
-                                </a>
-                            </li>
-                        }
-                        else
-                        {
-                            <ul class="navbar-nav d-flex align-items-center">
-
-                                @if (Context.Session.GetString("UserId") != null)
+                                @if (unread > 0)
                                 {
-                                    var uid = Guid.Parse(Context.Session.GetString("UserId"));
-                                    var unread = Db.Notifications.Count(n => n.UserId == uid && !n.IsRead);
-
-                                    <li class="nav-item">
-                                        <a class="nav-link position-relative"
-                                           asp-controller="Notification"
-                                           asp-action="Index">
-                                            <i class="bi bi-bell"></i>
-
-                                            @if (unread > 0)
-                                            {
-                                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
-                                                    @unread
-                                                </span>
-                                            }
-                                        </a>
-                                    </li>
+                                    <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
+                                        @unread
+                                    </span>
                                 }
+                            </a>
+                        </li>
+                    }
 
-                                <li class="nav-item">
+                    <!-- 👤 ACCOUNT -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle"
+                           href="#"
+                           role="button"
+                           data-bs-toggle="dropdown">
+                            <i class="bi bi-person fs-4"></i>
+                        </a>
+
+                        <ul class="dropdown-menu dropdown-menu-end">
+
+                            @if (Context.Session.GetString("UserId") == null)
+                            {
+                                <li>
+                                    <a class="dropdown-item"
+                                       asp-controller="Account"
+                                       asp-action="Login">
+                                        Sign In
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item"
+                                       asp-controller="Account"
+                                       asp-action="Register">
+                                        Sign Up
+                                    </a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li>
                                     <form asp-controller="Account"
                                           asp-action="Logout"
                                           method="post"
                                           class="d-inline">
-                                        <button type="submit" class="nav-link btn btn-link p-0 text-danger">
+                                        <button type="submit"
+                                                class="dropdown-item text-danger d-flex align-items-center gap-2">
                                             <i class="bi bi-box-arrow-right"></i> Logout
                                         </button>
+
                                     </form>
                                 </li>
+                            }
+                        </ul>
+                    </li>
 
-                            </ul>
+                    <!-- ❤️ WISHLIST (UI ONLY) -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-heart fs-4"></i>
+                        </a>
+                    </li>
 
-                        }
-                    </ul>
-                </div>
-                </div>
-        </nav>
+                    <!-- 🌙 DARK MODE -->
+                    <li class="nav-item">
+                        <button class="btn nav-link p-0" onclick="toggleDarkMode()">
+                            <i class="bi bi-moon fs-4"></i>
+                        </button>
+                    </li>
 
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - OnlineLibrary.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                </ul>
+            </div>
         </div>
+    </nav> *@
+
+    <!-- =========================
+         MAIN CONTENT
+    ========================== -->
+    @await Html.PartialAsync("_TopNavbar")
+
+    <main style="margin-top:70px;">
+        @RenderBody()
+    </main>
+
+    <!-- =========================
+         FOOTER
+    ========================== -->
+    <footer class="border-top py-3 text-muted text-center">
+        &copy; 2025 - BookNest. All rights reserved 
+        This template is made with <i class="bi bi-suit-heart-fill"></i> by KARINA
     </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- =========================
+         SCRIPTS
+    ========================== -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    <!-- Multiple Category Select2 CSS -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
+
+    <script>
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark-mode");
+            localStorage.setItem("darkMode",
+                document.body.classList.contains("dark-mode"));
+        }
+
+        if (localStorage.getItem("darkMode") === "true") {
+            document.body.classList.add("dark-mode");
+        }
+    </script>
+    <script>
+        window.addEventListener("scroll", function () {
+            const searchIcon = document.getElementById("navSearchIcon");
+
+            if (!searchIcon) return;
+
+            if (window.scrollY > 200) {
+                searchIcon.classList.remove("d-none");
+            } else {
+                searchIcon.classList.add("d-none");
+            }
+        });
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
+
 </body>
 </html>

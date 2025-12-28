@@ -98,10 +98,11 @@
         <!-- PURCHASE DATE (SYSTEM) -->
         <div class="mb-3">
             <label class="form-label">Purchase Date</label>
-            <input type="date"
+            <input type="text"
                    class="form-control"
-                   value="@Model.PurchaseDate.ToString("yyyy-MM-dd")"
+                   value="@Model.PurchaseDate.ToString("dd-MM-yyyy")"
                    readonly />
+
         </div>
 
         <!-- PRICE -->

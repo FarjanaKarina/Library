@@ -27,9 +27,10 @@ namespace OnlineLibrary.Infrastructure.Domain.Entities
 
         public int TotalCopies { get; set; } = 1;
 
-        public string ImageUrl { get; set; }
-
+        public string? ImageUrl { get; set; }
+        public string? PdfUrl { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
+        
     }
 }

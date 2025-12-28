@@ -29,3 +29,104 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+/* MAKE NAVBAR TALLER */
+.navbar {
+    min-height: 75px; /* taller navbar */
+}
+
+.navbar-brand {
+    font-size: 1.6rem;
+}
+
+.navbar-nav .nav-link {
+    font-size: 1.05rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+
+
+/* DARK MODE */
+.dark-mode {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+    .dark-mode .navbar {
+        background-color: #1f1f1f !important;
+    }
+
+        .dark-mode .navbar .nav-link,
+        .dark-mode .navbar-brand,
+        .dark-mode .navbar i {
+            color: #ffffff !important;
+        }
+
+    .dark-mode .dropdown-menu {
+        background-color: #1f1f1f;
+    }
+
+    .dark-mode .dropdown-item {
+        color: #ffffff;
+    }
+
+        .dark-mode .dropdown-item:hover {
+            background-color: #2a2a2a;
+        }
+
+        /* For Search Bar Dark Mode */
+    .dark-mode .input-group,
+    .dark-mode .form-control {
+        background-color: #1f1f1f;
+        color: #ffffff;
+    }
+
+        .dark-mode .form-control::placeholder {
+            color: #bbbbbb;
+        }
+
+    .dark-mode .btn-danger {
+        background-color: #dc3545;
+    }
+
+/* MAKE SEARCH BAR NICER */
+.input-group input:focus {
+    box-shadow: none;
+}
+
+.input-group {
+    background-color: #fff;
+}
+
+
+body {
+    padding-top: 75px; /* MUST match navbar height */
+}
+
+/* Sidebar layout */
+.sidebar {
+    width: 240px;
+    position: fixed;
+    top: 70px; /* height of navbar */
+    left: 0;
+    height: calc(100vh - 70px);
+    background-color: #f8f9fa;
+    border-right: 1px solid #ddd;
+    padding: 15px;
+    overflow-y: auto;
+}
+
+/* Main content shifts right */
+.main-content {
+    margin-left: 240px;
+    padding: 20px;
+    margin-top: 70px; /* navbar height */
+}
+
+/* Fixed navbar */
+.navbar-fixed {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1050;
+}
+

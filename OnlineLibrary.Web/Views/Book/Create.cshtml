@@ -96,11 +96,13 @@
         <!-- PURCHASE DATE (SYSTEM) -->
         <div class="mb-3">
             <label class="form-label">Purchase Date</label>
-            <input type="date"
+            <input type="text"
                    class="form-control"
-                   value="@DateTime.Today.ToString("yyyy-MM-dd")"
+                   value="@DateTime.Today.ToString("dd-MM-yyyy")"
                    readonly />
+
             <small class="text-muted">Set automatically by system</small>
+
         </div>
 
         <!-- PRICE (TK) -->
@@ -130,6 +132,15 @@
                    class="form-control"
                    accept="image/*" />
         </div>
+        <!-- PDF FILE -->
+        <div class="mb-3">
+            <label class="form-label">Book PDF (optional)</label>
+            <input type="file"
+                   name="pdfFile"
+                   class="form-control"
+                   accept="application/pdf" />
+        </div>
+
 
         <button type="submit" class="btn btn-success">
             Save Book

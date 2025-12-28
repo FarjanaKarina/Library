@@ -3,58 +3,286 @@
 @{
     ViewData["Title"] = "Online Library";
 }
+<body class="page-landing">
+    @if (ViewBag.CurrentRole != "Admin" && ViewBag.CurrentRole != "Librarian")
+    {
+        <!-- =========================
+             SEARCH BAR (AJAX)
+        ========================= -->
+        <div id="topSearch" class="container my-5">
+            <div class="row justify-content-center">
+                <div class="col-lg-5">
 
-<div class="container mt-4">
+                    <div class="input-group input-group-lg shadow rounded-pill overflow-hidden">
+                        @* 
+                <!-- CATEGORY FILTER -->
+                <select id="categoryFilter"
+                        class="form-select border-0"
+                        style="max-width:200px;">
+                    <option value="">All Categories</option>
+                    @foreach (var c in ViewBag.Categories)
+                    {
+                        <option value="@c.CategoryId">
+                            @c.CategoryName
+                        </option>
+                    }
+                </select>
+ *@
+                        <!-- SEARCH INPUT -->
+                        <input type="text"
+                               id="searchInput"
+                               class="form-control border-0 px-4"
+                               placeholder="Search by title, author, publisher or category" />
 
-    <!-- SEARCH BAR -->
-    <form method="get" class="mb-4">
-        <input type="text"
-               name="search"
-               class="form-control form-control-lg"
-               placeholder="Search by title, author or category" />
-    </form>
-
-    <!-- CATEGORIES -->
-    <div class="mb-4">
-        @foreach (var category in ViewBag.Categories)
-        {
-            <a asp-action="Index"
-               asp-route-categoryId="@category.CategoryId"
-               class="btn btn-outline-dark btn-sm me-2 mb-2">
-                @category.CategoryName
-            </a>
-        }
-    </div>
-
-    <!-- BOOK CAROUSEL -->
-    <div class="d-flex overflow-auto gap-3 pb-3">
-
-        @foreach (var book in Model)
-        {
-            <div class="card shadow-sm"
-                 style="min-width:220px;">
-
-                <img src="@book.ImageUrl"
-                     class="card-img-top"
-                     style="height:280px; object-fit:cover;" />
-
-                <div class="card-body">
-                    <h6 class="card-title">@book.Title</h6>
-                    <p class="mb-1 text-muted">@book.Author</p>
-                    <small class="text-muted">@book.CategoryName</small>
-
-                    <div class="mt-2">
-                        <a asp-controller="Book"
-                           asp-action="Details"
-                           asp-route-id="@book.BookId"
-                           class="btn btn-sm btn-secondary w-100">
-                            View Details
-                        </a>
+                        <!-- SEARCH ICON -->
+                        <span class="input-group-text bg-danger border-0 text-white px-4">
+                            <i class="bi bi-search fs-5"></i>
+                        </span>
 
                     </div>
+
                 </div>
             </div>
-        }
+        </div>
 
-    </div>
-</div>
+        <!-- =========================
+             AJAX SEARCH RESULTS
+        ========================= -->
+        <div class="container">
+            <div class="row" id="searchResults"></div>
+        </div>
+        <!-- =========================
+        FEATURED BOOKS CAROUSEL
+        ========================= -->
+
+        <section class="container py-5">
+            <div id="featuredCarousel"
+                 class="carousel slide"
+                 data-bs-ride="carousel">
+
+                <div class="carousel-inner">
+
+                    @{
+                        var books = ViewBag.FeaturedBooks as List<FeaturedBookViewModel>
+                        ?? new List<FeaturedBookViewModel>();
+                        var isFirst = true;
+                    }
+                    @if (books.Any())
+                    {
+                        @foreach (var book in books)
+                        {
+                            <div class="carousel-item @(isFirst ? "active" : "")">
+                                @{
+                                    isFirst = false;
+                                }
+
+                                <div class="row align-items-center">
+
+                                    <!-- LEFT CONTENT -->
+                                    <div class="col-md-6 px-5">
+                                        <span class="text-uppercase text-muted small">
+                                            New Release
+                                        </span>
+
+                                        <h1 class="fw-bold mt-2">
+                                            @book.Title
+                                        </h1>
+
+                                        <p class="text-muted mt-3">
+                                            @book.Description
+                                        </p>
+
+                                        <div class="mt-4">
+                                            <a asp-controller="Book"
+                                               asp-action="Details"
+                                               asp-route-id="@book.BookId"
+                                               class="btn btn-primary me-2">
+                                                View Details
+                                            </a>
+
+                                            @if (!string.IsNullOrEmpty(book.PdfUrl))
+                                            {
+                                                <a href="@book.PdfUrl"
+                                                   class="btn btn-outline-primary"
+                                                   target="_blank">
+                                                    Read Online
+                                                </a>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <!-- RIGHT IMAGE -->
+                                    <div class="col-md-6 text-center">
+                                        <img src="@book.ImageUrl"
+                                             class="img-fluid shadow"
+                                             style="max-height:420px;"
+                                             alt="@book.Title" />
+                                    </div>
+
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+
+                <!-- CONTROLS -->
+                <button class="carousel-control-prev"
+                        type="button"
+                        data-bs-target="#featuredCarousel"
+                        data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                </button>
+
+                <button class="carousel-control-next"
+                        type="button"
+                        data-bs-target="#featuredCarousel"
+                        data-bs-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                </button>
+
+            </div>
+        </section>
+
+        <!-- =========================
+             INITIAL BOOK CAROUSEL
+        ========================= -->
+        <div class="container mt-4" id="defaultBooks">
+
+            @if (Model == null || !Model.Any())
+            {
+                <div class="alert alert-warning text-center">
+                    No books available.
+                </div>
+            }
+            else
+            {
+                <div class="d-flex overflow-auto gap-3 pb-3">
+
+                    @foreach (var book in Model)
+                    {
+                        <div class="card shadow-sm" style="min-width:220px;">
+
+                            <img src="@book.ImageUrl"
+                                 class="card-img-top"
+                                 style="height:280px; object-fit:cover;" />
+
+                            <div class="card-body">
+                                <h6 class="card-title">@book.Title</h6>
+                                <p class="mb-1 text-muted">@book.Author</p>
+
+                                <!-- MULTIPLE CATEGORIES -->
+                                <div class="mb-2">
+                                    @if (book.Categories != null && book.Categories.Any())
+                                    {
+                                        foreach (var cat in book.Categories)
+                                        {
+                                            <span class="badge bg-secondary me-1">
+                                                @cat
+                                            </span>
+                                        }
+                                    }
+                                </div>
+
+                                <a asp-controller="Book"
+                                   asp-action="Details"
+                                   asp-route-id="@book.BookId"
+                                   class="btn btn-sm btn-secondary w-100">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    }
+
+                </div>
+            }
+        </div>
+
+
+        <!-- =========================
+             SCRIPTS (AJAX LIVE SEARCH)
+        ========================= -->
+        @section Scripts {
+            <script>
+                let timer = null;
+
+                function loadSearch() {
+                    clearTimeout(timer);
+
+                    timer = setTimeout(function () {
+
+                        const search = $("#searchInput").val();
+
+                        if (search.trim().length === 0) {
+                            $("#searchResults").empty();
+                            $("#defaultBooks").show();
+                            return;
+                        }
+
+                        $("#defaultBooks").hide();
+
+                        $.get("/Home/Search", { search: search }, function (data) {
+
+                            let html = "";
+
+                            if (data.length === 0) {
+                                html = `
+                                    <div class="col-12">
+                                        <div class="alert alert-warning text-center">
+                                            No books found.
+                                        </div>
+                                    </div>`;
+                            } else {
+                                data.forEach(b => {
+                                    html += `
+                                    <div class="col-md-3 mb-4">
+                                        <div class="card shadow-sm h-100">
+                                            <img src="${b.imageUrl}"
+                                                 class="card-img-top"
+                                                 style="height:220px;object-fit:cover;">
+                                            <div class="card-body">
+                                                <h6>${b.title}</h6>
+                                                <p class="text-muted">${b.author}</p>
+                                                <a href="/Book/Details/${b.bookId}"
+                                                   class="btn btn-sm btn-secondary w-100">
+                                                    View Details
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                                });
+                            }
+
+                            $("#searchResults").html(html);
+                        });
+
+                    }, 400);
+                }
+
+                $("#searchInput").on("keyup", loadSearch);
+
+                             document.addEventListener("DOMContentLoaded", function () {
+
+                    const searchBtn = document.getElementById("navSearchBtn");
+                    const searchInput = document.getElementById("searchInput");
+                    const searchSection = document.getElementById("topSearch");
+
+                    if (!searchBtn || !searchInput || !searchSection) return;
+
+                    searchBtn.addEventListener("click", function () {
+                        // Scroll to search bar
+                        searchSection.scrollIntoView({
+                            behavior: "smooth",
+                            block: "center"
+                        });
+
+                        // Focus input after scroll
+                        setTimeout(() => {
+                            searchInput.focus();
+                        }, 500);
+                    });
+
+                });
+            </script>
+        }
+    }
+</body>
