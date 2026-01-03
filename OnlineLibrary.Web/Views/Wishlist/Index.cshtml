@@ -1,0 +1,29 @@
+﻿@using OnlineLibrary.Infrastructure.Domain.Entities
+@model IEnumerable<Book>
+
+@{
+    ViewData["Title"] = "My Wishlist";
+    Layout = "_StudentLayout";
+}
+
+<h2>❤️ My Wishlist</h2>
+
+<div class="row">
+    @foreach (var book in Model)
+    {
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 shadow-sm">
+                <img src="@book.ImageUrl" class="card-img-top" style="height:220px;object-fit:cover;">
+                <div class="card-body">
+                    <h6>@book.Title</h6>
+                    <a asp-controller="Book"
+                       asp-action="Details"
+                       asp-route-id="@book.BookId"
+                       class="btn btn-sm btn-outline-primary">
+                        View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

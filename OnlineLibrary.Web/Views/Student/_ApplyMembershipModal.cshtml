@@ -1,0 +1,72 @@
+﻿@model MembershipApplyViewModel
+
+<div class="modal-header">
+    <h5 class="modal-title">
+        <i class="bi bi-card-checklist me-1"></i>
+        Apply for Membership
+    </h5>
+    <button class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<form asp-action="ApplyMembershipConfirm" method="post">
+
+    <div class="modal-body">
+
+        <p class="text-muted">
+            Pay using any method below and submit transaction ID.
+        </p>
+
+        <!-- MEMBERSHIP PLAN -->
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Membership Plan</label>
+            <select id="planSelect"
+                    name="DurationMonths"
+                    class="form-select"
+                    required
+                    onchange="updateAmount()">
+                <option value="">-- Select Plan --</option>
+                <option value="1" data-amount="300">1 Month – 300 TK</option>
+                <option value="3" data-amount="800">3 Months – 800 TK</option>
+                <option value="6" data-amount="1500">6 Months – 1500 TK</option>
+            </select>
+        </div>
+
+        <!-- PAYMENT METHOD -->
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Payment Method</label>
+            <select name="PaymentMethod" class="form-select" required>
+                <option>bKash</option>
+                <option>Nagad</option>
+                <option>Card</option>
+            </select>
+        </div>
+
+        <!-- AMOUNT -->
+        <div class="mb-3">
+            <label class="form-label">Amount (TK)</label>
+            <input type="text"
+                   id="amount"
+                   name="PaidAmount"
+                   class="form-control"
+                   readonly />
+        </div>
+
+        <!-- TRANSACTION ID -->
+        <div class="mb-3">
+            <label class="form-label">Transaction ID</label>
+            <input type="text"
+                   name="TransactionId"
+                   class="form-control"
+                   required
+                   placeholder="e.g. 8F3K9JH2" />
+        </div>
+
+        <!-- PAYMENT INFO -->
+        <div class="alert alert-info small">
+            <strong>bKash:</strong> 01XXXXXXXX<br />
+            <strong>Nagad:</strong> 01YYYYYYYY
+        </div>
+
+    </div>
+
+</form>

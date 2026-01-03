@@ -1,0 +1,54 @@
+﻿@model OnlineLibrary.Web.Models.StudentRegisterViewModel
+
+<div class="modal-header">
+    <h5 class="modal-title">Create Account</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger">@ViewBag.Error</div>
+    }
+
+    <form asp-controller="Account"
+          asp-action="Register"
+          method="post">
+
+        <div class="mb-3">
+            <label>Full Name</label>
+            <input asp-for="FullName" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label>Email</label>
+            <input asp-for="Email" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label>Password</label>
+            <input asp-for="Password" type="password" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label>Phone</label>
+            <input asp-for="Phone" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label>Address</label>
+            <textarea asp-for="Address" class="form-control"></textarea>
+        </div>
+
+        <button class="btn btn-success w-100">
+            Sign Up
+        </button>
+
+        <p class="text-center mt-3">
+            Already have an account?
+            <a href="#" id="openLoginModal">Sign In</a>
+        </p>
+    </form>
+
+</div>

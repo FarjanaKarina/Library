@@ -62,6 +62,19 @@ namespace OnlineLibrary.Web.Controllers
                          : (b.DueDate < DateTime.Today ? "Overdue" : "Active"),
                      FineAmount = b.FineAmount
                  }).ToList();
+            var continueReading =
+    (from w in _context.Wishlists
+     join b in _context.Books on w.BookId equals b.BookId
+     where w.UserId == userId && w.LastReadAt != null
+     orderby w.LastReadAt descending
+     select new ContinueReadingItem
+     {
+         BookId = b.BookId,
+         Title = b.Title,
+         ImageUrl = b.ImageUrl
+     })
+    .Take(4)
+    .ToList();
 
             // =========================
             // VIEW MODEL
@@ -70,9 +83,14 @@ namespace OnlineLibrary.Web.Controllers
             {
                 FullName = user.FullName,
                 Email = user.Email,
+
                 MembershipStatus = membershipStatus,
-                BorrowHistory = borrowHistory
+                ExpiryDate = membership?.ExpiryDate,      
+
+                BorrowHistory = borrowHistory,
+                ContinueReading = continueReading        
             };
+
 
             return View(model);
         }
@@ -95,7 +113,8 @@ namespace OnlineLibrary.Web.Controllers
                     Author = b.Author,
                     CategoryName = c.CategoryName,
                     ImageUrl = b.ImageUrl,
-                    AvailableCopies = b.TotalCopies
+                    AvailableCopies = b.TotalCopies,
+                    Price = b.Price
                 };
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -185,42 +204,57 @@ namespace OnlineLibrary.Web.Controllers
         public IActionResult ApplyMembership()
         {
             if (!IsStudent())
-                return RedirectToAction("Login", "Account");
+                return Unauthorized();
 
             var userId = Guid.Parse(HttpContext.Session.GetString("UserId"));
 
+            // Prevent duplicate applications
             var exists = _context.Memberships.Any(m => m.UserId == userId);
             if (exists)
-                return RedirectToAction("Dashboard");
+                return Content("<div class='p-3 text-danger'>You already have a membership request.</div>");
 
-            return View();
+            return PartialView("_ApplyMembershipModal", new MembershipApplyViewModel());
         }
 
         // =========================
         // APPLY MEMBERSHIP (POST)
         // =========================
         [HttpPost]
-        public IActionResult ApplyMembershipConfirm()
+        public IActionResult ApplyMembershipConfirm(int DurationMonths, string PaymentMethod, string TransactionId, decimal PaidAmount)
         {
             if (!IsStudent())
                 return RedirectToAction("Login", "Account");
 
             var userId = Guid.Parse(HttpContext.Session.GetString("UserId"));
 
-            // Prevent duplicate membership
-            var exists = _context.Memberships.Any(m => m.UserId == userId);
-            if (exists)
+            // Prevent duplicate
+            if (_context.Memberships.Any(m => m.UserId == userId))
                 return RedirectToAction("Dashboard");
 
-            // =========================
-            // CREATE MEMBERSHIP REQUEST
-            // =========================
+            var expectedAmount = DurationMonths switch
+            {
+                1 => 300,
+                3 => 800,
+                6 => 1500,
+                _ => 0
+            };
+
+            if (PaidAmount != expectedAmount)
+            {
+                ModelState.AddModelError("", "Invalid payment amount.");
+                return RedirectToAction("Dashboard");
+            }
+
             var membership = new Membership
             {
                 MembershipId = Guid.NewGuid(),
                 UserId = userId,
                 Status = "Pending",
-                AppliedAt = DateTime.UtcNow
+                AppliedAt = DateTime.UtcNow,
+                PaymentMethod = PaymentMethod,
+                TransactionId = TransactionId,
+                PaidAmount = PaidAmount,
+                IsActive = false
             };
 
             _context.Memberships.Add(membership);
@@ -230,10 +264,10 @@ namespace OnlineLibrary.Web.Controllers
             // 🔔 NOTIFY ADMINS
             // =========================
             var adminIds = _context.Users
-                .Where(u => _context.Roles.Any(r =>
-                    r.RoleId == u.RoleId && r.RoleName == "Admin"))
-                .Select(u => u.UserId)
-                .ToList();
+                    .Where(u => _context.Roles.Any(r =>
+                        r.RoleId == u.RoleId && r.RoleName == "Admin"))
+                    .Select(u => u.UserId)
+                    .ToList();
 
             foreach (var adminId in adminIds)
             {

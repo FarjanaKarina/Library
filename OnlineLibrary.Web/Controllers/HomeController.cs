@@ -129,7 +129,6 @@ namespace OnlineLibrary.Web.Controllers
             return Json(query.Take(20).ToList());
         }
 
-
         public IActionResult Privacy()
         {
             return View();

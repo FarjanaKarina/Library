@@ -1,61 +1,53 @@
-﻿<div class="bg-dark text-white p-3 h-100">
+﻿<div class="p-3">
 
-    <h5 class="mb-4">👑 Admin Panel</h5>
+    <h5 class="mb-4">Admin Panel</h5>
 
     <ul class="nav flex-column gap-2">
 
-        <li class="nav-item">
-            <a class="nav-link text-white"
-               asp-controller="Home"
-               asp-action="Index">
-                Home
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a class="nav-link text-white"
-               asp-controller="Admin"
-               asp-action="Dashboard">
+        <li>
+            <a asp-controller="Admin" asp-action="Dashboard" class="nav-link text-white">
                 <i class="bi bi-speedometer2 me-2"></i> Dashboard
             </a>
         </li>
 
-        <li class="nav-item">
-            <a class="nav-link text-white"
-               asp-controller="Book"
-               asp-action="Index">
-                <i class="bi bi-book me-2"></i> Manage Books
+        <li>
+            <a asp-controller="Admin" asp-action="Users" class="nav-link text-white">
+                <i class="bi bi-people me-2"></i> Users
             </a>
         </li>
 
-        <li class="nav-item">
-            <a class="nav-link text-white"
-               asp-controller="Category"
-               asp-action="Index">
+        <li>
+            <a asp-controller="Book" asp-action="Index" class="nav-link text-white">
+                <i class="bi bi-book me-2"></i> Books
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Category" asp-action="Index" class="nav-link text-white">
                 <i class="bi bi-tags me-2"></i> Categories
             </a>
         </li>
 
-        <li class="nav-item">
-            <a class="nav-link text-white"
-               asp-controller="Admin"
-               asp-action="Memberships">
-                <i class="bi bi-person-check me-2"></i> Membership Requests
+        <li>
+            <a asp-controller="Admin" asp-action="Memberships" class="nav-link text-white">
+                <i class="bi bi-person-check me-2"></i> Memberships
             </a>
         </li>
 
-        <li class="nav-item">
-            <a class="nav-link text-white"
-               asp-controller="Admin"
-               asp-action="Librarians">
-                <i class="bi bi-people me-2"></i> Librarians
+        <li>
+            <a asp-controller="Admin" asp-action="Reports" class="nav-link text-white">
+                <i class="bi bi-graph-up me-2"></i> Reports
             </a>
         </li>
 
-        <li class="nav-item">
-            <a class="nav-link text-white"
-               asp-controller="Admin"
-               asp-action="AuditLogs">
+        <li>
+            <a asp-controller="Admin" asp-action="SystemSettings" class="nav-link text-white">
+                <i class="bi bi-gear me-2"></i> System Settings
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Admin" asp-action="AuditLogs" class="nav-link text-white">
                 <i class="bi bi-shield-check me-2"></i> Audit Logs
             </a>
         </li>

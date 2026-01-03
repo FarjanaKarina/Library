@@ -6,9 +6,9 @@
         public string Email { get; set; }
 
         public string MembershipStatus { get; set; }
-
-        public List<BorrowHistoryItem> BorrowHistory { get; set; }
-            = new();
+        public DateTime? ExpiryDate { get; set; }
+        public List<BorrowHistoryItem> BorrowHistory { get; set; } = new();
+        public List<ContinueReadingItem> ContinueReading { get; set; } = new();
     }
 
     public class BorrowHistoryItem
@@ -20,6 +20,8 @@
         public DateTime DueDate { get; set; }
         public string Status { get; set; }
         public decimal FineAmount { get; set; }
+        public List<BorrowHistoryItem> BorrowHistory { get; set; } = new();
+        
 
     }
 }

@@ -89,15 +89,11 @@ namespace OnlineLibrary.Web.Controllers
         // =========================
         // Membership Requests
         // =========================
-        public IActionResult Memberships()
+        public IActionResult MembershipRequests()
         {
-            if (!IsAdmin())
-                return RedirectToAction("Login", "Account");
-
-            var memberships =
+            var requests =
                 from m in _context.Memberships
                 join u in _context.Users on m.UserId equals u.UserId
-                orderby m.AppliedAt descending
                 select new MembershipRequestViewModel
                 {
                     MembershipId = m.MembershipId,
@@ -107,24 +103,19 @@ namespace OnlineLibrary.Web.Controllers
                     AppliedAt = m.AppliedAt
                 };
 
-            return View(memberships.ToList());
+            return View(requests.ToList());
         }
 
         [HttpPost]
-        public IActionResult ApproveMembership(Guid id)
+        public IActionResult ApproveMembership(Guid membershipId)
         {
-            if (!IsAdmin())
-                return RedirectToAction("Login", "Account");
-
-            var membership = _context.Memberships.Find(id);
-            if (membership == null)
-                return NotFound();
+            var membership = _context.Memberships.Find(membershipId);
 
             membership.Status = "Approved";
-            membership.ApprovedAt = DateTime.UtcNow;
             membership.StartDate = DateTime.Today;
-            membership.ExpiryDate = DateTime.Today.AddYears(1);
+            membership.ExpiryDate = DateTime.Today.AddMonths(1); // or stored duration
             membership.IsActive = true;
+            membership.ApprovedAt = DateTime.UtcNow;
 
             // =========================
             // AUDIT LOG: MEMBERSHIP APPROVED
@@ -151,23 +142,19 @@ namespace OnlineLibrary.Web.Controllers
                 "success"
             );
 
-            return RedirectToAction("Memberships");
+            return RedirectToAction("MembershipRequests");
         }
 
         [HttpPost]
-        public IActionResult RejectMembership(Guid id)
+        public IActionResult RejectMembership(Guid membershipId)
         {
-            if (!IsAdmin())
-                return RedirectToAction("Login", "Account");
-
-            var membership = _context.Memberships.Find(id);
-            if (membership == null)
-                return NotFound();
-
+            var membership = _context.Memberships.Find(membershipId);
             membership.Status = "Rejected";
-            _context.SaveChanges();
+            membership.IsActive = false;
 
-            NotificationHelper.Send(
+            _context.SaveChanges();
+           
+        NotificationHelper.Send(
                 _context,
                 membership.UserId,
                 "Membership Rejected",
@@ -175,9 +162,8 @@ namespace OnlineLibrary.Web.Controllers
                 "warning"
             );
 
-            return RedirectToAction("Memberships");
+            return RedirectToAction("MembershipRequests");
         }
-
         // =========================
         // CREATE LIBRARIAN (GET)
         // =========================

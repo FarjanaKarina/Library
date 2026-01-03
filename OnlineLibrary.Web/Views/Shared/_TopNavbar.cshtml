@@ -71,8 +71,21 @@
             <ul class="navbar-nav ms-auto align-items-center gap-2 navbar-icons">
 
                 <!-- 🔍 SEARCH (ONLY GUEST + STUDENT) -->
-                @if (!isAdmin && !isLibrarian)
+                @if (isStudent)
                 {
+                    <!-- Student → modal search -->
+                    <li class="nav-item">
+                        <button type="button"
+                                class="btn nav-link p-0"
+                                data-bs-toggle="modal"
+                                data-bs-target="#studentSearchModal">
+                            <i class="bi bi-search fs-4"></i>
+                        </button>
+                    </li>
+                }
+                else if (!isAdmin && !isLibrarian)
+                {
+                    <!-- Guest → landing page scroll search -->
                     <li class="nav-item @(isStudent ? "" : "d-none")" id="navSearchIcon">
                         <button type="button"
                                 class="btn nav-link p-0"
@@ -90,17 +103,17 @@
                     var uid = Guid.Parse(userIdStr);
                     var unread = Db.Notifications.Count(n => n.UserId == uid && !n.IsRead);
 
-                    <li class="nav-item">
-                        <a class="nav-link position-relative"
+                    <li class="nav-item notification-wrapper">
+                        <a class="nav-link notification-link"
                            asp-controller="Notification"
-                           asp-action="Index">
+                           asp-action="Index"
+                           id="notificationLink"
+                           title="Notifications">
                             <i class="bi bi-bell fs-4"></i>
 
                             @if (unread > 0)
                             {
-                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
-                                    @unread
-                                </span>
+                                <span class="notification-badge" id="notificationBadge">@unread</span>
                             }
                         </a>
                     </li>
@@ -121,15 +134,15 @@
                         {
                             <li>
                                 <a class="dropdown-item"
-                                   asp-controller="Account"
-                                   asp-action="Login">
+                                   href="#"
+                                   onclick="openLoginModal()">
                                     Sign In
                                 </a>
                             </li>
                             <li>
                                 <a class="dropdown-item"
-                                   asp-controller="Account"
-                                   asp-action="Register">
+                                   href="#"
+                                   onclick="openRegisterModal()">
                                     Sign Up
                                 </a>
                             </li>

@@ -89,9 +89,9 @@ namespace OnlineLibrary.Web.Controllers
                 var userId = Guid.Parse(userIdStr);
 
                 ViewBag.IsMember = _context.Memberships
-                    .Any(m => m.UserId == userId
-                           && m.IsActive
-                           && m.ExpiryDate >= DateTime.Today);
+    .Any(m => m.UserId == userId
+           && m.Status == "Approved");
+
             }
 
             // =========================
@@ -112,7 +112,7 @@ namespace OnlineLibrary.Web.Controllers
                      Price = b.Price,
                      TotalCopies = b.TotalCopies,
                      ImageUrl = b.ImageUrl,
-                     PdfUrl = b.PdfUrl, 
+                     PdfUrl = b.PdfUrl,
 
                      // ✅ MULTIPLE CATEGORIES
                      Categories = (
@@ -129,6 +129,82 @@ namespace OnlineLibrary.Web.Controllers
 
             return View(book);
         }
+        public IActionResult ReadPdf(Guid id)
+        {
+            // =========================
+            // SESSION AUTH CHECK
+            // =========================
+            var userIdStr = HttpContext.Session.GetString("UserId");
+            var roleIdStr = HttpContext.Session.GetString("RoleId");
+
+            if (string.IsNullOrEmpty(userIdStr) || string.IsNullOrEmpty(roleIdStr))
+                return Unauthorized();
+
+            var userId = Guid.Parse(userIdStr);
+            var roleId = Guid.Parse(roleIdStr);
+
+            var roleName = _context.Roles
+                .Where(r => r.RoleId == roleId)
+                .Select(r => r.RoleName)
+                .FirstOrDefault();
+
+            if (roleName != "Student" &&
+                roleName != "Admin" &&
+                roleName != "Librarian")
+                return Unauthorized();
+
+            // =========================
+            // GET BOOK
+            // =========================
+            var book = _context.Books.Find(id);
+
+            if (book == null || string.IsNullOrEmpty(book.PdfUrl))
+                return NotFound();
+
+            var filePath = Path.Combine(
+                _environment.WebRootPath,
+                book.PdfUrl.TrimStart('/')
+            );
+
+            if (!System.IO.File.Exists(filePath))
+                return NotFound();
+
+            // =========================
+            // CONTINUE READING (STUDENT)
+            // =========================
+            if (roleName == "Student")
+            {
+                var wishlist = _context.Wishlists
+                    .FirstOrDefault(w => w.UserId == userId && w.BookId == id);
+
+                // If not already wishlisted, auto-add
+                if (wishlist == null)
+                {
+                    wishlist = new Wishlist
+                    {
+                        WishlistId = Guid.NewGuid(),
+                        UserId = userId,
+                        BookId = id,
+                        CreatedAt = DateTime.UtcNow,
+                        LastReadAt = DateTime.UtcNow
+                    };
+
+                    _context.Wishlists.Add(wishlist);
+                }
+                else
+                {
+                    wishlist.LastReadAt = DateTime.UtcNow;
+                }
+
+                _context.SaveChanges();
+            }
+
+            // =========================
+            // STREAM PDF (INLINE)
+            // =========================
+            return PhysicalFile(filePath, "application/pdf");
+        }
+
 
         // =========================
         // CREATE (GET)
@@ -336,7 +412,7 @@ namespace OnlineLibrary.Web.Controllers
         }
 
         [HttpPost]
-        public IActionResult Edit(Book model, List<Guid> CategoryIds, IFormFile imageFile)
+        public IActionResult Edit(Book model, List<Guid> CategoryIds, IFormFile imageFile, IFormFile pdfFile)
         {
             if (!IsAdminOrLibrarian())
                 return RedirectToAction("Login", "Account");
@@ -406,6 +482,40 @@ namespace OnlineLibrary.Web.Controllers
                 }
 
                 existingBook.ImageUrl = "/uploads/books/" + fileName;
+            }
+            // =========================
+            // PDF UPDATE
+            // =========================
+            if (pdfFile != null && pdfFile.Length > 0)
+            {
+                var pdfPath = Path.Combine(
+                    _environment.WebRootPath,
+                    "uploads",
+                    "books",
+                    "pdf"
+                );
+
+                Directory.CreateDirectory(pdfPath);
+
+                var pdfName = Guid.NewGuid() + ".pdf";
+                var fullPath = Path.Combine(pdfPath, pdfName);
+
+                using var stream = new FileStream(fullPath, FileMode.Create);
+                pdfFile.CopyTo(stream);
+
+                // delete old pdf if exists
+                if (!string.IsNullOrEmpty(existingBook.PdfUrl))
+                {
+                    var oldPdfPath = Path.Combine(
+                        _environment.WebRootPath,
+                        existingBook.PdfUrl.TrimStart('/')
+                    );
+
+                    if (System.IO.File.Exists(oldPdfPath))
+                        System.IO.File.Delete(oldPdfPath);
+                }
+
+                existingBook.PdfUrl = "/uploads/books/pdf/" + pdfName;
             }
 
             // =========================

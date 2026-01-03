@@ -1,4 +1,4 @@
-html {
+﻿html {
   font-size: 14px;
 }
 
@@ -15,6 +15,17 @@ html {
 html {
   position: relative;
   min-height: 100%;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+main {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
 }
 
 body {
@@ -97,11 +108,6 @@ body {
     background-color: #fff;
 }
 
-
-body {
-    padding-top: 75px; /* MUST match navbar height */
-}
-
 /* Sidebar layout */
 .sidebar {
     width: 240px;
@@ -129,4 +135,459 @@ body {
     width: 100%;
     z-index: 1050;
 }
+
+.hero-section {
+    background: linear-gradient( 120deg, #eaf6f8 0%, #f6f0f7 50%, #fdeef1 100% );
+    padding: 80px 0;
+    position: relative;
+    overflow: hidden;
+}
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    background-size: 20px 20px;
+    filter: invert(40%);
+}
+
+.carousel-control-prev,
+.carousel-control-next {
+    width: auto;
+    z-index: 10;
+}
+.carousel-control-prev {
+    left: 20px;
+}
+
+.carousel-control-next {
+    right: 20px;
+}
+/* HERO BACKGROUND */
+.hero-section {
+    min-height: 100vh;
+    padding-top: 50px; /* ONLY small space for navbar */ /* ⬅️ closer to navbar */
+    background: linear-gradient(135deg, #eef6f8 0%, #f7eef3 50%, #f8f4ef 100%);
+    position: relative;
+}
+
+/* SEARCH BAR INSIDE HERO */
+.hero-search {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px; /* ⬅️ less gap */
+}
+
+.search-box {
+    display: flex;
+    width: 520px;
+    background: white;
+    border-radius: 50px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+    .search-box input {
+        flex: 1;
+        border: none;
+        padding: 16px 22px;
+        font-size: 16px;
+        outline: none;
+    }
+
+    .search-box button {
+        background: #e63946;
+        border: none;
+        padding: 0 26px;
+        color: white;
+        font-size: 18px;
+    }
+
+/* CAROUSEL LAYOUT */
+.hero-carousel .carousel-item {
+    padding: 40px 0; /* vertical only */ /* ⬅️ tighter like SS */
+}
+
+.hero-carousel .col-md-6 {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.hero-carousel .row {
+    align-items: center;
+}
+
+.hero-carousel .carousel-inner {
+    max-width: 1200px; /* controls content width */
+    margin: 0 auto; /* centers content */
+}
+
+/* LEFT TEXT */
+.hero-title {
+    font-family: 'Playfair Display', serif;
+    fontfont-size: 64px; /* ⬅️ was 48px */
+    font-weight: 600;
+    line-height: 1.15;
+}
+
+.hero-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 18px; /* ⬅️ was 16px */
+    max-width: 520px; /* ⬅️ wider like SS */
+    color: #555;
+}
+
+
+/* BUTTON */
+.hero-btn {
+    background: #ff6b6b;
+    color: white;
+    padding: 14px 30px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+/* BIG ARROWS */
+.hero-arrow {
+    font-size: 48px;
+    color: #222;
+}
+
+.carousel-control-prev,
+.carousel-control-next {
+    width: 6%;
+}
+
+.hero-btn {
+    background: #ff5a5f;
+    color: #fff;
+    font-size: 16px;
+    padding: 15px 34px;
+    border-radius: 30px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+    .hero-btn:hover {
+        background: #e14b50;
+        color: #fff;
+    }
+
+.hero-btn-outline {
+    border: 2px solid #ff5a5f;
+    color: #ff5a5f;
+    font-size: 16px;
+    padding: 15px 34px;
+    border-radius: 30px;
+    text-decoration: none;
+}
+
+    .hero-btn-outline:hover {
+        background: #ff5a5f;
+        color: #fff;
+    }
+
+.hero-book-img {
+    max-height: 620px; /* ⬅️ bigger */
+    width: auto;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+    border-radius: 6px;
+}
+
+/* =========================
+   BACK TO TOP BUTTON
+========================= */
+
+.back-to-top {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: none;
+    background-color: #dc3545; /* BookNest red */
+    color: #fff;
+    font-size: 1.25rem;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    z-index: 999;
+    transition: all 0.3s ease;
+}
+
+    .back-to-top:hover {
+        background-color: #bb2d3b;
+        transform: translateY(-3px);
+    }
+
+body.dark-mode .back-to-top {
+    background-color: #ff4d4f;
+}
+
+    body.dark-mode .back-to-top:hover {
+        background-color: #ff6b6b;
+    }
+
+/* ===== DASHBOARD LAYOUT ===== */
+
+.dashboard-wrapper {
+    display: flex;
+    min-height: 100vh;
+    margin-top: 70px; /* height of top navbar */
+}
+
+.dashboard-sidebar {
+    width: 240px;
+    background-color: #1f2933;
+    color: #ffffff;
+    position: sticky;
+    top: 70px;
+    height: calc(100vh - 70px);
+    overflow-y: auto;
+}
+
+.dashboard-content {
+    flex-grow: 1;
+    padding: 24px;
+    background-color: #f8f9fa;
+}
+
+/* =========================
+   NOTIFICATION 
+========================= */
+/* ===========================
+   NOTIFICATION ICON & BADGE
+   =========================== */
+
+.notification-wrapper {
+    position: relative;
+}
+
+.notification-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px !important;
+}
+
+/* Red circular badge with white number */
+.notification-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: #dc3545; /* Bootstrap red */
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    min-width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+}
+
+/* Dark mode support */
+body.dark-mode .notification-badge {
+    border-color: #1f2933;
+}
+
+.notification-unread {
+    background-color: #f0f7ff; /* light blue */
+    border-left: 4px solid #0d6efd;
+}
+
+.notification-read {
+    background-color: #ffffff;
+}
+
+.notification-item {
+    padding: 12px;
+    margin-bottom: 6px;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+}
+
+/* =========================
+   BOOKNEST FOOTER
+========================= */
+
+.booknest-footer {
+    background-color: #fff5f5; /* soft pastel like your screenshot */
+    font-family: 'Inter', sans-serif;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.footer-title {
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.footer-text {
+    font-size: 0.95rem;
+    color: #555;
+    line-height: 1.6;
+}
+
+.footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+    .footer-links li {
+        margin-bottom: 0.5rem;
+    }
+
+    .footer-links a {
+        text-decoration: none;
+        color: #444;
+        font-size: 0.95rem;
+        transition: color 0.2s ease;
+    }
+
+        .footer-links a:hover {
+            color: #dc3545; /* bootstrap danger */
+        }
+
+.footer-social a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #fff;
+    color: #444;
+    margin-right: 0.5rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    transition: all 0.2s ease;
+}
+
+    .footer-social a:hover {
+        background: #dc3545;
+        color: #fff;
+    }
+
+.container {
+    margin-bottom: 0;
+}
+.footer-bottom {
+    border-top: 1px solid #f0dede;
+    background-color: #fff0f0;
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0;
+}
+/* =========================
+   DARK MODE FOOTER
+========================= */
+
+body.dark-mode .booknest-footer {
+    background-color: #121212;
+}
+
+body.dark-mode .footer-bottom {
+    background-color: #0f0f0f;
+    border-top: 1px solid #222;
+}
+
+body.dark-mode .footer-title {
+    color: #fff;
+}
+
+body.dark-mode .footer-text,
+body.dark-mode .footer-links a {
+    color: #ccc;
+}
+
+    body.dark-mode .footer-links a:hover {
+        color: #ff6b6b;
+    }
+
+body.dark-mode .footer-social a {
+    background-color: #1f1f1f;
+    color: #ccc;
+    box-shadow: none;
+}
+
+    body.dark-mode .footer-social a:hover {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+/* =========================
+   PDF WATERMARK
+========================= */
+
+.pdf-watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-30deg);
+    font-size: 3rem;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.08);
+    pointer-events: none;
+    user-select: none;
+    z-index: 5;
+    text-align: center;
+}
+
+/* Student Browse Book */
+.book-card {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.wishlist-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+    .wishlist-btn i {
+        color: #dc3545;
+    }
+
+/*This is for Notification page Sidebar*/
+.dashboard-wrapper {
+    display: flex;
+    min-height: 100vh;
+    margin-top: 70px; /* height of top navbar */
+}
+
+.dashboard-sidebar {
+    width: 240px;
+    background-color: #1f2933;
+    color: #ffffff;
+    position: sticky;
+    top: 70px;
+    height: calc(100vh - 70px);
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.dashboard-content {
+    flex-grow: 1;
+    padding: 24px;
+    background-color: #f8f9fa;
+}
+
 

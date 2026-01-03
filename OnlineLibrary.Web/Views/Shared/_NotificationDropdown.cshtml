@@ -1,0 +1,43 @@
+﻿@inject ApplicationDbContext Db
+@{
+    var userIdStr = Context.Session.GetString("UserId");
+    Guid? userId = string.IsNullOrEmpty(userIdStr) ? null : Guid.Parse(userIdStr);
+
+    var notifications = Db.Notifications
+        .Where(n => n.UserId == userId)
+        .OrderByDescending(n => n.CreatedAt)
+        .Take(6)
+        .ToList();
+}
+<div class="notification-dropdown d-none" id="notificationDropdown">
+
+    <div class="notification-arrow"></div>
+
+    <!-- Header -->
+    <div class="notification-header">
+        <span>Notifications</span>
+        <i class="bi bi-gear ms-auto"></i>
+    </div>
+
+    <!-- Body -->
+    <div class="notification-body">
+        @foreach (var n in notifications)
+        {
+            <div class="notification-item @(n.IsRead ? "" : "unread")">
+                <div class="icon @n.Type"></div>
+
+                <div class="content">
+                    <strong>@n.Title</strong>
+                    <p>@n.Message</p>
+                    <small>@n.CreatedAt.ToLocalTime().ToString("g")</small>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="notification-footer">
+        <a asp-controller="Notification" asp-action="Index">
+            See all recent activity
+        </a>
+    </div>
+</div>

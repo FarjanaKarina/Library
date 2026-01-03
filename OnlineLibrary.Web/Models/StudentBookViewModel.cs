@@ -8,6 +8,7 @@
         public string? CategoryName { get; set; }
         public string? ImageUrl { get; set; }
         public int AvailableCopies { get; set; }
+        public decimal Price { get; set; }
         public List<string> Categories { get; set; } = new();
         
     }

@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Book Details";
-    Layout = "_Layout";
+    Layout = "_AppLayout";
 }
 
 <div class="container mt-4">
@@ -74,17 +74,20 @@
                 @Model.Description
             </p>
 
-            <div class="mt-4 d-flex gap-2 flex-wrap">
+            <div class="mt-4 d-flex gap-2 flex-wrap align-items-center">
 
-                <!-- READ ONLINE -->
+                <!-- READ ONLINE (STUDENT, ADMIN, LIBRARIAN) -->
                 @if (!string.IsNullOrEmpty(Model.PdfUrl))
                 {
-                    if (ViewBag.IsLoggedIn == true)
+                    if (ViewBag.IsLoggedIn == true &&
+                    (ViewBag.CurrentRole == "Student"
+                    || ViewBag.CurrentRole == "Admin"
+                    || ViewBag.CurrentRole == "Librarian"))
                     {
                         <button class="btn btn-outline-primary"
                                 data-bs-toggle="modal"
                                 data-bs-target="#pdfModal">
-                            Read Online
+                            <i class="bi bi-book"></i> Read Online
                         </button>
                     }
                     else
@@ -92,35 +95,36 @@
                         <a asp-controller="Account"
                            asp-action="Login"
                            class="btn btn-outline-primary">
-                            Read Online (Login Required)
+                            <i class="bi bi-lock"></i> Read Online
                         </a>
                     }
                 }
 
-                <!-- BORROW (MEMBERS ONLY) -->
-                @if (ViewBag.CurrentRole == "Student" && ViewBag.IsMember == true)
+                <!-- BORROW NOW (STUDENT ONLY – ALWAYS VISIBLE) -->
+                @if (ViewBag.CurrentRole == "Student")
                 {
-                    <form asp-controller="Student"
-                          asp-action="Borrow"
-                          method="post">
-                        <input type="hidden" name="bookId" value="@Model.BookId" />
-                        <button class="btn btn-success">
-                            Borrow Book
-                        </button>
-                    </form>
-                }
-                else if (ViewBag.CurrentRole == "Student")
-                {
-                    <span class="text-warning mt-2">
-                        Membership required to borrow
-                    </span>
+                    <button class="btn btn-success"
+                            onclick="handleBorrow(@(ViewBag.IsMember == true ? "true" : "false"))">
+                        <i class="bi bi-journal-arrow-up"></i> Borrow Now
+                    </button>
                 }
 
-                <a asp-controller="Home"
-                   asp-action="Index"
-                   class="btn btn-secondary ms-auto">
-                    Back
-                </a>
+                <!-- BACK BUTTON -->
+                @if (ViewBag.CurrentRole == "Admin" || ViewBag.CurrentRole == "Librarian")
+                {
+                    <a asp-controller="Book"
+                       asp-action="Index"
+                       class="btn btn-secondary ms-auto">
+                        <i class="bi bi-arrow-left"></i> Back to List
+                    </a>
+                }
+                else
+                {
+                    <button class="btn btn-secondary ms-auto"
+                            onclick="history.back()">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </button>
+                }
 
             </div>
 
@@ -138,15 +142,80 @@
                     <button class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
-                <div class="modal-body" style="height:80vh">
-                    <iframe src="@Model.PdfUrl"
+                <!-- ✅ MODAL BODY -->
+                <div class="modal-body position-relative p-0" style="height:80vh;">
+
+                    <!-- WATERMARK -->
+                    <div class="pdf-watermark">
+                        BookNest • For Reading Only
+                    </div>
+
+                    <!-- PDF IFRAME -->
+                    <iframe src="/Book/ReadPdf/@Model.BookId#toolbar=0&navpanes=0&scrollbar=0"
                             width="100%"
                             height="100%"
                             style="border:none;">
                     </iframe>
+
                 </div>
 
             </div>
         </div>
     </div>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        function handleBorrow(isMember) {
+            if (isMember === true) {
+                // submit borrow form dynamically
+                const form = document.createElement("form");
+                form.method = "post";
+                form.action = "/Student/Borrow";
+
+                const input = document.createElement("input");
+                input.type = "hidden";
+                input.name = "bookId";
+                input.value = "@Model.BookId";
+
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+            } else {
+                        Swal.fire({
+            icon: 'warning',
+            title: 'Membership Required',
+            text: 'You need an active membership to borrow books.',
+            showCancelButton: true,          // ✅ Cancel button
+           // showCloseButton: true, // ✅ Top-right X button, allowOutsideClick: false
+            confirmButtonText: 'Apply for Membership',
+            cancelButtonText: 'Cancel',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '/Student/Membership';
+            }
+            // ❌ If cancelled or closed → do nothing
+        });
+            }
+        }
+    </script>
+    <script>
+        document.addEventListener("contextmenu", function (e) {
+            if (document.getElementById("pdfModal")?.classList.contains("show")) {
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener("keydown", function (e) {
+            if (document.getElementById("pdfModal")?.classList.contains("show")) {
+                if (e.ctrlKey && (e.key === 'p' || e.key === 's')) {
+                    e.preventDefault();
+                }
+            }
+        });
+    </script>
+
 }

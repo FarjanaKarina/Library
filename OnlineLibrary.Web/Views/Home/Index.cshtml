@@ -9,55 +9,23 @@
         <!-- =========================
              SEARCH BAR (AJAX)
         ========================= -->
-        <div id="topSearch" class="container my-5">
-            <div class="row justify-content-center">
-                <div class="col-lg-5">
+        <section class="hero-section">
 
-                    <div class="input-group input-group-lg shadow rounded-pill overflow-hidden">
-                        @* 
-                <!-- CATEGORY FILTER -->
-                <select id="categoryFilter"
-                        class="form-select border-0"
-                        style="max-width:200px;">
-                    <option value="">All Categories</option>
-                    @foreach (var c in ViewBag.Categories)
-                    {
-                        <option value="@c.CategoryId">
-                            @c.CategoryName
-                        </option>
-                    }
-                </select>
- *@
-                        <!-- SEARCH INPUT -->
-                        <input type="text"
-                               id="searchInput"
-                               class="form-control border-0 px-4"
-                               placeholder="Search by title, author, publisher or category" />
-
-                        <!-- SEARCH ICON -->
-                        <span class="input-group-text bg-danger border-0 text-white px-4">
-                            <i class="bi bi-search fs-5"></i>
-                        </span>
-
-                    </div>
-
+            <!-- SEARCH BAR -->
+            <div class="hero-search" id="topSearch">
+                <div class="search-box">
+                    <input type="text"
+                           id="searchInput"
+                           placeholder="Search by title, author, publisher or category" />
+                    <button type="button">
+                        <i class="bi bi-search"></i>
+                    </button>
                 </div>
             </div>
-        </div>
 
-        <!-- =========================
-             AJAX SEARCH RESULTS
-        ========================= -->
-        <div class="container">
-            <div class="row" id="searchResults"></div>
-        </div>
-        <!-- =========================
-        FEATURED BOOKS CAROUSEL
-        ========================= -->
-
-        <section class="container py-5">
+            <!-- FEATURED CAROUSEL -->
             <div id="featuredCarousel"
-                 class="carousel slide"
+                 class="carousel slide hero-carousel"
                  data-bs-ride="carousel">
 
                 <div class="carousel-inner">
@@ -67,81 +35,93 @@
                         ?? new List<FeaturedBookViewModel>();
                         var isFirst = true;
                     }
-                    @if (books.Any())
+
+                    @foreach (var book in books)
                     {
-                        @foreach (var book in books)
-                        {
-                            <div class="carousel-item @(isFirst ? "active" : "")">
-                                @{
-                                    isFirst = false;
-                                }
+                        <div class="carousel-item @(isFirst ? "active" : "")">
+                            @{
+                                isFirst = false;
+                            }
 
-                                <div class="row align-items-center">
+                            <div class="row align-items-center">
 
-                                    <!-- LEFT CONTENT -->
-                                    <div class="col-md-6 px-5">
-                                        <span class="text-uppercase text-muted small">
-                                            New Release
-                                        </span>
+                                <!-- LEFT CONTENT -->
+                                <div class="col-md-6 px-5">
 
-                                        <h1 class="fw-bold mt-2">
-                                            @book.Title
-                                        </h1>
+                                    <span class="hero-badge">New Release</span>
 
-                                        <p class="text-muted mt-3">
-                                            @book.Description
-                                        </p>
+                                    <h1 class="hero-title">
+                                        @book.Title
+                                    </h1>
 
-                                        <div class="mt-4">
-                                            <a asp-controller="Book"
-                                               asp-action="Details"
-                                               asp-route-id="@book.BookId"
-                                               class="btn btn-primary me-2">
-                                                View Details
-                                            </a>
+                                    <p class="hero-text mt-3">
+                                        @book.Description
+                                    </p>
 
-                                            @if (!string.IsNullOrEmpty(book.PdfUrl))
+                                    <div class="mt-4 d-flex gap-3 flex-wrap">
+
+                                        <!-- VIEW DETAILS -->
+                                        <a asp-controller="Book"
+                                           asp-action="Details"
+                                           asp-route-id="@book.BookId"
+                                           class="hero-btn">
+                                            View Details
+                                        </a>
+
+                                        <!-- READ ONLINE -->
+                                        @if (!string.IsNullOrEmpty(book.PdfUrl))
+                                        {
+                                            @if (Context.Session.GetString("UserId") == null)
                                             {
-                                                <a href="@book.PdfUrl"
-                                                   class="btn btn-outline-primary"
-                                                   target="_blank">
+                                                <a asp-controller="Account"
+                                                   asp-action="Login"
+                                                   class="hero-btn-outline">
                                                     Read Online
                                                 </a>
                                             }
-                                        </div>
+                                            else
+                                            {
+                                                <a asp-controller="Book"
+                                                   asp-action="Details"
+                                                   asp-route-id="@book.BookId"
+                                                   class="hero-btn-outline">
+                                                    Read Online
+                                                </a>
+                                            }
+                                        }
                                     </div>
-
-                                    <!-- RIGHT IMAGE -->
-                                    <div class="col-md-6 text-center">
-                                        <img src="@book.ImageUrl"
-                                             class="img-fluid shadow"
-                                             style="max-height:420px;"
-                                             alt="@book.Title" />
-                                    </div>
-
                                 </div>
+
+                                <!-- RIGHT IMAGE -->
+                                <div class="col-md-6 text-center">
+                                    <img src="@book.ImageUrl"
+                                         class="hero-book-img"
+                                         alt="@book.Title" />
+                                </div>
+
                             </div>
-                        }
+                        </div>
                     }
                 </div>
 
-                <!-- CONTROLS -->
+                <!-- ARROWS -->
                 <button class="carousel-control-prev"
                         type="button"
                         data-bs-target="#featuredCarousel"
                         data-bs-slide="prev">
-                    <span class="carousel-control-prev-icon"></span>
+                    <span class="hero-arrow">&#10094;</span>
                 </button>
 
                 <button class="carousel-control-next"
                         type="button"
                         data-bs-target="#featuredCarousel"
                         data-bs-slide="next">
-                    <span class="carousel-control-next-icon"></span>
+                    <span class="hero-arrow">&#10095;</span>
                 </button>
-
             </div>
+
         </section>
+
 
         <!-- =========================
              INITIAL BOOK CAROUSEL

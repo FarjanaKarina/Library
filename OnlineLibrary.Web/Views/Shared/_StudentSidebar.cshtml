@@ -1,29 +1,41 @@
-﻿<div class="bg-dark text-white p-3 h-100">
+﻿<div class="p-3">
     <h5 class="mb-4">👤 My Account</h5>
 
     <ul class="nav flex-column gap-2">
 
-        <li class="nav-item">
-            <a class="nav-link text-white"
-               asp-controller="Home"
-               asp-action="Index">
-                Home
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a class="nav-link"
-               asp-controller="Student"
-               asp-action="Dashboard">
+        <li>
+            <a asp-controller="Student" asp-action="Dashboard" class="nav-link text-white">
                 Dashboard
             </a>
         </li>
 
-        <li class="nav-item">
-            <a class="nav-link"
-               asp-controller="Student"
-               asp-action="BrowseBooks">
-                Browse Books
+        <li>
+            <a asp-controller="Student" asp-action="BrowseBooks" class="nav-link text-white">
+                Books
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Student" asp-action="MyBorrows" class="nav-link text-white">
+                My Borrowed Books
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Student" asp-action="BorrowHistory" class="nav-link text-white">
+                Borrow History
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Student" asp-action="Membership" class="nav-link text-white">
+                Membership Status
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Student" asp-action="Profile" class="nav-link text-white">
+                Profile
             </a>
         </li>
 

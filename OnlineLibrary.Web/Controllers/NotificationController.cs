@@ -11,20 +11,29 @@ namespace OnlineLibrary.Web.Controllers
         {
             _context = context;
         }
+
+        // =========================
+        // NOTIFICATION INDEX PAGE
+        // =========================
         public IActionResult Index()
         {
             var uidStr = HttpContext.Session.GetString("UserId");
             if (string.IsNullOrEmpty(uidStr))
                 return RedirectToAction("Login", "Account");
-
+           // Parse uidStr to Guid
             var uid = Guid.Parse(uidStr);
-
             var notifications = _context.Notifications
-                .Where(n => n.UserId == uid)
-                .OrderByDescending(n => n.CreatedAt)
-                .ToList();
+     .Where(n => n.UserId == uid)
+     .OrderByDescending(n => n.CreatedAt)
+     .ToList();
 
-            notifications.ForEach(n => n.IsRead = true);
+            var unread = notifications.Where(n => !n.IsRead).ToList();
+
+            foreach (var n in unread)
+            {
+                n.IsRead = true;
+            }
+
             _context.SaveChanges();
 
             return View(notifications);

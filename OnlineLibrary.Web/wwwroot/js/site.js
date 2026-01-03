@@ -30,3 +30,39 @@ window.addEventListener("scroll", function () {
         }
     }
 });
+/* For Wishlist */
+function toggleWishlist(bookId, btn) {
+    fetch('/Wishlist/Toggle', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: 'bookId=' + bookId
+    })
+        .then(r => {
+            if (r.status === 401) {
+                window.location.href = '/Account/Login';
+                return;
+            }
+            return r.json();
+        })
+        .then(data => {
+            if (!data) return;
+
+            btn.classList.toggle('active', data.added);
+        });
+}
+/* For Membership */
+function openMembershipModal() {
+    fetch('/Student/ApplyMembership')
+        .then(r => r.text())
+        .then(html => {
+            document.getElementById('authModalContent').innerHTML = html;
+            new bootstrap.Modal(document.getElementById('authModal')).show();
+        });
+}
+function updateAmount() {
+    const plan = document.getElementById("planSelect");
+    const amount = plan.options[plan.selectedIndex].dataset.amount;
+    document.getElementById("amount").value = amount || "";
+}

@@ -11,7 +11,9 @@ namespace OnlineLibrary.Infrastructure.Domain.Entities
 
         // Pending | Approved | Rejected
         public string Status { get; set; } = "Pending";
-
+        public string? PaymentMethod { get; set; }   // bKash / Nagad / Card
+        public string? TransactionId { get; set; }   // TXN ID from user
+        public decimal PaidAmount { get; set; }
         public DateTime AppliedAt { get; set; }
         public DateTime? ApprovedAt { get; set; }
         public DateTime? StartDate { get; set; }

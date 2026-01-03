@@ -106,6 +106,17 @@ namespace OnlineLibrary.Web.Controllers
             return RedirectToDashboard(user.RoleId);
         }
 
+        public IActionResult LoginModal()
+        {
+            return PartialView("_LoginModal");
+        }
+
+        public IActionResult RegisterModal()
+        {
+            return PartialView("_RegisterModal");
+        }
+
+
         // =========================
         // Logout
         // =========================
@@ -129,7 +140,7 @@ namespace OnlineLibrary.Web.Controllers
             {
                 "Admin" => RedirectToAction("Dashboard", "Admin"),
                 "Librarian" => RedirectToAction("Dashboard", "Librarian"),
-                "Student" => RedirectToAction("Dashboard", "Student"),
+                "Student" => RedirectToAction("BrowseBooks", "Student"),
                 _ => RedirectToAction("Index", "Home")
             };
         }
