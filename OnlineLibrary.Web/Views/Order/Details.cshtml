@@ -104,16 +104,25 @@
                                         <td class="text-center align-middle"><strong>৳@item.Subtotal.ToString("N0")</strong></td>
                                         <td class="text-center align-middle">
                                             @{
-                                                var statusClass = item.Status switch
+                                                var itemStatusClass = item.Status switch
                                                 {
                                                     "Refunded" => "bg-success",
-                                                    "Received" => "bg-info",
+                                                    "Received" => "bg-success", // Changed to success since it means return completed
                                                     "ReturnApproved" => "bg-primary",
                                                     "ReturnRequested" => "bg-warning text-dark",
                                                     _ => "bg-secondary"
                                                 };
+                                                
+                                                var statusText = item.Status switch
+                                                {
+                                                    "Refunded" => "Returned & Refunded",
+                                                    "Received" => "Return Completed",
+                                                    "ReturnApproved" => "Return Approved",
+                                                    "ReturnRequested" => "Return Requested",
+                                                    _ => item.Status
+                                                };
                                             }
-                                            <span class="badge @statusClass">@item.Status</span>
+                                            <span class="badge @itemStatusClass">@statusText</span>
                                         </td>
                                         <td class="text-center align-middle">
                                             @if (item.CanRequestReturn && Model.OrderStatus == "Delivered")

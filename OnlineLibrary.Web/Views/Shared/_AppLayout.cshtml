@@ -10,7 +10,7 @@
         roleName = Db.Roles
             .Where(r => r.RoleId == Guid.Parse(roleIdStr))
             .Select(r => r.RoleName)
-            .FirstOrDefault();
+            .FirstOrDefault() ?? "";
     }
 }
 
@@ -27,7 +27,7 @@
     <link rel="stylesheet" href="~/css/custom-pages.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
-<body>
+<body class="public-layout">
     @Html.Partial("_TopNavbar")
 
     <main role="main" class="pb-3">
@@ -36,11 +36,43 @@
 
     @Html.Partial("_Footer")
 
+    <!-- === ADDED: Generic Modal for Authentication === -->
+    <div class="modal fade" id="authModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" id="authModalContent">
+                <!-- Content will be loaded here via AJAX -->
+            </div>
+        </div>
+    </div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- === ADD CHART.JS LIBRARY === -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+
+    <!-- === ADDED: JavaScript functions to open login/register modals === -->
+    <script>
+        function openLoginModal(returnUrl = '/') {
+            fetch(`/Account/LoginModal?returnUrl=${encodeURIComponent(returnUrl)}`)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('authModalContent').innerHTML = html;
+                    new bootstrap.Modal(document.getElementById('authModal')).show();
+                });
+        }
+
+        function openRegisterModal(returnUrl = '/') {
+            fetch(`/Account/RegisterModal?returnUrl=${encodeURIComponent(returnUrl)}`)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('authModalContent').innerHTML = html;
+                    new bootstrap.Modal(document.getElementById('authModal')).show();
+                });
+        }
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

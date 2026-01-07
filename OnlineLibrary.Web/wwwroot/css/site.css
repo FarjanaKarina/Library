@@ -32,6 +32,11 @@ body {
   margin-bottom: 60px;
 }
 
+/* === ADDED: This rule specifically targets the public layout to fix overlap === */
+body.public-layout {
+    padding-top: 75px; /* Matches your navbar height */
+}
+
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
   color: var(--bs-secondary-color);
   text-align: end;
@@ -334,7 +339,7 @@ body.dark-mode .back-to-top {
 .dashboard-wrapper {
     display: flex;
     min-height: 100vh;
-    margin-top: 70px; /* height of top navbar */
+    margin-top: 75px; /* height of top navbar */
 }
 
 .dashboard-sidebar {
@@ -342,8 +347,8 @@ body.dark-mode .back-to-top {
     background-color: #1f2933;
     color: #ffffff;
     position: sticky;
-    top: 70px;
-    height: calc(100vh - 70px);
+    top: 75px; /* Adjusted to match navbar height */
+    height: calc(100vh - 75px);
     overflow-y: auto;
 }
 
@@ -567,28 +572,8 @@ body.dark-mode .footer-social a {
     }
 
 /*This is for Notification page Sidebar*/
-.dashboard-wrapper {
-    display: flex;
-    min-height: 100vh;
-    margin-top: 70px; /* height of top navbar */
-}
+/* REMOVED: Duplicate .dashboard-wrapper rules */
 
-.dashboard-sidebar {
-    width: 240px;
-    background-color: #1f2933;
-    color: #ffffff;
-    position: sticky;
-    top: 70px;
-    height: calc(100vh - 70px);
-    overflow-y: auto;
-    flex-shrink: 0;
-}
-
-.dashboard-content {
-    flex-grow: 1;
-    padding: 24px;
-    background-color: #f8f9fa;
-}
 /* =========================
    EXPLORE OUR COLLECTION
 ========================= */

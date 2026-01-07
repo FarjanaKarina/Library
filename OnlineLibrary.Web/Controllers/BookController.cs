@@ -127,78 +127,74 @@ namespace OnlineLibrary.Web.Controllers
         }
         public IActionResult ReadPdf(Guid id)
         {
-            // =========================
-            // SESSION AUTH CHECK
-            // =========================
+            // 1. SESSION AUTH CHECK
+            var roleIdStr = HttpContext.Session.GetString("RoleId");
+            if (string.IsNullOrEmpty(roleIdStr))
+                return Unauthorized();
+
+            var roleId = Guid.Parse(roleIdStr);
+            var roleName = _context.Roles
+                .Where(r => r.RoleId == roleId)
+                .Select(r => r.RoleName)
+                .FirstOrDefault();
+
+            if (roleName != "Student" && roleName != "Admin" && roleName != "Librarian")
+                return Unauthorized();
+
+            // 2. GET BOOK
+            var book = _context.Books.Find(id);
+            if (book == null || string.IsNullOrEmpty(book.PdfUrl))
+                return NotFound();
+
+            var filePath = Path.Combine(_environment.WebRootPath, book.PdfUrl.TrimStart('/'));
+            if (!System.IO.File.Exists(filePath))
+                return NotFound();
+
+            // 3. STREAM PDF (INLINE)
+            // The student-specific wishlist logic has been moved to its own action.
+            return PhysicalFile(filePath, "application/pdf");
+        }
+
+        // === ADDED: New action to handle the student "Continue Reading" feature ===
+        [HttpPost]
+        public IActionResult UpdateReadingHistory(Guid bookId)
+        {
             var userIdStr = HttpContext.Session.GetString("UserId");
             var roleIdStr = HttpContext.Session.GetString("RoleId");
 
             if (string.IsNullOrEmpty(userIdStr) || string.IsNullOrEmpty(roleIdStr))
                 return Unauthorized();
 
-            var userId = Guid.Parse(userIdStr);
-            var roleId = Guid.Parse(roleIdStr);
-
             var roleName = _context.Roles
-                .Where(r => r.RoleId == roleId)
+                .Where(r => r.RoleId == Guid.Parse(roleIdStr))
                 .Select(r => r.RoleName)
                 .FirstOrDefault();
 
-            if (roleName != "Student" &&
-                roleName != "Admin" &&
-                roleName != "Librarian")
-                return Unauthorized();
+            // This feature is only for students
+            if (roleName != "Student")
+                return Ok(); // Not an error, just do nothing for other roles.
 
-            // =========================
-            // GET BOOK
-            // =========================
-            var book = _context.Books.Find(id);
+            var userId = Guid.Parse(userIdStr);
+            var wishlist = _context.Wishlists.FirstOrDefault(w => w.UserId == userId && w.BookId == bookId);
 
-            if (book == null || string.IsNullOrEmpty(book.PdfUrl))
-                return NotFound();
-
-            var filePath = Path.Combine(
-                _environment.WebRootPath,
-                book.PdfUrl.TrimStart('/')
-            );
-
-            if (!System.IO.File.Exists(filePath))
-                return NotFound();
-
-            // =========================
-            // CONTINUE READING (STUDENT)
-            // =========================
-            if (roleName == "Student")
+            if (wishlist == null)
             {
-                var wishlist = _context.Wishlists
-                    .FirstOrDefault(w => w.UserId == userId && w.BookId == id);
-
-                // If not already wishlisted, auto-add
-                if (wishlist == null)
+                _context.Wishlists.Add(new Wishlist
                 {
-                    wishlist = new Wishlist
-                    {
-                        WishlistId = Guid.NewGuid(),
-                        UserId = userId,
-                        BookId = id,
-                        CreatedAt = DateTime.UtcNow,
-                        LastReadAt = DateTime.UtcNow
-                    };
-
-                    _context.Wishlists.Add(wishlist);
-                }
-                else
-                {
-                    wishlist.LastReadAt = DateTime.UtcNow;
-                }
-
-                _context.SaveChanges();
+                    WishlistId = Guid.NewGuid(),
+                    UserId = userId,
+                    BookId = bookId,
+                    CreatedAt = DateTime.UtcNow,
+                    LastReadAt = DateTime.UtcNow
+                });
+            }
+            else
+            {
+                wishlist.LastReadAt = DateTime.UtcNow;
             }
 
-            // =========================
-            // STREAM PDF (INLINE)
-            // =========================
-            return PhysicalFile(filePath, "application/pdf");
+            _context.SaveChanges();
+            return Ok();
         }
 
 

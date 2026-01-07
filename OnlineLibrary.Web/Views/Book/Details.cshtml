@@ -1,191 +1,201 @@
 ﻿@model OnlineLibrary.Web.Models.BookDetailsViewModel
 
 @{
-    ViewData["Title"] = "Book Details";
-    Layout = "_AppLayout";
+    // Dynamic layout selection logic
+    string layout = "_AppLayout";
+    if (ViewBag.CurrentRole == "Student") { layout = "_StudentLayout"; }
+    else if (ViewBag.CurrentRole == "Admin" || ViewBag.CurrentRole == "Librarian") { layout = "_LibrarianLayout"; }
+    Layout = layout;
+
+    ViewData["Title"] = Model.Title;
 }
 
-<div class="container mt-4">
-
+<div class="container my-5">
     <div class="row">
-
-        <!-- IMAGE -->
-        <div class="col-md-4 text-center">
-            <img src="@Model.ImageUrl"
-                 class="img-fluid rounded shadow"
-                 style="max-height:400px; object-fit:cover;" />
+        <!-- Left Column: Book Cover and Actions -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4 sticky-top" style="top: 20px;">
+                <img src="@(string.IsNullOrEmpty(Model.ImageUrl) ? "/images/default-book.png" : Model.ImageUrl)"
+                     class="card-img-top" alt="@Model.Title" style="height: 450px; object-fit: contain;">
+                <div class="card-body text-center">
+                    <h4 class="card-title text-primary fw-bold">৳@Model.Price.ToString("N0")</h4>
+                    <div class="d-grid gap-2 mt-3">
+                        <!-- === MODIFIED: Corrected logic for all roles === -->
+                        @if (ViewBag.CurrentRole == "Student")
+                        {
+                            <button class="btn btn-success btn-lg w-100" onclick="addToCart('@Model.BookId')">
+                                <i class="bi bi-cart-plus me-2"></i>Add to Cart
+                            </button>
+                        }
+                        else if (ViewBag.IsLoggedIn != true)
+                        {
+                            // For guest users, the button now opens the login modal
+                            <button class="btn btn-success btn-lg w-100" onclick="openLoginModal('@Context.Request.Path')">
+                                <i class="bi bi-cart-plus me-2"></i>Add to Cart
+                            </button>
+                        }
+                        
+                        @if (!string.IsNullOrEmpty(Model.PdfUrl))
+                        {
+                            // TYPO FIX: Corrected "CurentRole" to "CurrentRole"
+                            if (ViewBag.CurrentRole == "Student" || ViewBag.CurrentRole == "Admin" || ViewBag.CurrentRole == "Librarian")
+                            {
+                                // "Read Sample" button for all logged-in roles
+                                <button class="btn btn-outline-secondary w-100" data-bs-toggle="modal" data-bs-target="#pdfReaderModal">
+                                    <i class="bi bi-book me-2"></i>Read Sample
+                                </button>
+                            }
+                            else
+                            {
+                                // "Read Sample" button for guests opens the login modal
+                                <button class="btn btn-outline-secondary w-100" onclick="openLoginModal('@Context.Request.Path')">
+                                    <i class="bi bi-book me-2"></i>Read Sample
+                                </button>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- DETAILS -->
-        <div class="col-md-8">
-
-            <h2>@Model.Title</h2>
-            <p class="text-muted mb-1">
-                by <strong>@Model.Author</strong>
-            </p>
-
-            <p>
-                <div class="mb-3">
-                    <strong>Categories:</strong><br />
-
-                    @if (Model.Categories.Any())
-                    {
+        <!-- Right Column: Book Information -->
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1 class="display-5 fw-bold">@Model.Title</h1>
+                    <p class="text-muted fs-5 mb-2">by @Model.Author</p>
+                    <div>
                         @foreach (var cat in Model.Categories)
                         {
-                            <span class="badge bg-info text-dark me-1">
-                                @cat
-                            </span>
+                            <span class="badge bg-info text-dark me-1">@cat</span>
                         }
-                    }
-                    else
-                    {
-                        <span class="text-muted">No category assigned</span>
-                    }
+                    </div>
                 </div>
-
-            </p>
-
-            <p>
-                <strong>Publisher:</strong> @Model.Publisher
-            </p>
-
-            <p>
-                <strong>ISBN:</strong> @Model.ISBN
-            </p>
-
-            <p>
-                <strong>Published:</strong>
-                @Model.PublishDate.ToString("dd-MM-yyyy")
-            </p>
-
-            <p>
-                <strong>Price:</strong>
-                @Model.Price.ToString("0.00") TK
-            </p>
-
-            <p>
-                <strong>Available Copies:</strong>
-                @Model.TotalCopies
-            </p>
-
-            <hr />
-
-            <p>
-                @Model.Description
-            </p>
-
-            <div class="mt-4 d-flex gap-2 flex-wrap align-items-center">
-
-                <!-- READ ONLINE (STUDENT, ADMIN, LIBRARIAN) -->
-                @if (!string.IsNullOrEmpty(Model.PdfUrl))
-                {
-                    if (ViewBag.IsLoggedIn == true &&
-                    (ViewBag.CurrentRole == "Student"
-                    || ViewBag.CurrentRole == "Admin"
-                    || ViewBag.CurrentRole == "Librarian"))
-                    {
-                        <button class="btn btn-outline-primary"
-                                data-bs-toggle="modal"
-                                data-bs-target="#pdfModal">
-                            <i class="bi bi-book"></i> Read Online
-                        </button>
-                    }
-                    else
-                    {
-                        <a asp-controller="Account"
-                           asp-action="Login"
-                           class="btn btn-outline-primary">
-                            <i class="bi bi-lock"></i> Read Online
-                        </a>
-                    }
-                }
-
-                <!-- BUY NOW (STUDENT ONLY – ALWAYS VISIBLE) -->
-                @if (ViewBag.CurrentRole == "Student")
-                {
-                    <form asp-controller="Purchase" asp-action="Buy" method="post" style="display:inline;">
-                        <input type="hidden" name="bookId" value="@Model.BookId" />
-                        <button type="submit" class="btn btn-success">
-                            <i class="bi bi-cart-check"></i> Buy Now - @Model.Price.ToString("0.00") TK
-                        </button>
-                    </form>
-                }
-
-                <!-- BACK BUTTON -->
-                @if (ViewBag.CurrentRole == "Admin" || ViewBag.CurrentRole == "Librarian")
-                {
-                    <a asp-controller="Book"
-                       asp-action="Index"
-                       class="btn btn-secondary ms-auto">
-                        <i class="bi bi-arrow-left"></i> Back to List
-                    </a>
-                }
-                else
-                {
-                    <button class="btn btn-secondary ms-auto"
-                            onclick="history.back()">
+               
+            </div>
+            <hr>
+            <div class="mb-4">
+                <h5 class="mb-3">Description</h5>
+                <p style="text-align: justify;">@Model.Description</p>
+            </div>
+            <div class="card bg-light border-0">
+                <div class="card-body">
+                    <h5 class="mb-4">Book Details</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><strong>Publisher</strong><br><span>@Model.Publisher</span></div>
+                        <div class="col-md-6 mb-3"><strong>Publish Date</strong><br><span>@Model.PublishDate.ToString("dd MMMM yyyy")</span></div>
+                        <div class="col-md-6 mb-3"><strong>ISBN</strong><br><span>@Model.ISBN</span></div>
+                        <div class="col-md-6 mb-3"><strong>Available Copies</strong><br><span class="badge bg-success">@Model.TotalCopies</span></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Back button for Admins/Librarians remains at the top -->
+            @if (ViewBag.CurrentRole == "Admin" || ViewBag.CurrentRole == "Librarian")
+            {
+                <div class="mt-4 d-flex justify-content-end">
+                <a asp-controller="Book" asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+                </div>
+            }
+            <!-- === ADDED: Back button for Students and Guests at the bottom-right === -->
+            @if (ViewBag.CurrentRole != "Admin" && ViewBag.CurrentRole != "Librarian")
+            {
+                <div class="mt-4 d-flex justify-content-end">
+                    <button class="btn btn-secondary" onclick="history.back()">
                         <i class="bi bi-arrow-left"></i> Back
                     </button>
-                }
-
-            </div>
-
+                </div>
+            }
         </div>
     </div>
 </div>
+
+<!-- PDF Reader Modal -->
 @if (!string.IsNullOrEmpty(Model.PdfUrl))
 {
-    <div class="modal fade" id="pdfModal" tabindex="-1">
-        <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal fade" id="pdfReaderModal" tabindex="-1" aria-labelledby="pdfReaderModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-fullscreen-lg-down">
             <div class="modal-content">
-
-                <div class="modal-header">
-                    <h5 class="modal-title">Read Book</h5>
-                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="modal-header"><h5 class="modal-title" id="pdfReaderModalLabel">Sample: @Model.Title</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                <div class="modal-body p-0" style="height: 80vh;">
+                    <div class="pdf-watermark">BookNest • For Reading Only</div>
+                    <div id="pdf-viewer" class="overflow-auto h-100 bg-secondary-subtle text-center p-4"></div>
                 </div>
-
-                <!-- ✅ MODAL BODY -->
-                <div class="modal-body position-relative p-0" style="height:80vh;">
-
-                    <!-- WATERMARK -->
-                    <div class="pdf-watermark">
-                        BookNest • For Reading Only
-                    </div>
-
-                    <!-- PDF IFRAME -->
-                    <iframe src="/Book/ReadPdf/@Model.BookId#toolbar=0&navpanes=0&scrollbar=0"
-                            width="100%"
-                            height="100%"
-                            style="border:none;">
-                    </iframe>
-
-                </div>
-
+                <div class="modal-footer justify-content-center"><p class="text-muted mb-0">Showing first 30 pages as a sample.</p></div>
             </div>
         </div>
     </div>
 }
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <script>
-        // Context menu and keyboard shortcut prevention for PDF
-    </script>
-    <script>
-        document.addEventListener("contextmenu", function (e) {
-            if (document.getElementById("pdfModal")?.classList.contains("show")) {
-                e.preventDefault();
-            }
+<script>
+    function addToCart(bookId) {
+        $.ajax({
+            url: '/Cart/Add', type: 'POST', data: { bookId: bookId },
+            success: function (response) {
+                if (response.success) {
+                    Swal.fire({ title: 'Success!', text: response.message, icon: 'success', showConfirmButton: false, timer: 1500 });
+                    if (response.cartCount) { $('.cart-count').text(response.cartCount); }
+                } else { Swal.fire({ title: 'Error', text: response.message, icon: 'error' }); }
+            },
+            error: function () { Swal.fire({ title: 'Error', text: 'An unexpected error occurred.', icon: 'error' }); }
         });
+    }
 
-        document.addEventListener("keydown", function (e) {
-            if (document.getElementById("pdfModal")?.classList.contains("show")) {
-                if (e.ctrlKey && (e.key === 'p' || e.key === 's')) {
-                    e.preventDefault();
+    // PDF rendering and security scripts
+    document.addEventListener('DOMContentLoaded', function () {
+        const pdfModal = document.getElementById('pdfReaderModal');
+        if (pdfModal) {
+            const pdfUrl = '/Book/ReadPdf/@Model.BookId';
+            const viewerContainer = document.getElementById('pdf-viewer');
+            const maxPages = 30;
+
+            async function renderPdf() {
+                // === ADDED: Logic to update student reading history ===
+                if ('@ViewBag.CurrentRole' === 'Student') {
+                    fetch('/Book/UpdateReadingHistory', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: `bookId=@Model.BookId`
+                    }).catch(err => console.error('Could not update reading history:', err));
+                }
+
+                viewerContainer.innerHTML = `<div class="d-flex justify-content-center align-items-center h-100"><div class="spinner-border" role="status"></div><span class="ms-3">Loading Sample...</span></div>`;
+                
+                try {
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
+                    const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
+                    viewerContainer.innerHTML = '';
+
+                    const totalPagesToRender = Math.min(pdf.numPages, maxPages);
+
+                    for (let pageNum = 1; pageNum <= totalPagesToRender; pageNum++) {
+                        const page = await pdf.getPage(pageNum);
+                        const scale = 1.5;
+                        const viewport = page.getViewport({ scale: scale });
+                        const canvas = document.createElement('canvas');
+                        const context = canvas.getContext('2d');
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+                        canvas.classList.add('d-block', 'mx-auto', 'mb-3', 'shadow-sm');
+                        
+                        viewerContainer.appendChild(canvas);
+
+                        await page.render({ canvasContext: context, viewport: viewport }).promise;
+                    }
+                } catch (reason) {
+                    console.error(reason);
+                    viewerContainer.innerHTML = '<div class="alert alert-danger m-3">Error: Could not load the PDF sample. Please ensure you are logged in and have permission.</div>';
                 }
             }
-        });
-    </script>
 
+            pdfModal.addEventListener('shown.bs.modal', renderPdf);
+        }
+    });
+
+    // Security scripts
+    document.addEventListener("contextmenu", function (e) { if (document.getElementById("pdfReaderModal")?.classList.contains("show")) e.preventDefault(); });
+    document.addEventListener("keydown", function (e) { if (document.getElementById("pdfReaderModal")?.classList.contains("show") && e.ctrlKey && (e.key === 'p' || e.key === 's')) e.preventDefault(); });
+</script>
 }
