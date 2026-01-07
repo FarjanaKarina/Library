@@ -100,13 +100,15 @@
                     }
                 }
 
-                <!-- BORROW NOW (STUDENT ONLY – ALWAYS VISIBLE) -->
+                <!-- BUY NOW (STUDENT ONLY – ALWAYS VISIBLE) -->
                 @if (ViewBag.CurrentRole == "Student")
                 {
-                    <button class="btn btn-success"
-                            onclick="handleBorrow(@(ViewBag.IsMember == true ? "true" : "false"))">
-                        <i class="bi bi-journal-arrow-up"></i> Borrow Now
-                    </button>
+                    <form asp-controller="Purchase" asp-action="Buy" method="post" style="display:inline;">
+                        <input type="hidden" name="bookId" value="@Model.BookId" />
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-cart-check"></i> Buy Now - @Model.Price.ToString("0.00") TK
+                        </button>
+                    </form>
                 }
 
                 <!-- BACK BUTTON -->
@@ -168,39 +170,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        function handleBorrow(isMember) {
-            if (isMember === true) {
-                // submit borrow form dynamically
-                const form = document.createElement("form");
-                form.method = "post";
-                form.action = "/Student/Borrow";
-
-                const input = document.createElement("input");
-                input.type = "hidden";
-                input.name = "bookId";
-                input.value = "@Model.BookId";
-
-                form.appendChild(input);
-                document.body.appendChild(form);
-                form.submit();
-            } else {
-                        Swal.fire({
-            icon: 'warning',
-            title: 'Membership Required',
-            text: 'You need an active membership to borrow books.',
-            showCancelButton: true,          // ✅ Cancel button
-           // showCloseButton: true, // ✅ Top-right X button, allowOutsideClick: false
-            confirmButtonText: 'Apply for Membership',
-            cancelButtonText: 'Cancel',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = '/Student/Membership';
-            }
-            // ❌ If cancelled or closed → do nothing
-        });
-            }
-        }
+        // Context menu and keyboard shortcut prevention for PDF
     </script>
     <script>
         document.addEventListener("contextmenu", function (e) {

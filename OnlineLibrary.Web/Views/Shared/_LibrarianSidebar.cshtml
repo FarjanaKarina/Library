@@ -1,49 +1,48 @@
 ﻿<div class="p-3">
-    <h5 class="mb-4">📚 Librarian</h5>
+    <h5 class="mb-4">📚 Librarian Panel</h5>
 
     <ul class="nav flex-column gap-2">
-
         <li>
             <a asp-controller="Librarian" asp-action="Dashboard" class="nav-link text-white">
-                Dashboard
+                <i class="bi bi-speedometer2 me-2"></i>Dashboard
             </a>
         </li>
 
         <li>
             <a asp-controller="Book" asp-action="Index" class="nav-link text-white">
-                Books
+                <i class="bi bi-book me-2"></i>Manage Books
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Librarian" asp-action="Orders" class="nav-link text-white">
+                <i class="bi bi-box-seam me-2"></i>All Orders
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Librarian" asp-action="ReturnRequests" class="nav-link text-white">
+                <i class="bi bi-arrow-return-left me-2"></i>Return Requests
+                @{
+                    var pendingReturns = ViewBag.PendingReturnsCount ?? 0;
+                    if (pendingReturns > 0)
+                    {
+                        <span class="badge bg-danger">@pendingReturns</span>
+                    }
+                }
             </a>
         </li>
 
         <li>
             <a asp-controller="Category" asp-action="Index" class="nav-link text-white">
-                Categories
+                <i class="bi bi-tags me-2"></i>Categories
             </a>
         </li>
 
         <li>
-            <a asp-controller="Librarian" asp-action="BorrowRequests" class="nav-link text-white">
-                Borrow Requests
+            <a asp-controller="Librarian" asp-action="Reports" class="nav-link text-white">
+                <i class="bi bi-graph-up me-2"></i>Reports
             </a>
         </li>
-
-        <li>
-            <a asp-controller="Librarian" asp-action="Returns" class="nav-link text-white">
-                Return Management
-            </a>
-        </li>
-
-        <li>
-            <a asp-controller="Librarian" asp-action="Overdue" class="nav-link text-white">
-                Overdue Books
-            </a>
-        </li>
-
-        <li>
-            <a asp-controller="Librarian" asp-action="Students" class="nav-link text-white">
-                Student List
-            </a>
-        </li>
-
     </ul>
 </div>

@@ -169,7 +169,7 @@
                 @if (!isAdmin && !isLibrarian)
                 {
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
+                        <a class="nav-link" asp-controller="Wishlist" asp-action="Index" title="Wishlist">
                             <i class="bi bi-heart fs-4"></i>
                         </a>
                     </li>
@@ -186,3 +186,62 @@
         </div>
     </div>
 </nav>
+
+@section Scripts {
+    <script>
+        // CLIENT-SIDE NOTIFICATION MARK AS READ (AJAX)
+        document.addEventListener('DOMContentLoaded', function () {
+            var notificationLink = document.getElementById('notificationLink');
+            var notificationBadge = document.getElementById('notificationBadge');
+
+            if (notificationLink && notificationBadge) {
+                notificationLink.addEventListener('click', function () {
+                    // Only proceed if there's a badge to remove
+                    if (notificationBadge.innerText !== "0") {
+                        // Send AJAX request to mark notifications as read
+                        fetch('@Url.Action("MarkAllAsRead", "Notification")', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                // Clear the badge
+                                notificationBadge.innerText = "0";
+                                notificationBadge.style.display = 'none';
+
+                                // Optionally, you can add logic to fetch and update the notification list here
+                            }
+                        })
+                        .catch(error => console.error('Error marking notifications as read:', error));
+                    }
+                });
+            }
+        });
+
+        // DARK MODE TOGGLE
+        function toggleDarkMode() {
+            const body = document.body;
+            body.classList.toggle("dark-mode");
+
+            // Save preference to localStorage
+            if (body.classList.contains("dark-mode")) {
+                localStorage.setItem("darkMode", "enabled");
+            } else {
+                localStorage.setItem("darkMode", "disabled");
+            }
+        }
+
+        // CHECK DARK MODE ON PAGE LOAD
+        document.addEventListener("DOMContentLoaded", function () {
+            const darkModePreference = localStorage.getItem("darkMode");
+
+            if (darkModePreference === "enabled") {
+                document.body.classList.add("dark-mode");
+            }
+        });
+    </script>
+}

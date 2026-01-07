@@ -20,24 +20,61 @@ namespace OnlineLibrary.Web.Controllers
             var uidStr = HttpContext.Session.GetString("UserId");
             if (string.IsNullOrEmpty(uidStr))
                 return RedirectToAction("Login", "Account");
-           // Parse uidStr to Guid
+
             var uid = Guid.Parse(uidStr);
+
+            // Get all notifications for this user
             var notifications = _context.Notifications
-     .Where(n => n.UserId == uid)
-     .OrderByDescending(n => n.CreatedAt)
-     .ToList();
+                .Where(n => n.UserId == uid)
+                .OrderByDescending(n => n.CreatedAt)
+                .ToList();
 
-            var unread = notifications.Where(n => !n.IsRead).ToList();
+            // Store which notification IDs were unread BEFORE marking them as read
+            // These will be highlighted as "NEW" on this page load only
+            var unreadIds = notifications
+                .Where(n => !n.IsRead)
+                .Select(n => n.NotificationId)
+                .ToHashSet();
 
-            foreach (var n in unread)
+            // Pass unread IDs to the view so it can highlight them
+            ViewBag.UnreadIds = unreadIds;
+
+            // Now mark all unread notifications as read
+            // Next time the user visits, these will no longer be highlighted
+            var unreadNotifications = notifications.Where(n => !n.IsRead).ToList();
+            foreach (var n in unreadNotifications)
+            {
+                n.IsRead = true;
+            }
+            _context.SaveChanges();
+
+            return View(notifications);
+        }
+
+        // =========================
+        // MARK ALL AS READ (AJAX)
+        // =========================
+        [HttpPost]
+        public IActionResult MarkAllAsRead()
+        {
+            var uidStr = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(uidStr))
+                return Unauthorized();
+
+            var uid = Guid.Parse(uidStr);
+
+            var unreadNotifications = _context.Notifications
+                .Where(n => n.UserId == uid && !n.IsRead)
+                .ToList();
+
+            foreach (var n in unreadNotifications)
             {
                 n.IsRead = true;
             }
 
             _context.SaveChanges();
 
-            return View(notifications);
+            return Ok(new { success = true, markedCount = unreadNotifications.Count });
         }
-
     }
 }

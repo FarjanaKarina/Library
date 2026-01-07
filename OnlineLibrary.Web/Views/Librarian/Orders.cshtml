@@ -1,0 +1,138 @@
+﻿@model List<OnlineLibrary.Web.Models.RecentOrderViewModel>
+
+@{
+    Layout = "_LibrarianLayout";
+    ViewData["Title"] = "All Orders";
+    var currentStatus = ViewBag.CurrentStatus as string;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-box-seam me-2"></i>All Orders</h2>
+        <a asp-action="Dashboard" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Filter Tabs -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link @(string.IsNullOrEmpty(currentStatus) ? "active" : "")"
+               asp-action="Orders">
+                <i class="bi bi-list"></i> All Orders
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(currentStatus == "Confirmed" ? "active" : "")"
+               asp-action="Orders" asp-route-status="Confirmed">
+                <i class="bi bi-check-circle"></i> Confirmed
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(currentStatus == "Packed" ? "active" : "")"
+               asp-action="Orders" asp-route-status="Packed">
+                <i class="bi bi-box"></i> Packed
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(currentStatus == "Shipped" ? "active" : "")"
+               asp-action="Orders" asp-route-status="Shipped">
+                <i class="bi bi-truck"></i> Shipped
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(currentStatus == "Delivered" ? "active" : "")"
+               asp-action="Orders" asp-route-status="Delivered">
+                <i class="bi bi-check-square"></i> Delivered
+            </a>
+        </li>
+    </ul>
+
+    @if (Model == null || Model.Count == 0)
+    {
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle me-2"></i>No orders found.
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Transaction ID</th>
+                                <th>Student</th>
+                                <th>Date</th>
+                                <th>Items</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <code>@order.TransactionId</code>
+                                    </td>
+                                    <td>
+                                        <i class="bi bi-person-circle me-1"></i>@order.StudentName
+                                    </td>
+                                    <td>
+                                        <small>@order.OrderDate.ToString("dd MMM yyyy")</small><br>
+                                        <small class="text-muted">@order.OrderDate.ToString("hh:mm tt")</small>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-secondary">@order.ItemCount items</span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-success">৳@order.TotalAmount.ToString("N0")</strong>
+                                    </td>
+                                    <td>
+                                        @{
+                                            var statusClass = order.OrderStatus switch
+                                            {
+                                                "Delivered" => "bg-success",
+                                                "Shipped" => "bg-info",
+                                                "Packed" => "bg-warning text-dark",
+                                                "Confirmed" => "bg-primary",
+                                                _ => "bg-secondary"
+                                            };
+                                        }
+                                        <span class="badge @statusClass">
+                                            @order.OrderStatus
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <a asp-action="OrderDetails" asp-route-id="@order.OrderId"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> View Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="alert alert-light d-flex justify-content-between align-items-center">
+                    <span>
+                        <i class="bi bi-info-circle me-2"></i>
+                        Showing <strong>@Model.Count</strong> order(s)
+                    </span>
+                    <span>
+                        Total Value: <strong class="text-success">৳@Model.Sum(o => o.TotalAmount).ToString("N0")</strong>
+                    </span>
+                </div>
+            </div>
+        </div>
+    }
+</div>

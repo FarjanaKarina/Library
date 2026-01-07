@@ -31,6 +31,6 @@ namespace OnlineLibrary.Infrastructure.Domain.Entities
         public string? PdfUrl { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
-        
+        public double Rating { get; set; }
     }
 }

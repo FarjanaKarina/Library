@@ -38,9 +38,9 @@ namespace OnlineLibrary.Web.Controllers
             }
 
             // =========================
-            // FEATURED BOOKS
+            // FEATURED BOOKS (CAROUSEL)
             // =========================
-            ViewBag.FeaturedBooks = _context.Books
+            var featuredBooks = _context.Books
                 .OrderByDescending(b => b.CreatedAt)
                 .Take(5)
                 .Select(b => new FeaturedBookViewModel
@@ -56,7 +56,57 @@ namespace OnlineLibrary.Web.Controllers
                 .ToList();
 
             // =========================
-            // BOOK LIST + CATEGORIES
+            // BEST SELLING / TOP RATED
+            // =========================
+            var topRatedBooks = _context.Books
+                .Where(b => b.Rating >= 4.5)
+                .OrderByDescending(b => b.Rating)
+                .Take(10)
+                .Select(b => new BestSellingBookViewModel
+                {
+                    BookId = b.BookId,
+                    Title = b.Title,
+                    Author = b.Author,
+                    Price = b.Price,
+                    ImageUrl = b.ImageUrl
+                })
+                .ToList();
+
+            // Fallback if no ratings yet
+            if (!topRatedBooks.Any())
+            {
+                topRatedBooks = _context.Books
+                    .OrderByDescending(b => b.CreatedAt)
+                    .Take(10)
+                    .Select(b => new BestSellingBookViewModel
+                    {
+                        BookId = b.BookId,
+                        Title = b.Title,
+                        Author = b.Author,
+                        Price = b.Price,
+                        ImageUrl = b.ImageUrl
+                    })
+                    .ToList();
+            }
+
+            // =========================
+            // EXPLORE OUR COLLECTION
+            // FIRST 8 ADDED BOOKS
+            // =========================
+            var exploreBooks = _context.Books
+                .OrderBy(b => b.CreatedAt)
+                .Take(8)
+                .Select(b => new PublicBookViewModel
+                {
+                    BookId = b.BookId,
+                    Title = b.Title,
+                    Price = b.Price,
+                    ImageUrl = b.ImageUrl
+                })
+                .ToList();
+
+            // =========================
+            // MAIN SEARCHABLE BOOK LIST
             // =========================
             var booksQuery =
                 from b in _context.Books
@@ -75,9 +125,6 @@ namespace OnlineLibrary.Web.Controllers
                          select c.CategoryName).ToList()
                 };
 
-            // =========================
-            // SEARCH (TITLE / AUTHOR / PUBLISHER / CATEGORY)
-            // =========================
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var s = search.ToLower();
@@ -92,8 +139,23 @@ namespace OnlineLibrary.Web.Controllers
 
             ViewBag.Search = search;
 
-            return View(booksQuery.ToList());
+            // =========================
+            // FINAL VIEW MODEL
+            // =========================
+            var model = new HomeIndexViewModel
+            {
+                FeaturedBooks = featuredBooks,
+                TopRatedBooks = topRatedBooks,
+                ExploreBooks = exploreBooks,
+                AllBooks = booksQuery.ToList()
+            };
+
+            return View(model);
         }
+
+        // =========================
+        // AJAX SEARCH (UNCHANGED)
+        // =========================
         [HttpGet]
         public IActionResult Search(string? search)
         {
@@ -129,10 +191,9 @@ namespace OnlineLibrary.Web.Controllers
             return Json(query.Take(20).ToList());
         }
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
+        public IActionResult Privacy() => View();
+        public IActionResult Contact() => View();
+        public IActionResult About() => View();
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

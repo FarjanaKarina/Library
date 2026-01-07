@@ -1,244 +1,527 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OnlineLibrary.Infrastructure.Data;
 using OnlineLibrary.Infrastructure.Domain.Entities;
 using OnlineLibrary.Infrastructure.Helpers;
 using OnlineLibrary.Web.Models;
+using System.Globalization;
 
 namespace OnlineLibrary.Web.Controllers
 {
-    public class LibrarianController : Controller
+    public class LibrarianController(ApplicationDbContext context) : Controller
     {
-        private readonly ApplicationDbContext _context;
-
-        public LibrarianController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         // =========================
         // LIBRARIAN DASHBOARD
         // =========================
         public IActionResult Dashboard()
         {
-            if (!IsLibrarian())
+            if (!IsAuthorized())
                 return RedirectToAction("Login", "Account");
 
             // =========================
             // SUMMARY STATS
             // =========================
-            ViewBag.TotalBooks = _context.Books.Count();
+            var totalBooks = _context.Books.Count();
 
-            ViewBag.ActiveBorrows = _context.BorrowTransactions
-                .Count(b => !b.IsReturned);
+            var totalOrders = _context.Orders
+                .Count(o => o.PaymentStatus == "Success");
 
-            ViewBag.OverdueBorrows = _context.BorrowTransactions
-                .Count(b => !b.IsReturned && b.DueDate < DateTime.Today);
+            var pendingOrders = _context.Orders
+                .Count(o => o.PaymentStatus == "Success"
+                    && (o.OrderStatus == "Confirmed" || o.OrderStatus == "Packed"));
 
-            ViewBag.ActiveMemberships = _context.Memberships
-                .Count(m => m.IsActive);
-
-            // =========================
-            // OVERDUE LIST
-            // =========================
-            var overdueBorrows =
-                from b in _context.BorrowTransactions
-                join u in _context.Users on b.UserId equals u.UserId
-                join bk in _context.Books on b.BookId equals bk.BookId
-                where !b.IsReturned && b.DueDate < DateTime.Today
-                orderby b.DueDate
-                select new LibrarianOverdueViewModel
-                {
-                    BorrowId = b.BorrowId,
-                    StudentName = u.FullName,
-                    BookTitle = bk.Title,
-                    DueDate = b.DueDate,
-                    OverdueDays = (DateTime.Today - b.DueDate).Days,
-                    FineAmount = b.FineAmount
-                };
+            var pendingReturns = _context.OrderItems
+                .Count(oi => oi.Status == "ReturnRequested");
 
             // =========================
-            // MEMBERSHIP REQUESTS
+            // RECENT ORDERS
             // =========================
-            var pendingMemberships =
-                from m in _context.Memberships
-                join u in _context.Users on m.UserId equals u.UserId
-                where m.Status == "Pending"
-                orderby m.AppliedAt
-                select new LibrarianMembershipRequestViewModel
-                {
-                    MembershipId = m.MembershipId,
-                    StudentName = u.FullName,
-                    Email = u.Email,
-                    AppliedAt = m.AppliedAt
-                };
+            var recentOrders =
+                (from o in _context.Orders
+                 join u in _context.Users on o.UserId equals u.UserId
+                 where o.PaymentStatus == "Success"
+                 orderby o.OrderDate descending
+                 select new RecentOrderViewModel
+                 {
+                     OrderId = o.OrderId,
+                     TransactionId = o.TransactionId ?? "",
+                     StudentName = u.FullName,
+                     OrderDate = o.OrderDate,
+                     TotalAmount = o.TotalAmount,
+                     OrderStatus = o.OrderStatus,
+                     ItemCount = _context.OrderItems.Count(oi => oi.OrderId == o.OrderId)
+                 })
+                .Take(10)
+                .ToList();
+
+            // =========================
+            // PENDING RETURN REQUESTS
+            // =========================
+            var pendingReturnRequests =
+                (from oi in _context.OrderItems
+                 join o in _context.Orders on oi.OrderId equals o.OrderId
+                 join u in _context.Users on o.UserId equals u.UserId
+                 where oi.Status == "ReturnRequested"
+                 orderby oi.ReturnRequestedAt
+                 select new ReturnRequestViewModel
+                 {
+                     OrderItemId = oi.OrderItemId,
+                     OrderId = o.OrderId,
+                     TransactionId = o.TransactionId ?? "",
+                     StudentName = u.FullName,
+                     BookTitle = oi.BookTitle,
+                     Price = oi.Price,
+                     Quantity = oi.Quantity,
+                     Status = oi.Status,
+                     ReturnRequestedAt = oi.ReturnRequestedAt
+                 })
+                .Take(10)
+                .ToList();
 
             var model = new LibrarianDashboardViewModel
             {
-                OverdueBorrows = overdueBorrows.ToList(),
-                PendingMemberships = pendingMemberships.ToList()
+                TotalBooks = totalBooks,
+                TotalOrders = totalOrders,
+                PendingOrders = pendingOrders,
+                PendingReturns = pendingReturns,
+                RecentOrders = recentOrders,
+                PendingReturnRequests = pendingReturnRequests
             };
 
             return View(model);
         }
 
-
         // =========================
-        // OVERDUE BORROWS
+        // ALL ORDERS
         // =========================
-        public IActionResult Overdue()
+        public IActionResult Orders(string? status)
         {
-            if (!IsLibrarian())
+            if (!IsAuthorized())
                 return RedirectToAction("Login", "Account");
 
-            var overdue =
-                from b in _context.BorrowTransactions
-                join u in _context.Users on b.UserId equals u.UserId
-                join bk in _context.Books on b.BookId equals bk.BookId
-                where !b.IsReturned && b.DueDate < DateTime.Today
-                select new
+            var ordersQuery =
+                from o in _context.Orders
+                join u in _context.Users on o.UserId equals u.UserId
+                where o.PaymentStatus == "Success"
+                orderby o.OrderDate descending
+                select new RecentOrderViewModel
                 {
-                    BorrowId = b.BorrowId,
-                    UserId = u.UserId,
+                    OrderId = o.OrderId,
+                    TransactionId = o.TransactionId ?? "",
                     StudentName = u.FullName,
-                    BookTitle = bk.Title,
-                    DueDate = b.DueDate,
-                    OverdueDays = (DateTime.Today - b.DueDate).Days,
-                    Fine = b.FineAmount
+                    OrderDate = o.OrderDate,
+                    TotalAmount = o.TotalAmount,
+                    OrderStatus = o.OrderStatus,
+                    ItemCount = _context.OrderItems.Count(oi => oi.OrderId == o.OrderId)
                 };
 
-            return View(overdue.ToList());
+            if (!string.IsNullOrEmpty(status))
+            {
+                ordersQuery = ordersQuery.Where(o => o.OrderStatus == status);
+            }
+
+            ViewBag.CurrentStatus = status;
+            return View(ordersQuery.ToList());
         }
 
         // =========================
-        // FINE VERIFICATION LIST
+        // ORDER DETAILS
         // =========================
-        public IActionResult VerifyFines()
+        public IActionResult OrderDetails(Guid id)
         {
-            if (!IsLibrarian())
+            if (!IsAuthorized())
                 return RedirectToAction("Login", "Account");
 
-            var fines =
-                from b in _context.BorrowTransactions
-                join u in _context.Users on b.UserId equals u.UserId
-                join bk in _context.Books on b.BookId equals bk.BookId
-                where b.FineAmount > 0 && !b.IsFinePaid
-                orderby b.DueDate
-                select new
+            var order = (from o in _context.Orders
+                         join u in _context.Users on o.UserId equals u.UserId
+                         where o.OrderId == id
+                         select new
+                         {
+                             Order = o,
+                             StudentName = u.FullName,
+                             StudentEmail = u.Email,
+                             StudentPhone = u.Phone
+                         }).FirstOrDefault();
+
+            if (order == null)
+                return NotFound();
+
+            var orderItems = (from oi in _context.OrderItems
+                              join b in _context.Books on oi.BookId equals b.BookId
+                              where oi.OrderId == id
+                              select new
+                              {
+                                  oi.OrderItemId,
+                                  oi.BookId,
+                                  oi.BookTitle,
+                                  oi.Price,
+                                  oi.Quantity,
+                                  oi.Status,
+                                  oi.ReturnRequestedAt,
+                                  oi.ReturnApprovedAt,
+                                  oi.ReceivedAt,
+                                  oi.RefundedAt,
+                                  oi.RefundAmount,
+                                  b.ImageUrl
+                              }).ToList();
+
+            ViewBag.Order = order.Order;
+            ViewBag.StudentName = order.StudentName;
+            ViewBag.StudentEmail = order.StudentEmail;
+            ViewBag.StudentPhone = order.StudentPhone;
+            ViewBag.OrderItems = orderItems;
+
+            return View();
+        }
+
+        // =========================
+        // UPDATE ORDER STATUS
+        // =========================
+        [HttpPost]
+        public IActionResult UpdateOrderStatus(Guid orderId, string newStatus)
+        {
+            if (!IsAuthorized())
+                return Json(new { success = false });
+
+            var order = _context.Orders.Find(orderId);
+            if (order == null)
+                return Json(new { success = false, message = "Order not found" });
+
+            var oldStatus = order.OrderStatus;
+            order.OrderStatus = newStatus;
+
+            if (newStatus == "Shipped")
+                order.ShippedDate = DateTime.UtcNow;
+            else if (newStatus == "Delivered")
+                order.DeliveredDate = DateTime.UtcNow;
+
+            _context.SaveChanges();
+
+            // =========================
+            // AUDIT LOG
+            // =========================
+            var userIdStr = HttpContext.Session.GetString("UserId");
+            if (userIdStr != null)
+            {
+                _context.AuditLogs.Add(new AuditLog
                 {
-                    BorrowId = b.BorrowId,
-                    UserId = u.UserId,
-                    UserName = u.FullName,
-                    BookTitle = bk.Title,
-                    FineAmount = b.FineAmount,
-                    DueDate = b.DueDate
-                };
-
-            return View(fines.ToList());
-        }
-
-
-        // =========================
-        // CONFIRM FINE PAYMENT
-        // =========================
-        [HttpPost]
-        public IActionResult ConfirmFine(Guid borrowId)
-        {
-            if (!IsLibrarian())
-                return RedirectToAction("Login", "Account");
-
-            var borrow = _context.BorrowTransactions.Find(borrowId);
-            if (borrow == null)
-                return NotFound();
-
-            borrow.IsFinePaid = true;
-            _context.SaveChanges();
-
-            // 🔔 NOTIFY USER
-            NotificationHelper.Send(
-                _context,
-                borrow.UserId,
-                "Fine Cleared",
-                "Your fine has been verified and cleared by the librarian.",
-                "success");
-
-            return RedirectToAction("VerifyFines");
-        }
-
-
-        // =========================
-        // RETURN BOOK
-        // =========================
-        [HttpPost]
-        public IActionResult Return(Guid borrowId)
-        {
-            if (!IsLibrarian())
-                return RedirectToAction("Login", "Account");
-
-            var borrow = _context.BorrowTransactions.Find(borrowId);
-            if (borrow == null)
-                return NotFound();
-
-            if (borrow.IsReturned)
-                return RedirectToAction("Dashboard");
-
-            borrow.ReturnDate = DateTime.Today;
-            borrow.IsReturned = true;
+                    AuditLogId = Guid.NewGuid(),
+                    ActorUserId = Guid.Parse(userIdStr),
+                    ActorRole = "Librarian",
+                    Action = "Order Status Updated",
+                    EntityName = "Order",
+                    EntityId = orderId,
+                    Description = $"Order #{order.TransactionId} status changed from {oldStatus} to {newStatus}"
+                });
+                _context.SaveChanges();
+            }
 
             // =========================
-            // FINE CALCULATION
+            // NOTIFY STUDENT
             // =========================
-            if (borrow.ReturnDate.Value > borrow.DueDate)
+            var statusMessage = newStatus switch
             {
-                var overdueDays = (borrow.ReturnDate.Value - borrow.DueDate).Days;
-                const decimal finePerDay = 10; // TK
-                borrow.FineAmount = overdueDays * finePerDay;
-            }
-            else
-            {
-                borrow.FineAmount = 0;
-            }
-
-            // Restore book copies
-            var book = _context.Books.Find(borrow.BookId);
-            if (book != null)
-            {
-                book.TotalCopies += 1;
-            }
-
-            _context.SaveChanges();
-            return RedirectToAction("Dashboard");
-        }
-
-        // =========================
-        // SEND OVERDUE WARNING
-        // =========================
-        [HttpPost]
-        public IActionResult SendOverdueWarning(Guid userId, string bookTitle)
-        {
-            if (!IsLibrarian())
-                return RedirectToAction("Login", "Account");
-
-            var notification = new Notification
-            {
-                NotificationId = Guid.NewGuid(),
-                UserId = userId,
-                Title = "Overdue Book",
-                Message = $"Your borrowed book '{bookTitle}' is overdue. Please return it immediately.",
-                Type = "overdue",
-                IsRead = false,
-                CreatedAt = DateTime.UtcNow
+                "Packed" => "Your order has been packed and is ready for shipping.",
+                "Shipped" => "Your order has been shipped! It will arrive soon.",
+                "Delivered" => "Your order has been delivered. Enjoy your books!",
+                _ => $"Your order status has been updated to: {newStatus}"
             };
 
-            _context.Notifications.Add(notification);
-            _context.SaveChanges();
+            NotificationHelper.Send(
+                _context,
+                order.UserId,
+                $"Order {newStatus}",
+                $"Order #{order.TransactionId}: {statusMessage}",
+                newStatus == "Delivered" ? "success" : "info");
 
-            return RedirectToAction("Dashboard");
+            return Json(new { success = true });
         }
 
         // =========================
-        // ROLE CHECK
+        // RETURN REQUESTS
         // =========================
-        private bool IsLibrarian()
+        public IActionResult ReturnRequests()
+        {
+            if (!IsAuthorized())
+                return RedirectToAction("Login", "Account");
+
+            var requests =
+                (from oi in _context.OrderItems
+                 join o in _context.Orders on oi.OrderId equals o.OrderId
+                 join u in _context.Users on o.UserId equals u.UserId
+                 where oi.Status == "ReturnRequested" || oi.Status == "ReturnApproved"
+                 orderby oi.ReturnRequestedAt
+                 select new ReturnRequestViewModel
+                 {
+                     OrderItemId = oi.OrderItemId,
+                     OrderId = o.OrderId,
+                     TransactionId = o.TransactionId ?? "",
+                     StudentName = u.FullName + " (" + u.Email + ")",
+                     BookTitle = oi.BookTitle,
+                     Price = oi.Price,
+                     Quantity = oi.Quantity,
+                     Status = oi.Status,
+                     ReturnRequestedAt = oi.ReturnRequestedAt,
+                     ReturnApprovedAt = oi.ReturnApprovedAt
+                 }).ToList();
+
+            return View(requests);
+        }
+
+        // =========================
+        // APPROVE RETURN
+        // =========================
+        [HttpPost]
+        public IActionResult ApproveReturn(Guid orderItemId)
+        {
+            if (!IsAuthorized())
+                return Json(new { success = false });
+
+            var orderItem = _context.OrderItems.Find(orderItemId);
+            if (orderItem == null || orderItem.Status != "ReturnRequested")
+                return Json(new { success = false, message = "Invalid request" });
+
+            orderItem.Status = "ReturnApproved";
+            orderItem.ReturnApprovedAt = DateTime.UtcNow;
+            _context.SaveChanges();
+
+            // Get order for notification
+            var order = _context.Orders.Find(orderItem.OrderId);
+
+            // =========================
+            // NOTIFY STUDENT
+            // =========================
+            if (order != null)
+            {
+                NotificationHelper.Send(
+                    _context,
+                    order.UserId,
+                    "Return Approved",
+                    $"Your return request for '{orderItem.BookTitle}' has been approved. Please ship the book back.",
+                    "success");
+            }
+
+            return Json(new { success = true });
+        }
+
+        // =========================
+        // MARK AS RECEIVED
+        // =========================
+        [HttpPost]
+        public IActionResult MarkAsReceived(Guid orderItemId)
+        {
+            if (!IsAuthorized())
+                return Json(new { success = false });
+
+            var orderItem = _context.OrderItems.Find(orderItemId);
+            if (orderItem == null || orderItem.Status != "ReturnApproved")
+                return Json(new { success = false, message = "Invalid request" });
+
+            orderItem.Status = "Received";
+            orderItem.ReceivedAt = DateTime.UtcNow;
+
+            // =========================
+            // INCREASE INVENTORY
+            // =========================
+            var book = _context.Books.Find(orderItem.BookId);
+            if (book != null)
+            {
+                book.TotalCopies += orderItem.Quantity;
+            }
+
+            _context.SaveChanges();
+
+            // Get order for notification
+            var order = _context.Orders.Find(orderItem.OrderId);
+
+            // =========================
+            // NOTIFY STUDENT
+            // =========================
+            if (order != null)
+            {
+                NotificationHelper.Send(
+                    _context,
+                    order.UserId,
+                    "Book Received",
+                    $"We have received '{orderItem.BookTitle}'. Your refund will be processed shortly.",
+                    "info");
+            }
+
+            return Json(new { success = true });
+        }
+
+        // =========================
+        // PROCESS REFUND
+        // =========================
+        [HttpPost]
+        public IActionResult ProcessRefund(Guid orderItemId)
+        {
+            if (!IsAuthorized())
+                return Json(new { success = false });
+
+            var orderItem = _context.OrderItems.Find(orderItemId);
+            if (orderItem == null || orderItem.Status != "Received")
+                return Json(new { success = false, message = "Invalid request" });
+
+            // Calculate 50% refund
+            var refundAmount = orderItem.Price * orderItem.Quantity * 0.5m;
+
+            orderItem.Status = "Refunded";
+            orderItem.RefundedAt = DateTime.UtcNow;
+            orderItem.RefundAmount = refundAmount;
+
+            _context.SaveChanges();
+
+            // Get order for notification
+            var order = _context.Orders.Find(orderItem.OrderId);
+
+            // =========================
+            // AUDIT LOG
+            // =========================
+            var userIdStr = HttpContext.Session.GetString("UserId");
+            if (userIdStr != null)
+            {
+                _context.AuditLogs.Add(new AuditLog
+                {
+                    AuditLogId = Guid.NewGuid(),
+                    ActorUserId = Guid.Parse(userIdStr),
+                    ActorRole = "Librarian",
+                    Action = "Refund Processed",
+                    EntityName = "OrderItem",
+                    EntityId = orderItemId,
+                    Description = $"Refund of ৳{refundAmount:N0} processed for '{orderItem.BookTitle}'"
+                });
+                _context.SaveChanges();
+            }
+
+            // =========================
+            // NOTIFY STUDENT
+            // =========================
+            if (order != null)
+            {
+                NotificationHelper.Send(
+                    _context,
+                    order.UserId,
+                    "Refund Processed",
+                    $"Your refund of ৳{refundAmount:N0} for '{orderItem.BookTitle}' has been processed.",
+                    "success");
+            }
+
+            return Json(new { success = true, refundAmount });
+        }
+
+        // =========================
+        // REPORTS & ANALYTICS
+        // =========================
+        public IActionResult Reports()
+        {
+            if (!IsAuthorized())
+                return RedirectToAction("Login", "Account");
+
+            // 1. Monthly Sales Data (Last 12 Months)
+            var monthlySales = _context.Orders
+                .Where(o => o.PaymentStatus == "Success" && o.OrderDate >= DateTime.UtcNow.AddYears(-1))
+                .GroupBy(o => new { o.OrderDate.Year, o.OrderDate.Month })
+                .Select(g => new
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    Total = g.Sum(o => o.TotalAmount)
+                })
+                .OrderBy(s => s.Year).ThenBy(s => s.Month)
+                .ToList();
+
+            var salesData = new ChartData();
+            var culture = CultureInfo.CreateSpecificCulture("en-US");
+            for (int i = 11; i >= 0; i--)
+            {
+                var date = DateTime.UtcNow.AddMonths(-i);
+                var monthData = monthlySales.FirstOrDefault(s => s.Year == date.Year && s.Month == date.Month);
+                salesData.Labels.Add(date.ToString("MMM yyyy", culture));
+                salesData.Data.Add(monthData?.Total ?? 0);
+            }
+                
+            // 2. Category Distribution (FIXED QUERY)
+            var categoryDistribution = (from oi in _context.OrderItems
+                                        join b in _context.Books on oi.BookId equals b.BookId
+                                        join c in _context.Categories on b.CategoryId equals c.CategoryId
+                                        group oi by c.CategoryName into g
+                                        select new
+                                        {
+                                            Category = g.Key,
+                                            Count = g.Sum(oi => oi.Quantity)
+                                        })
+                                        .OrderByDescending(c => c.Count)
+                                        .ToList();
+
+            var categoryData = new ChartData
+            {
+                Labels = categoryDistribution.Select(c => c.Category).ToList(),
+                Data = categoryDistribution.Select(c => (decimal)c.Count).ToList()
+            };
+
+            // 3. Top Selling Books
+            var topSellingBooks = _context.OrderItems
+                .GroupBy(oi => new { oi.BookId, oi.BookTitle })
+                .Select(g => new
+                {
+                    BookId = g.Key.BookId,
+                    Title = g.Key.BookTitle,
+                    Count = g.Sum(oi => oi.Quantity)
+                })
+                .OrderByDescending(b => b.Count)
+                .Take(5)
+                .Join(_context.Books,
+                      orderInfo => orderInfo.BookId,
+                      book => book.BookId,
+                      (orderInfo, book) => new BookPerformanceViewModel
+                      {
+                          Title = orderInfo.Title,
+                          OrderCount = orderInfo.Count,
+                          ImageUrl = book.ImageUrl
+                      })
+                .ToList();
+
+            // 4. Key Metrics
+            var metrics = new ReportMetricsViewModel
+            {
+                TotalRevenue = _context.Orders.Where(o => o.PaymentStatus == "Success").Sum(o => o.TotalAmount),
+                TotalOrders = _context.Orders.Count(o => o.PaymentStatus == "Success"),
+                TotalRefunds = _context.OrderItems.Where(oi => oi.Status == "Refunded").Sum(oi => oi.RefundAmount ?? 0),
+                ReturnedItems = _context.OrderItems.Count(oi => oi.Status == "Refunded" || oi.Status == "Received")
+            };
+
+            var model = new ReportViewModel
+            {
+                MonthlySales = salesData,
+                CategoryDistribution = categoryData,
+                TopSellingBooks = topSellingBooks,
+                Metrics = metrics
+            };
+
+            return View(model);
+        }
+
+        // =========================
+        // ROLE CHECK (UPDATED)
+        // =========================
+        private bool IsAuthorized()
+        {
+            var roleId = HttpContext.Session.GetString("RoleId");
+            if (string.IsNullOrEmpty(roleId))
+                return false;
+
+            var roleName = _context.Roles
+                .Where(r => r.RoleId == Guid.Parse(roleId))
+                .Select(r => r.RoleName)
+                .FirstOrDefault();
+
+            return roleName == "Librarian" || roleName == "Admin";
+        }
+
+        private bool IsLibrarian() // Keep for specific librarian-only actions if any
         {
             var roleId = HttpContext.Session.GetString("RoleId");
             if (string.IsNullOrEmpty(roleId))

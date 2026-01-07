@@ -1,0 +1,124 @@
+﻿@model OnlineLibrary.Web.Models.CheckoutViewModel
+
+@{
+    Layout = "_AppLayout";
+    ViewData["Title"] = "Checkout";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4"><i class="bi bi-credit-card me-2"></i>Checkout</h2>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-circle me-2"></i>@TempData["Error"]
+        </div>
+    }
+
+    <form asp-action="PlaceOrder" method="post">
+        <div class="row">
+            <!-- Shipping Information -->
+            <div class="col-lg-7">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="bi bi-truck me-2"></i>Shipping Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                            <input type="text" name="ShippingName" class="form-control"
+                                   value="@Model.ShippingName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone Number <span class="text-danger">*</span></label>
+                            <input type="tel" name="ShippingPhone" class="form-control"
+                                   value="@Model.ShippingPhone" required placeholder="01XXXXXXXXX">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Shipping Address <span class="text-danger">*</span></label>
+                            <textarea name="ShippingAddress" class="form-control" rows="3"
+                                      required placeholder="House, Road, Area, City">@Model.ShippingAddress</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="bi bi-box me-2"></i>Order Items (@Model.TotalItems)</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            @foreach (var item in Model.CartItems)
+                            {
+                                <li class="list-group-item">
+                                    <div class="d-flex align-items-center">
+                                        <img src="@(item.ImageUrl ?? "/images/default-book.png")"
+                                             alt="@item.Title"
+                                             class="rounded me-3"
+                                             style="width: 50px; height: 65px; object-fit: cover;">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-0">@item.Title</h6>
+                                            <small class="text-muted">Qty: @item.Quantity × ৳@item.Price.ToString("N0")</small>
+                                        </div>
+                                        <strong>৳@item.Subtotal.ToString("N0")</strong>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="col-lg-5">
+                <div class="card shadow-sm sticky-top" style="top: 20px;">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Order Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal (@Model.TotalItems items)</span>
+                            <span>৳@Model.TotalAmount.ToString("N0")</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Shipping</span>
+                            <span class="text-success">Free</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-3">
+                            <strong class="fs-5">Total</strong>
+                            <strong class="fs-5 text-primary">৳@Model.TotalAmount.ToString("N0")</strong>
+                        </div>
+
+                        <button type="submit" class="btn btn-success btn-lg w-100">
+                            <i class="bi bi-lock me-2"></i>Pay with SSLCommerz
+                        </button>
+
+                        <div class="mt-3">
+                            <div class="d-flex align-items-center justify-content-center text-muted mb-2">
+                                <i class="bi bi-shield-check me-2"></i>
+                                <small>Secure payment powered by SSLCommerz</small>
+                            </div>
+                            <div class="text-center">
+                                <img src="/images/sslcommerz.png" alt="SSLCommerz" style="height: 30px;" onerror="this.style.display='none'">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Return Policy -->
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h6><i class="bi bi-arrow-repeat me-2 text-success"></i>Return Policy</h6>
+                        <ul class="small text-muted mb-0">
+                            <li>Return any book anytime</li>
+                            <li>Get <strong>50% refund</strong> on return</li>
+                            <li>Returning is optional</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

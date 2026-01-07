@@ -70,7 +70,7 @@ namespace OnlineLibrary.Web.Controllers
 
             ViewBag.IsLoggedIn = !string.IsNullOrEmpty(userIdStr);
             ViewBag.CurrentRole = null;
-            ViewBag.IsMember = false;
+            ViewBag.IsMember = false; // Membership system removed
 
             if (!string.IsNullOrEmpty(userIdStr))
             {
@@ -87,10 +87,6 @@ namespace OnlineLibrary.Web.Controllers
                 }
 
                 var userId = Guid.Parse(userIdStr);
-
-                ViewBag.IsMember = _context.Memberships
-    .Any(m => m.UserId == userId
-           && m.Status == "Approved");
 
             }
 

@@ -1,13 +1,14 @@
-﻿@model IEnumerable<OnlineLibrary.Web.Models.PublicBookViewModel>
+﻿@model OnlineLibrary.Web.Models.HomeIndexViewModel
 
 @{
     ViewData["Title"] = "Online Library";
 }
+
 <body class="page-landing">
     @if (ViewBag.CurrentRole != "Admin" && ViewBag.CurrentRole != "Librarian")
     {
         <!-- =========================
-             SEARCH BAR (AJAX)
+             HERO + SEARCH
         ========================= -->
         <section class="hero-section">
 
@@ -29,14 +30,11 @@
                  data-bs-ride="carousel">
 
                 <div class="carousel-inner">
-
                     @{
-                        var books = ViewBag.FeaturedBooks as List<FeaturedBookViewModel>
-                        ?? new List<FeaturedBookViewModel>();
                         var isFirst = true;
                     }
 
-                    @foreach (var book in books)
+                    @foreach (var book in Model.FeaturedBooks)
                     {
                         <div class="carousel-item @(isFirst ? "active" : "")">
                             @{
@@ -45,22 +43,17 @@
 
                             <div class="row align-items-center">
 
-                                <!-- LEFT CONTENT -->
+                                <!-- LEFT -->
                                 <div class="col-md-6 px-5">
-
                                     <span class="hero-badge">New Release</span>
 
-                                    <h1 class="hero-title">
-                                        @book.Title
-                                    </h1>
+                                    <h1 class="hero-title">@book.Title</h1>
 
                                     <p class="hero-text mt-3">
                                         @book.Description
                                     </p>
 
                                     <div class="mt-4 d-flex gap-3 flex-wrap">
-
-                                        <!-- VIEW DETAILS -->
                                         <a asp-controller="Book"
                                            asp-action="Details"
                                            asp-route-id="@book.BookId"
@@ -68,37 +61,24 @@
                                             View Details
                                         </a>
 
-                                        <!-- READ ONLINE -->
                                         @if (!string.IsNullOrEmpty(book.PdfUrl))
                                         {
-                                            @if (Context.Session.GetString("UserId") == null)
-                                            {
-                                                <a asp-controller="Account"
-                                                   asp-action="Login"
-                                                   class="hero-btn-outline">
-                                                    Read Online
-                                                </a>
-                                            }
-                                            else
-                                            {
-                                                <a asp-controller="Book"
-                                                   asp-action="Details"
-                                                   asp-route-id="@book.BookId"
-                                                   class="hero-btn-outline">
-                                                    Read Online
-                                                </a>
-                                            }
+                                            <a asp-controller="Book"
+                                               asp-action="Details"
+                                               asp-route-id="@book.BookId"
+                                               class="hero-btn-outline">
+                                                Read Online
+                                            </a>
                                         }
                                     </div>
                                 </div>
 
-                                <!-- RIGHT IMAGE -->
+                                <!-- RIGHT -->
                                 <div class="col-md-6 text-center">
                                     <img src="@book.ImageUrl"
                                          class="hero-book-img"
                                          alt="@book.Title" />
                                 </div>
-
                             </div>
                         </div>
                     }
@@ -119,67 +99,136 @@
                     <span class="hero-arrow">&#10095;</span>
                 </button>
             </div>
-
         </section>
 
+        <!-- =========================
+             STORE BENEFITS
+        ========================= -->
+        <section class="store-benefits">
+            <div class="container">
+                <div class="row text-center">
+
+                    <div class="col-md-3 col-6 mb-4">
+                        <i class="bi bi-truck benefit-icon"></i>
+                        <h6>Fast Delivery</h6>
+                        <p>Quick and reliable delivery.</p>
+                    </div>
+
+                    <div class="col-md-3 col-6 mb-4">
+                        <i class="bi bi-book benefit-icon"></i>
+                        <h6>Read Sample</h6>
+                        <p>Preview before purchase.</p>
+                    </div>
+
+                    <div class="col-md-3 col-6 mb-4">
+                        <i class="bi bi-shield-lock benefit-icon"></i>
+                        <h6>Secure Payment</h6>
+                        <p>Safe & trusted methods.</p>
+                    </div>
+
+                    <div class="col-md-3 col-6 mb-4">
+                        <i class="bi bi-arrow-repeat benefit-icon"></i>
+                        <h6>Easy Returns</h6>
+                        <p>Hassle-free policy.</p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
 
         <!-- =========================
-             INITIAL BOOK CAROUSEL
+             BEST SELLING / TOP RATED
         ========================= -->
-        <div class="container mt-4" id="defaultBooks">
+        <section class="best-selling-section">
+            <div class="container my-5">
 
-            @if (Model == null || !Model.Any())
-            {
-                <div class="alert alert-warning text-center">
-                    No books available.
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold">Best Selling Books</h3>
+                    <a asp-controller="Book"
+                       asp-action="Browse"
+                       class="btn btn-danger rounded-pill px-4">
+                        View All
+                    </a>
                 </div>
-            }
-            else
-            {
-                <div class="d-flex overflow-auto gap-3 pb-3">
 
-                    @foreach (var book in Model)
-                    {
-                        <div class="card shadow-sm" style="min-width:220px;">
+                <div class="best-slider">
+                    <button class="slider-arrow left" onclick="slideBooks(-1)">&#10094;</button>
 
-                            <img src="@book.ImageUrl"
-                                 class="card-img-top"
-                                 style="height:280px; object-fit:cover;" />
+                    <div class="best-slider-track" id="bestSlider">
+                        @foreach (var book in Model.TopRatedBooks)
+                        {
+                            <div class="best-book-card">
+                                <div class="best-book-img">
+                                    <img src="@book.ImageUrl"
+                                         onerror="this.src='/images/no-book.png'" />
 
-                            <div class="card-body">
-                                <h6 class="card-title">@book.Title</h6>
-                                <p class="mb-1 text-muted">@book.Author</p>
+                                    <div class="hover-icons">
+                                        <a asp-controller="Book"
+                                           asp-action="Details"
+                                           asp-route-id="@book.BookId"
+                                           class="icon-btn">
+                                            <i class="bi bi-book"></i>
+                                        </a>
 
-                                <!-- MULTIPLE CATEGORIES -->
-                                <div class="mb-2">
-                                    @if (book.Categories != null && book.Categories.Any())
-                                    {
-                                        foreach (var cat in book.Categories)
-                                        {
-                                            <span class="badge bg-secondary me-1">
-                                                @cat
-                                            </span>
-                                        }
-                                    }
+                                        <button class="icon-btn"
+                                                onclick="toggleWishlist('@book.BookId', this)">
+                                            <i class="bi bi-heart"></i>
+                                        </button>
+                                    </div>
                                 </div>
 
-                                <a asp-controller="Book"
-                                   asp-action="Details"
-                                   asp-route-id="@book.BookId"
-                                   class="btn btn-sm btn-secondary w-100">
-                                    View Details
-                                </a>
+                                <div class="best-book-info">
+                                    <h6>@book.Title</h6>
+                                    <small>@book.Author</small>
+                                    <div class="text-warning">★★★★★</div>
+                                    <div class="price">@book.Price.ToString("0.00") TK</div>
+                                </div>
                             </div>
-                        </div>
-                    }
+                        }
+                    </div>
 
+                    <button class="slider-arrow right" onclick="slideBooks(1)">&#10095;</button>
                 </div>
-            }
-        </div>
-
+            </div>
+        </section>
 
         <!-- =========================
-             SCRIPTS (AJAX LIVE SEARCH)
+             EXPLORE OUR COLLECTION
+        ========================= -->
+        <section class="container my-5 text-center">
+
+            <h2 class="fw-bold mb-1">Explore Our Collection</h2>
+            <p class="text-muted mb-4">
+                Discover a wide range of books from our library collection
+            </p>
+
+            <div class="collection-grid">
+                @foreach (var book in Model.ExploreBooks)
+                {
+                    <div class="collection-item">
+                        <img src="@book.ImageUrl"
+                             onerror="this.src='/images/no-book.png'" />
+
+                        <div class="collection-meta">
+                            <p class="book-title">@book.Title</p>
+                            <div class="book-rating">★★★★★</div>
+                            <p class="book-price">@book.Price.ToString("0.00") TK</p>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="mt-4">
+                <a asp-controller="Book"
+                   asp-action="Browse"
+                   class="discover-btn">
+                    DISCOVER MORE BOOKS
+                </a>
+            </div>
+        </section>
+
+        <!-- =========================
+             SEARCH RESULTS (AJAX)
         ========================= -->
         @section Scripts {
             <script>
@@ -262,6 +311,26 @@
                     });
 
                 });
+
+                                function slideBooks(direction) {
+                    const slider = document.getElementById("bestSlider");
+                    slider.scrollBy({ left: direction * 450, behavior: 'smooth' });
+                }
+
+                function toggleWishlist(bookId, button) {
+                    fetch('/Wishlist/Toggle', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(bookId)
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        const icon = button.querySelector('i');
+                        icon.classList.toggle('bi-heart-fill', data.added);
+                        icon.classList.toggle('bi-heart', !data.added);
+                    });
+                }
+
             </script>
         }
     }

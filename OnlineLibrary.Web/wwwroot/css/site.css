@@ -589,5 +589,233 @@ body.dark-mode .footer-social a {
     padding: 24px;
     background-color: #f8f9fa;
 }
+/* =========================
+   EXPLORE OUR COLLECTION
+========================= */
 
+.collection-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 28px;
+}
 
+.collection-item {
+    text-align: left;
+}
+
+    /* Book Cover */
+    .collection-item img {
+        width: 100%;
+        height: 300px; /* 🔑 SAME HEIGHT */
+        object-fit: cover;
+        display: block;
+    }
+
+/* Meta */
+.collection-meta {
+    margin-top: 8px;
+}
+
+.book-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    line-height: 1.2;
+}
+
+.book-rating {
+    font-size: 12px;
+    color: #f4b400;
+    margin-bottom: 4px;
+}
+
+.book-price {
+    font-size: 13px;
+    color: #000;
+    font-weight: 500;
+}
+
+/* Button */
+.discover-btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 10px 26px;
+    background: #f2b84b;
+    color: #000;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+    .discover-btn:hover {
+        background: #e0a93c;
+    }
+
+/* Responsive */
+@media (max-width: 992px) {
+    .collection-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .collection-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+/* =========================
+   BEST SELLING FIXED SLIDER
+========================= */
+.best-selling-section {
+    background-color: #f7f4ef; /* 🔥 change to any color */
+    padding: 40px 0; /* space top & bottom */
+}
+.best-slider {
+    position: relative;
+    overflow: hidden;
+}
+
+.best-slider-track {
+    display: flex;
+    gap: 24px;
+    scroll-behavior: smooth;
+}
+
+.best-book-card {
+    width: 200px;
+    flex-shrink: 0;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.08);
+}
+
+/* IMAGE */
+.best-book-img {
+    position: relative;
+    width: 100%;
+    height: 300px; /* 🔑 FIXED HEIGHT */
+    overflow: hidden;
+    border-radius: 16px 16px 0 0;
+}
+
+    .best-book-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* 🔑 SAME SHAPE */
+    }
+
+/* HOVER ICONS */
+.hover-icons {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: 0.3s;
+}
+
+.best-book-img:hover .hover-icons {
+    opacity: 1;
+}
+
+.icon-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #dc3545;
+}
+
+/* INFO */
+.best-book-info {
+    padding: 12px;
+    height: 120px; /* 🔑 SAME HEIGHT */
+}
+
+    .best-book-info h6 {
+        font-size: 14px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .best-book-info small {
+        color: #777;
+    }
+
+/* PRICE */
+.price {
+    color: red;
+    font-weight: 700;
+}
+
+/* ARROWS */
+.slider-arrow {
+    position: absolute;
+    top: 40%;
+    background: #fff;
+    border: none;
+    font-size: 28px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    cursor: pointer;
+    z-index: 10;
+}
+
+    .slider-arrow.left {
+        left: -15px;
+    }
+
+    .slider-arrow.right {
+        right: -15px;
+    }
+    /*Contact Page*/
+.contact-item {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+    .contact-item i {
+        font-size: 22px;
+        color: #f0ad4e;
+    }
+
+.contact-social a {
+    display: inline-block;
+    margin-right: 10px;
+    font-size: 20px;
+    color: #333;
+}
+/* =========================
+   STORE BENEFITS STRIP
+========================= */
+.store-benefits {
+    background-color: white; /* matches your beige strip */
+    padding: 50px 0;
+}
+
+    .store-benefits h6 {
+        font-weight: 600;
+        margin-top: 12px;
+    }
+
+    .store-benefits p {
+        font-size: 0.9rem;
+        color: #555;
+        margin-bottom: 0;
+    }
+
+.benefit-icon {
+    font-size: 2rem;
+    color: #000;
+}

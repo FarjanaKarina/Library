@@ -7,6 +7,7 @@
         public string? Author { get; set; }
         public string? Publisher { get; set; }
         public string? ImageUrl { get; set; }
+        public decimal Price { get; set; }
 
         // ✅ MULTIPLE CATEGORIES
         public List<string> Categories { get; set; } = new();

@@ -1,0 +1,317 @@
+﻿@{
+    Layout = "_LibrarianLayout";
+    ViewData["Title"] = "Order Details";
+
+    var order = ViewBag.Order as OnlineLibrary.Infrastructure.Domain.Entities.Order;
+    var studentName = ViewBag.StudentName as string;
+    var studentEmail = ViewBag.StudentEmail as string;
+    var studentPhone = ViewBag.StudentPhone as string;
+    var orderItems = ViewBag.OrderItems as dynamic;
+}
+
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="bi bi-receipt me-2"></i>Order Details</h2>
+            <p class="text-muted mb-0">Transaction ID: <code>@order.TransactionId</code></p>
+        </div>
+        <div>
+            <a asp-action="Orders" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Back to Orders
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-lg-8">
+            <!-- Order Status Update -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Order Status Management</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Current Status:</strong></label>
+                            <div>
+                                @{
+                                    var statusClass = order.OrderStatus switch
+                                    {
+                                        "Delivered" => "bg-success",
+                                        "Shipped" => "bg-info",
+                                        "Packed" => "bg-warning text-dark",
+                                        "Confirmed" => "bg-primary",
+                                        _ => "bg-secondary"
+                                    };
+                                }
+                                <span class="badge @statusClass fs-6">@order.OrderStatus</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Update Status:</strong></label>
+                            <div class="input-group">
+                                <select id="newStatusSelect" class="form-select">
+                                    <option value="">-- Select New Status --</option>
+                                    @if (order.OrderStatus == "Confirmed")
+                                    {
+                                        <option value="Packed">Packed</option>
+                                    }
+                                    @if (order.OrderStatus == "Packed")
+                                    {
+                                        <option value="Shipped">Shipped</option>
+                                    }
+                                    @if (order.OrderStatus == "Shipped")
+                                    {
+                                        <option value="Delivered">Delivered</option>
+                                    }
+                                </select>
+                                <button class="btn btn-success" onclick="updateOrderStatus('@order.OrderId')">
+                                    <i class="bi bi-check-circle"></i> Update
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status Timeline -->
+                    <div class="mt-4">
+                        <div class="progress" style="height: 30px;">
+                            @{
+                                var progressPercent = order.OrderStatus switch
+                                {
+                                    "Confirmed" => 25,
+                                    "Packed" => 50,
+                                    "Shipped" => 75,
+                                    "Delivered" => 100,
+                                    _ => 0
+                                };
+                            }
+                            <div class="progress-bar bg-success progress-bar-striped progress-bar-animated"
+                                 role="progressbar"
+                                 style="width: @progressPercent%"
+                                 aria-valuenow="@progressPercent"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100">
+                                @progressPercent%
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-2">
+                            <small class="@(order.OrderStatus == "Confirmed" || order.OrderStatus == "Packed" || order.OrderStatus == "Shipped" || order.OrderStatus == "Delivered" ? "text-success fw-bold" : "text-muted")">
+                                <i class="bi bi-check-circle"></i> Confirmed
+                            </small>
+                            <small class="@(order.OrderStatus == "Packed" || order.OrderStatus == "Shipped" || order.OrderStatus == "Delivered" ? "text-success fw-bold" : "text-muted")">
+                                <i class="bi bi-box"></i> Packed
+                            </small>
+                            <small class="@(order.OrderStatus == "Shipped" || order.OrderStatus == "Delivered" ? "text-success fw-bold" : "text-muted")">
+                                <i class="bi bi-truck"></i> Shipped
+                            </small>
+                            <small class="@(order.OrderStatus == "Delivered" ? "text-success fw-bold" : "text-muted")">
+                                <i class="bi bi-check-square"></i> Delivered
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-box me-2"></i>Order Items</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 50%">Book</th>
+                                    <th class="text-center">Price</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-center">Subtotal</th>
+                                    <th class="text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in orderItems)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="@(item.ImageUrl ?? "/images/default-book.png")"
+                                                     alt="@item.BookTitle"
+                                                     class="rounded me-3"
+                                                     style="width: 50px; height: 65px; object-fit: cover;">
+                                                <div>
+                                                    <h6 class="mb-0">@item.BookTitle</h6>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center align-middle">৳@item.Price.ToString("N0")</td>
+                                        <td class="text-center align-middle">@item.Quantity</td>
+                                        <td class="text-center align-middle">
+                                            <strong>৳@((item.Price * item.Quantity).ToString("N0"))</strong>
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            @{
+                                                var itemStatusClass = item.Status switch
+                                                {
+                                                    "Refunded" => "bg-success",
+                                                    "Received" => "bg-info",
+                                                    "ReturnApproved" => "bg-primary",
+                                                    "ReturnRequested" => "bg-warning text-dark",
+                                                    _ => "bg-secondary"
+                                                };
+                                            }
+                                            <span class="badge @itemStatusClass">@item.Status</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Info -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-person me-2"></i>Customer Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-2"><strong>Name:</strong> @studentName</p>
+                            <p class="mb-2"><strong>Email:</strong> @studentEmail</p>
+                            <p class="mb-0"><strong>Phone:</strong> @studentPhone</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-2"><strong>Shipping Address:</strong></p>
+                            <p class="text-muted">@order.ShippingAddress</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-lg-4">
+            <!-- Order Summary -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-file-text me-2"></i>Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">Order Date</small>
+                        <p class="mb-0"><strong>@order.OrderDate.ToString("dd MMM yyyy, hh:mm tt")</strong></p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Payment Status</small>
+                        <p class="mb-0">
+                            @{
+                                var paymentClass = order.PaymentStatus switch
+                                {
+                                    "Success" => "bg-success",
+                                    "Pending" => "bg-warning text-dark",
+                                    "Failed" => "bg-danger",
+                                    _ => "bg-secondary"
+                                };
+                            }
+                            <span class="badge @paymentClass">@order.PaymentStatus</span>
+                        </p>
+                    </div>
+                    @if (order.ShippedDate.HasValue)
+                    {
+                        <div class="mb-3">
+                            <small class="text-muted">Shipped Date</small>
+                            <p class="mb-0">@order.ShippedDate.Value.ToString("dd MMM yyyy, hh:mm tt")</p>
+                        </div>
+                    }
+                    @if (order.DeliveredDate.HasValue)
+                    {
+                        <div class="mb-3">
+                            <small class="text-muted">Delivered Date</small>
+                            <p class="mb-0">@order.DeliveredDate.Value.ToString("dd MMM yyyy, hh:mm tt")</p>
+                        </div>
+                    }
+                    <hr>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal</span>
+                        <strong>৳@order.TotalAmount.ToString("N0")</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Shipping</span>
+                        <span class="text-success">Free</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong>Total</strong>
+                        <strong class="text-success fs-4">৳@order.TotalAmount.ToString("N0")</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Details -->
+            @if (order.PaymentStatus == "Success")
+            {
+                <div class="card shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="bi bi-credit-card me-2"></i>Payment Details</h6>
+                    </div>
+                    <div class="card-body">
+                        @if (!string.IsNullOrEmpty(order.BankTransactionId))
+                        {
+                            <p class="mb-2">
+                                <small class="text-muted">Bank TXN ID:</small><br>
+                                <code>@order.BankTransactionId</code>
+                            </p>
+                        }
+                        @if (!string.IsNullOrEmpty(order.CardType))
+                        {
+                            <p class="mb-2">
+                                <small class="text-muted">Payment Method:</small><br>
+                                <strong>@order.CardType</strong>
+                            </p>
+                        }
+                        @if (order.PaymentDate.HasValue)
+                        {
+                            <p class="mb-0">
+                                <small class="text-muted">Paid On:</small><br>
+                                @order.PaymentDate.Value.ToString("dd MMM yyyy, hh:mm tt")
+                            </p>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function updateOrderStatus(orderId) {
+            const newStatus = $('#newStatusSelect').val();
+
+            if (!newStatus) {
+                alert('Please select a new status');
+                return;
+            }
+
+            if (confirm(`Update order status to "${newStatus}"?`)) {
+                $.post('@Url.Action("UpdateOrderStatus", "Librarian")', {
+                    orderId: orderId,
+                    newStatus: newStatus
+                }, function (res) {
+                    if (res.success) {
+                        alert('✓ Order status updated successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (res.message || 'Failed to update status'));
+                    }
+                }).fail(function () {
+                    alert('Error: Failed to update order status');
+                });
+            }
+        }
+    </script>
+}

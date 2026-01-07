@@ -1,0 +1,263 @@
+﻿@model IEnumerable<OnlineLibrary.Web.Models.ReturnRequestViewModel>
+
+@{
+    Layout = "_LibrarianLayout";
+    ViewData["Title"] = "Return Requests";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-arrow-return-left me-2"></i>Return Requests</h2>
+        <a asp-action="Dashboard" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle me-2"></i>No return requests at the moment.
+        </div>
+    }
+    else
+    {
+        <!-- Tab Navigation -->
+        <ul class="nav nav-tabs mb-4" id="returnTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="requested-tab" data-bs-toggle="tab" data-bs-target="#requested" type="button">
+                    Requested Returns
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="approved-tab" data-bs-toggle="tab" data-bs-target="#approved" type="button">
+                    Approved Returns
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="received-tab" data-bs-toggle="tab" data-bs-target="#received" type="button">
+                    Received Returns
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="returnTabContent">
+            <!-- Requested Returns -->
+            <div class="tab-pane fade show active" id="requested" role="tabpanel">
+                <div class="row">
+                    @foreach (var req in Model.Where(r => r.Status == "ReturnRequested"))
+                    {
+                        <div class="col-lg-6 mb-4">
+                            <div class="card shadow-sm h-100 border-warning">
+                                <div class="card-header bg-warning text-dark">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">
+                                            <i class="bi bi-receipt me-2"></i>Order #@req.TransactionId
+                                        </h6>
+                                        <span class="badge bg-dark">Pending Review</span>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex align-items-start mb-3">
+                                        <div class="me-3">
+                                            <div class="bg-light rounded p-2">
+                                                <i class="bi bi-book fs-2 text-primary"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1 text-primary">@req.BookTitle</h6>
+                                            <p class="text-muted small mb-0">@req.StudentName</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="row bg-light rounded p-2 mx-0 mb-3">
+                                        <div class="col-4 border-end">
+                                            <small class="text-muted d-block">Price</small>
+                                            <strong>৳@req.Price.ToString("N0")</strong>
+                                        </div>
+                                        <div class="col-4 border-end text-center">
+                                            <small class="text-muted d-block">Qty</small>
+                                            <strong>@req.Quantity</strong>
+                                        </div>
+                                        <div class="col-4 text-end">
+                                            <small class="text-muted d-block">Refund (50%)</small>
+                                            <strong class="text-success">৳@req.RefundAmount.ToString("N0")</strong>
+                                        </div>
+                                    </div>
+
+                                    <button class="btn btn-success w-100"
+                                            onclick="approveReturn('@req.OrderItemId', '@req.BookTitle')">
+                                        <i class="bi bi-check-circle me-2"></i>Approve Return Request
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Approved Returns -->
+            <div class="tab-pane fade" id="approved" role="tabpanel">
+                <div class="row">
+                    @foreach (var req in Model.Where(r => r.Status == "ReturnApproved"))
+                    {
+                        <div class="col-lg-6 mb-4">
+                            <div class="card shadow-sm h-100 border-info">
+                                <div class="card-header bg-info text-white">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">
+                                            <i class="bi bi-receipt me-2"></i>Order #@req.TransactionId
+                                        </h6>
+                                        <span class="badge bg-light text-dark">Awaiting Return</span>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex align-items-start mb-3">
+                                        <div class="me-3">
+                                            <div class="bg-light rounded p-2">
+                                                <i class="bi bi-book fs-2 text-info"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1 text-info">@req.BookTitle</h6>
+                                            <p class="text-muted small mb-0">@req.StudentName</p>
+                                            @if (req.ReturnApprovedAt.HasValue)
+                                            {
+                                                <small class="text-success">
+                                                    <i class="bi bi-check-circle"></i>
+                                                    Approved: @req.ReturnApprovedAt.Value.ToString("dd MMM yyyy")
+                                                </small>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <div class="alert alert-info mb-3">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        <small>Student has been notified to return the book.</small>
+                                    </div>
+
+                                    <button class="btn btn-primary w-100"
+                                            onclick="markAsReceived('@req.OrderItemId', '@req.BookTitle')">
+                                        <i class="bi bi-box-seam me-2"></i>Mark as Received
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Received Returns (Ready for Refund) -->
+            <div class="tab-pane fade" id="received" role="tabpanel">
+                <div class="row">
+                    @foreach (var req in Model.Where(r => r.Status == "Received"))
+                    {
+                        <div class="col-lg-6 mb-4">
+                            <div class="card shadow-sm h-100 border-success">
+                                <div class="card-header bg-success text-white">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">
+                                            <i class="bi bi-receipt me-2"></i>Order #@req.TransactionId
+                                        </h6>
+                                        <span class="badge bg-light text-dark">Ready for Refund</span>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex align-items-start mb-3">
+                                        <div class="me-3">
+                                            <div class="bg-success-subtle rounded p-2">
+                                                <i class="bi bi-check-circle-fill fs-2 text-success"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1 text-success">@req.BookTitle</h6>
+                                            <p class="text-muted small mb-0">@req.StudentName</p>
+                                            <small class="text-success">
+                                                <i class="bi bi-box-arrow-in-down"></i>
+                                                Book received & restocked
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-success-subtle rounded p-3 mb-3">
+                                        <div class="text-center">
+                                            <h5 class="text-success mb-1">৳@req.RefundAmount.ToString("N0")</h5>
+                                            <small class="text-muted">Refund Amount (50%)</small>
+                                        </div>
+                                    </div>
+
+                                    <button class="btn btn-success w-100"
+                                            onclick="processRefund('@req.OrderItemId', '@req.BookTitle', '@req.RefundAmount')">
+                                        <i class="bi bi-cash-coin me-2"></i>Process Refund
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function approveReturn(orderItemId, bookTitle) {
+            if (confirm(`Approve return request for "${bookTitle}"?\n\nThe student will be notified to return the book.`)) {
+                $.post('@Url.Action("ApproveReturn", "Librarian")', { orderItemId: orderItemId }, function (res) {
+                    if (res.success) {
+                        showToast('Return request approved!', 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showToast(res.message || 'Failed to approve request.', 'error');
+                    }
+                });
+            }
+        }
+
+        function markAsReceived(orderItemId, bookTitle) {
+            if (confirm(`Confirm receipt of "${bookTitle}"?\n\n• Inventory will be updated\n• Book will be ready for refund processing`)) {
+                $.post('@Url.Action("MarkAsReceived", "Librarian")', { orderItemId: orderItemId }, function (res) {
+                    if (res.success) {
+                        showToast('Book received! Inventory updated.', 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showToast(res.message || 'Failed to mark as received.', 'error');
+                    }
+                });
+            }
+        }
+
+        function processRefund(orderItemId, bookTitle, refundAmount) {
+            if (confirm(`Process refund for "${bookTitle}"?\n\nRefund Amount: ৳${refundAmount}\nThis action cannot be undone.`)) {
+                $.post('@Url.Action("ProcessRefund", "Librarian")', { orderItemId: orderItemId }, function (res) {
+                    if (res.success) {
+                        showToast(`Refund of ৳${res.refundAmount} processed successfully!`, 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showToast(res.message || 'Failed to process refund.', 'error');
+                    }
+                });
+            }
+        }
+
+        function showToast(message, type) {
+            const toast = $(`
+                <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `);
+
+            $('.toast-container').append(toast);
+            new bootstrap.Toast(toast[0]).show();
+
+            setTimeout(() => toast.remove(), 5000);
+        }
+    </script>
+}
+
+<!-- Toast Container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3"></div>

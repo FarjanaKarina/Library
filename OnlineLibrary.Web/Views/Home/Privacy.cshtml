@@ -1,6 +1,378 @@
 ﻿@{
     ViewData["Title"] = "Privacy Policy";
+    Layout = "_AppLayout";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<div class="privacy-hero py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center text-white">
+                <h1 class="display-4 fw-bold mb-4">Privacy Policy</h1>
+                <p class="lead">Your trust is our priority. Learn how we protect and handle your information.</p>
+                <div class="last-updated">
+                    <small><i class="bi bi-calendar-check me-2"></i>Last updated: <span id="lastUpdated">January 2025</span></small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
+    <!-- Privacy Navigator -->
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="privacy-nav sticky-top">
+                <h6 class="fw-bold mb-3">Quick Navigation</h6>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="#section-1">Information We Collect</a>
+                    <a class="nav-link" href="#section-2">How We Use Data</a>
+                    <a class="nav-link" href="#section-3">Payment Security</a>
+                    <a class="nav-link" href="#section-4">Returns & Refunds</a>
+                    <a class="nav-link" href="#section-5">Data Protection</a>
+                    <a class="nav-link" href="#section-6">Your Rights</a>
+                    <a class="nav-link" href="#section-7">Policy Updates</a>
+                    <a class="nav-link" href="#section-8">Contact Us</a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <!-- Information We Collect -->
+            <section id="section-1" class="privacy-section mb-5">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="bi bi-info-circle text-primary me-2"></i>
+                        Information We Collect
+                    </h3>
+                </div>
+                <div class="section-content">
+                    <p>BookNest collects only the information necessary to provide you with excellent service:</p>
+
+                    <div class="info-categories">
+                        <div class="info-category">
+                            <h5><i class="bi bi-person me-2 text-success"></i>Personal Information</h5>
+                            <ul class="custom-list">
+                                <li>Name and email address</li>
+                                <li>Phone number for delivery</li>
+                                <li>Delivery address</li>
+                                <li>Account credentials (encrypted)</li>
+                            </ul>
+                        </div>
+                        <div class="info-category">
+                            <h5><i class="bi bi-activity me-2 text-info"></i>Usage Information</h5>
+                            <ul class="custom-list">
+                                <li>Order and browsing history</li>
+                                <li>Reading preferences</li>
+                                <li>Device and browser information</li>
+                                <li>IP address for security</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- How We Use Data -->
+            <section id="section-2" class="privacy-section mb-5">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="bi bi-gear text-primary me-2"></i>
+                        How We Use Your Information
+                    </h3>
+                </div>
+                <div class="section-content">
+                    <div class="usage-grid">
+                        <div class="usage-card">
+                            <i class="bi bi-key-fill text-warning"></i>
+                            <h6>Authentication</h6>
+                            <p>Secure account access and login verification</p>
+                        </div>
+                        <div class="usage-card">
+                            <i class="bi bi-box-seam-fill text-info"></i>
+                            <h6>Order Processing</h6>
+                            <p>Managing book orders, deliveries, and returns</p>
+                        </div>
+                        <div class="usage-card">
+                            <i class="bi bi-bell-fill text-success"></i>
+                            <h6>Communication</h6>
+                            <p>Order updates, system notifications, and support</p>
+                        </div>
+                        <div class="usage-card">
+                            <i class="bi bi-graph-up-arrow text-danger"></i>
+                            <h6>Service Improvement</h6>
+                            <p>Analyzing usage patterns to enhance user experience</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Payment Security -->
+            <section id="section-3" class="privacy-section mb-5">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="bi bi-credit-card text-primary me-2"></i>
+                        Payment Security
+                    </h3>
+                </div>
+                <div class="section-content">
+                    <div class="security-highlight">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h5>🔒 Bank-Level Security</h5>
+                                <p>All payments are processed through SSLCommerz, a certified payment gateway. We never store your card details or sensitive financial information.</p>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="security-badge">
+                                    <i class="bi bi-shield-check display-1 text-success"></i>
+                                    <p class="small mt-2">PCI DSS Compliant</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Returns & Refunds -->
+            <section id="section-4" class="privacy-section mb-5">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="bi bi-arrow-repeat text-primary me-2"></i>
+                        Returns & Refunds
+                    </h3>
+                </div>
+                <div class="section-content">
+                    <div class="return-process">
+                        <div class="process-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h6>Request Return</h6>
+                                <p>Submit return request through your order details</p>
+                            </div>
+                        </div>
+                        <div class="process-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h6>Librarian Review</h6>
+                                <p>Our team reviews and approves eligible returns</p>
+                            </div>
+                        </div>
+                        <div class="process-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h6>Return Book</h6>
+                                <p>Ship the book back in good condition</p>
+                            </div>
+                        </div>
+                        <div class="process-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <h6>Refund Processing</h6>
+                                <p>Receive 50% refund once book is verified</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Data Protection -->
+            <section id="section-5" class="privacy-section mb-5">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="bi bi-shield-check text-primary me-2"></i>
+                        Data Protection
+                    </h3>
+                </div>
+                <div class="section-content">
+                    <div class="protection-features">
+                        <div class="feature">
+                            <i class="bi bi-lock-fill text-success"></i>
+                            <h6>Encryption</h6>
+                            <p>All data transmitted using SSL/TLS encryption</p>
+                        </div>
+                        <div class="feature">
+                            <i class="bi bi-person-badge text-info"></i>
+                            <h6>Access Control</h6>
+                            <p>Role-based permissions and authentication</p>
+                        </div>
+                        <div class="feature">
+                            <i class="bi bi-journal-check text-warning"></i>
+                            <h6>Audit Logs</h6>
+                            <p>Comprehensive logging for security monitoring</p>
+                        </div>
+                        <div class="feature">
+                            <i class="bi bi-cloud-check text-primary"></i>
+                            <h6>Secure Storage</h6>
+                            <p>Data stored in protected, compliant infrastructure</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Your Rights -->
+            <section id="section-6" class="privacy-section mb-5">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="bi bi-person-check text-primary me-2"></i>
+                        Your Rights
+                    </h3>
+                </div>
+                <div class="section-content">
+                    <div class="rights-list">
+                        <div class="right-item">
+                            <h6><i class="bi bi-eye me-2"></i>Right to Access</h6>
+                            <p>View all personal data we have about you</p>
+                        </div>
+                        <div class="right-item">
+                            <h6><i class="bi bi-pencil me-2"></i>Right to Correct</h6>
+                            <p>Update or correct your personal information</p>
+                        </div>
+                        <div class="right-item">
+                            <h6><i class="bi bi-trash me-2"></i>Right to Delete</h6>
+                            <p>Request deletion of your account and data</p>
+                        </div>
+                        <div class="right-item">
+                            <h6><i class="bi bi-download me-2"></i>Data Portability</h6>
+                            <p>Export your data in a readable format</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Policy Updates -->
+            <section id="section-7" class="privacy-section mb-5">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="bi bi-bell text-primary me-2"></i>
+                        Policy Updates
+                    </h3>
+                </div>
+                <div class="section-content">
+                    <div class="update-notification">
+                        <p>We may update this policy to reflect changes in our practices or legal requirements. When we do:</p>
+                        <ul class="update-list">
+                            <li>We'll notify you via email or system notification</li>
+                            <li>Changes will be highlighted for 30 days</li>
+                            <li>Continued use indicates acceptance</li>
+                            <li>You can always view the latest version here</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Contact Us -->
+            <section id="section-8" class="privacy-section mb-5">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="bi bi-envelope text-primary me-2"></i>
+                        Contact Us
+                    </h3>
+                </div>
+                <div class="section-content">
+                    <div class="contact-options">
+                        <div class="contact-card">
+                            <i class="bi bi-envelope-fill text-primary"></i>
+                            <h6>Email Support</h6>
+                            <p>privacy@booknest.com</p>
+                            <small>Response within 24 hours</small>
+                        </div>
+                        <div class="contact-card">
+                            <i class="bi bi-chat-dots-fill text-success"></i>
+                            <h6>Live Chat</h6>
+                            <p>Available 9 AM - 6 PM</p>
+                            <button class="btn btn-sm btn-success" onclick="openChat()">Start Chat</button>
+                        </div>
+                        <div class="contact-card">
+                            <i class="bi bi-telephone-fill text-info"></i>
+                            <h6>Phone Support</h6>
+                            <p>+88 01700-000000</p>
+                            <small>Mon-Fri: 9 AM - 6 PM</small>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<!-- Consent Banner -->
+<div class="consent-banner" id="consentBanner">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <p class="mb-0">
+                    <i class="bi bi-info-circle me-2"></i>
+                    We use cookies to improve your experience. By continuing, you agree to our Privacy Policy.
+                </p>
+            </div>
+            <div class="col-lg-4 text-end">
+                <button class="btn btn-primary btn-sm me-2" onclick="acceptCookies()">Accept</button>
+                <button class="btn btn-outline-primary btn-sm" onclick="declineCookies()">Decline</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Smooth scrolling for navigation
+            $('.privacy-nav a[href^="#"]').on('click', function(e) {
+                e.preventDefault();
+                const target = $(this.getAttribute('href'));
+                if (target.length) {
+                    $('html, body').animate({
+                        scrollTop: target.offset().top - 100
+                    }, 800);
+                }
+            });
+
+            // Update active navigation item on scroll
+            $(window).scroll(function() {
+                let current = '';
+                $('.privacy-section').each(function() {
+                    const sectionTop = $(this).offset().top;
+                    const sectionHeight = $(this).outerHeight();
+                    const scrollPos = $(window).scrollTop() + 150;
+
+                    if (scrollPos >= sectionTop && scrollPos < sectionTop + sectionHeight) {
+                        current = $(this).attr('id');
+                    }
+                });
+
+                $('.privacy-nav a').removeClass('active');
+                $('.privacy-nav a[href="#' + current + '"]').addClass('active');
+            });
+
+            // Show consent banner if not already accepted
+            if (!localStorage.getItem('cookieConsent')) {
+                $('#consentBanner').show();
+            }
+
+            // Animate sections on scroll
+            $(window).scroll(function() {
+                $('.privacy-section').each(function() {
+                    const elementTop = $(this).offset().top;
+                    const scrollTop = $(window).scrollTop();
+                    const windowHeight = $(window).height();
+
+                    if (scrollTop + windowHeight > elementTop + 100) {
+                        $(this).addClass('animate');
+                    }
+                });
+            });
+        });
+
+        function acceptCookies() {
+            localStorage.setItem('cookieConsent', 'accepted');
+            $('#consentBanner').fadeOut();
+        }
+
+        function declineCookies() {
+            localStorage.setItem('cookieConsent', 'declined');
+            $('#consentBanner').fadeOut();
+        }
+
+        function openChat() {
+            alert('Live chat feature coming soon! Please use email support for now.');
+        }
+    </script>
+}

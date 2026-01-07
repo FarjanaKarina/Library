@@ -1,0 +1,396 @@
+﻿@model OnlineLibrary.Web.Models.OrderDetailsViewModel
+
+@{
+    Layout = "_StudentLayout";
+    ViewData["Title"] = "Order Details";
+}
+
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-receipt me-2"></i>Order Details</h2>
+        <a asp-action="MyOrders" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Orders
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- Left Column: Order Info -->
+        <div class="col-lg-8">
+            <!-- Order Tracking Status -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-truck me-2"></i>Order Tracking</h5>
+                </div>
+                <div class="card-body py-4">
+                    <div class="order-tracking">
+                        @{
+                            var statuses = new[] { "Confirmed", "Packed", "Shipped", "Delivered" };
+                            var currentStatusIndex = Array.IndexOf(statuses, Model.OrderStatus);
+                        }
+
+                        <div class="tracking-container">
+                            @for (int i = 0; i < statuses.Length; i++)
+                            {
+                                var status = statuses[i];
+                                var isCompleted = i <= currentStatusIndex;
+                                var isCurrent = i == currentStatusIndex;
+
+                                <div class="tracking-step @(isCompleted ? "completed" : "") @(isCurrent ? "current" : "")">
+                                    <div class="tracking-icon">
+                                        @if (isCompleted)
+                                        {
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-circle"></i>
+                                        }
+                                    </div>
+                                    <div class="tracking-label">@status</div>
+                                </div>
+
+                                @if (i < statuses.Length - 1)
+                                {
+                                    <div class="tracking-line @(i < currentStatusIndex ? "completed" : "")"></div>
+                                }
+                            }
+                        </div>
+
+                        <div class="text-center mt-3">
+                            <small class="text-muted">
+                                Current Status: <strong class="text-primary">@Model.OrderStatus</strong>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-box me-2"></i>Order Items</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 50%">Book</th>
+                                    <th class="text-center">Price</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-center">Subtotal</th>
+                                    <th class="text-center">Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Items)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="@(item.ImageUrl ?? "/images/default-book.png")"
+                                                     alt="@item.BookTitle"
+                                                     class="rounded me-3"
+                                                     style="width: 50px; height: 65px; object-fit: cover;">
+                                                <div>
+                                                    <h6 class="mb-0">@item.BookTitle</h6>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center align-middle">৳@item.Price.ToString("N0")</td>
+                                        <td class="text-center align-middle">@item.Quantity</td>
+                                        <td class="text-center align-middle"><strong>৳@item.Subtotal.ToString("N0")</strong></td>
+                                        <td class="text-center align-middle">
+                                            @{
+                                                var statusClass = item.Status switch
+                                                {
+                                                    "Refunded" => "bg-success",
+                                                    "Received" => "bg-info",
+                                                    "ReturnApproved" => "bg-primary",
+                                                    "ReturnRequested" => "bg-warning text-dark",
+                                                    _ => "bg-secondary"
+                                                };
+                                            }
+                                            <span class="badge @statusClass">@item.Status</span>
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            @if (item.CanRequestReturn && Model.OrderStatus == "Delivered")
+                                            {
+                                                <button class="btn btn-sm btn-outline-warning btn-request-return"
+                                                        data-item-id="@item.OrderItemId"
+                                                        data-book-title="@item.BookTitle">
+                                                    <i class="bi bi-arrow-return-left"></i> Return
+                                                </button>
+                                            }
+                                            else if (item.CanCancelReturn)
+                                            {
+                                                <button class="btn btn-sm btn-outline-danger btn-cancel-return"
+                                                        data-item-id="@item.OrderItemId">
+                                                    <i class="bi bi-x-circle"></i> Cancel
+                                                </button>
+                                            }
+                                            else if (item.Status == "Refunded" && item.RefundAmount.HasValue)
+                                            {
+                                                <small class="text-success">
+                                                    <i class="bi bi-check-circle"></i> ৳@item.RefundAmount.Value.ToString("N0") refunded
+                                                </small>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipping Info -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-truck me-2"></i>Shipping Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-2"><strong>Name:</strong> @Model.ShippingName</p>
+                            <p class="mb-2"><strong>Phone:</strong> @Model.ShippingPhone</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-2"><strong>Address:</strong></p>
+                            <p class="text-muted">@Model.ShippingAddress</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Summary -->
+        <div class="col-lg-4">
+            <!-- Order Summary -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-file-text me-2"></i>Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">Transaction ID</small>
+                        <p class="mb-0"><code>@Model.TransactionId</code></p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Order Date</small>
+                        <p class="mb-0">@Model.OrderDate.ToString("dd MMM yyyy, hh:mm tt")</p>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal</span>
+                        <strong>৳@Model.TotalAmount.ToString("N0")</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Shipping</span>
+                        <span class="text-success">Free</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong>Total</strong>
+                        <strong class="text-primary fs-5">৳@Model.TotalAmount.ToString("N0")</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Info -->
+            @if (Model.PaymentStatus == "Success")
+            {
+                <div class="card shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="bi bi-credit-card me-2"></i>Payment Info</h6>
+                    </div>
+                    <div class="card-body">
+                        @if (!string.IsNullOrEmpty(Model.BankTransactionId))
+                        {
+                            <p class="mb-2"><small class="text-muted">Bank TXN ID:</small><br><code>@Model.BankTransactionId</code></p>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.CardType))
+                        {
+                            <p class="mb-2"><small class="text-muted">Payment Method:</small><br>@Model.CardType</p>
+                        }
+                        @if (Model.PaymentDate.HasValue)
+                        {
+                            <p class="mb-0"><small class="text-muted">Paid On:</small><br>@Model.PaymentDate.Value.ToString("dd MMM yyyy, hh:mm tt")</p>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Return Policy -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h6><i class="bi bi-arrow-repeat me-2 text-success"></i>Return Policy</h6>
+                    <ul class="small text-muted mb-0">
+                        <li>Returns accepted after delivery</li>
+                        <li>Get <strong>50% refund</strong> on returns</li>
+                        <li>Returning is optional</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Request Return
+            $('.btn-request-return').click(function () {
+                const itemId = $(this).data('item-id');
+                const bookTitle = $(this).data('book-title');
+
+                if (confirm(`Request return for "${bookTitle}"?\n\nYou will receive 50% refund after the book is received.`)) {
+                    $.post('@Url.Action("RequestReturn", "Order")', { orderItemId: itemId }, function (res) {
+                        if (res.success) {
+                            alert(res.message);
+                            location.reload();
+                        } else {
+                            alert(res.message);
+                        }
+                    });
+                }
+            });
+
+            // Cancel Return
+            $('.btn-cancel-return').click(function () {
+                const itemId = $(this).data('item-id');
+
+                if (confirm('Cancel this return request?')) {
+                    $.post('@Url.Action("CancelReturn", "Order")', { orderItemId: itemId }, function (res) {
+                        if (res.success) {
+                            alert(res.message);
+                            location.reload();
+                        } else {
+                            alert(res.message);
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}
+
+<style>
+    /* Order Tracking Styles */
+    .order-tracking {
+        padding: 20px 0;
+    }
+
+    .tracking-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .tracking-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+    }
+
+    .tracking-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: #6c757d;
+        transition: all 0.3s ease;
+        border: 3px solid #e9ecef;
+    }
+
+    .tracking-step.completed .tracking-icon {
+        background: #28a745;
+        color: white;
+        border-color: #28a745;
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+
+    .tracking-step.current .tracking-icon {
+        background: #007bff;
+        color: white;
+        border-color: #007bff;
+        animation: pulse 2s infinite;
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.1);
+        }
+    }
+
+    .tracking-label {
+        margin-top: 12px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #6c757d;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .tracking-step.completed .tracking-label {
+        color: #28a745;
+    }
+
+    .tracking-step.current .tracking-label {
+        color: #007bff;
+    }
+
+    .tracking-line {
+        flex: 1;
+        height: 4px;
+        background: #e9ecef;
+        position: relative;
+        z-index: 1;
+        margin: 0 -10px;
+        transition: all 0.3s ease;
+    }
+
+        .tracking-line.completed {
+            background: #28a745;
+        }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .tracking-container {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .tracking-step {
+            flex-direction: row;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .tracking-label {
+            margin-top: 0;
+            margin-left: 15px;
+            text-align: left;
+        }
+
+        .tracking-line {
+            display: none;
+        }
+    }
+</style>

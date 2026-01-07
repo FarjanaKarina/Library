@@ -12,40 +12,52 @@
 
     <hr />
 
-    <a asp-action="BrowseBooks"
-       class="btn btn-primary mb-3">
-        Browse Books
-    </a>
+    <!-- ORDER STATISTICS -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h3>@Model.TotalOrders</h3>
+                    <p class="mb-0">Total Orders</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-warning text-dark">
+                <div class="card-body text-center">
+                    <h3>@Model.ActiveOrders</h3>
+                    <p class="mb-0">Active Orders</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h3>@Model.PendingReturns</h3>
+                    <p class="mb-0">Pending Returns</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- ACTION BUTTONS -->
+    <div class="mb-4">
+        <a asp-action="BrowseBooks" class="btn btn-primary">
+            <i class="bi bi-book me-2"></i>Browse Books
+        </a>
+        <a asp-controller="Cart" asp-action="Index" class="btn btn-outline-primary">
+            <i class="bi bi-cart me-2"></i>My Cart
+        </a>
+        <a asp-controller="Order" asp-action="MyOrders" class="btn btn-outline-secondary">
+            <i class="bi bi-box me-2"></i>My Orders
+        </a>
+    </div>
 
-    <!-- MEMBERSHIP STATUS -->
-    @if (Model.MembershipStatus == "Approved" && Model.ExpiryDate != null)
-    {
-        var daysLeft = (Model.ExpiryDate.Value - DateTime.Today).Days;
-
-        if (daysLeft <= 0)
-        {
-            <span class="badge bg-danger">Expired</span>
-        }
-        else if (daysLeft <= 5)
-        {
-            <span class="badge bg-warning">
-                Expiring in @daysLeft days
-            </span>
-        }
-        else
-        {
-            <span class="badge bg-success">
-                Active (Expires @Model.ExpiryDate.Value.ToString("dd MMM"))
-            </span>
-        }
-    }
-    <!--Continue Reading-->
+    <!-- CONTINUE READING -->
     <hr />
+    <h5><i class="bi bi-book-half me-2"></i>Continue Reading</h5>
 
-    <h5>Continue Reading</h5>
-
-    @if (!Model.ContinueReading.Any())
+    @if (Model.ContinueReading.Count == 0)
     {
         <p class="text-muted">No recent reading activity.</p>
     }
@@ -56,18 +68,20 @@
             {
                 <div class="col-md-3 mb-3">
                     <div class="card shadow-sm h-100">
-                        <img src="@book.ImageUrl"
+                        <img src="@(book.ImageUrl ?? "/images/default-book.png")"
                              class="card-img-top"
-                             style="height:180px;object-fit:cover;" />
+                             style="height:180px;object-fit:cover;"
+                             alt="@book.Title"
+                             onerror="this.src='/images/default-book.png'" />
 
                         <div class="card-body">
-                            <h6 class="card-title">@book.Title</h6>
+                            <h6 class="card-title text-truncate" title="@book.Title">@book.Title</h6>
 
                             <a asp-controller="Book"
                                asp-action="Details"
                                asp-route-id="@book.BookId"
                                class="btn btn-sm btn-primary w-100">
-                                Continue Reading
+                                <i class="bi bi-book-half me-1"></i>Continue
                             </a>
                         </div>
                     </div>
@@ -76,81 +90,81 @@
         </div>
     }
 
-    <!-- BORROW HISTORY -->
+    <!-- RECENT ORDERS -->
+    <hr />
     <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Recent Orders</h5>
+            <a asp-controller="Order" asp-action="MyOrders" class="btn btn-sm btn-outline-primary">
+                View All
+            </a>
+        </div>
         <div class="card-body">
-            <h5>Borrow History</h5>
-
-            @if (!Model.BorrowHistory.Any())
+            @if (Model.RecentOrders.Count == 0)
             {
-                <p class="text-muted">
-                    No borrowing history found.
-                </p>
+                <p class="text-muted mb-0">No orders found. <a asp-action="BrowseBooks">Start shopping!</a></p>
             }
             else
             {
-                <table class="table table-bordered mt-3">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Book</th>
-                            <th>Borrow Date</th>
-                            <th>Due Date</th>
-                            <th>Fine (TK)</th>
-                            <th>Status</th>
-                            <th>Action</th>
-
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model.BorrowHistory)
-                        {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
                             <tr>
-                                <td>@item.BookTitle</td>
-                                <td>@item.BorrowDate.ToString("yyyy-MM-dd")</td>
-                                <td>@item.DueDate.ToString("yyyy-MM-dd")</td>
-                                <td>
-                                    @if (item.FineAmount > 0)
-                                    {
-                                        <span class="text-danger fw-bold">
-                                            @item.FineAmount TK
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">-</span>
-                                    }
-                            </td>
-
-                            <td>
-                                <span class="badge @(item.Status == "Overdue" ? "bg-danger" : 
-                                                     item.Status == "Returned" ? "bg-secondary": "bg-success")">
-                                @item.Status
-                            </span>
-                        </td>
-                        <td class="text-nowrap">
-                            <a asp-controller="Book"
-                               asp-action="Details"
-                               asp-route-id="@item.BookId"
-                               class="btn btn-sm btn-info me-1">
-                                View Details
-                            </a>
-
-                            @if (item.Status == "Active" || item.Status == "Overdue")
-                                    {
-                                        <form asp-action="ReturnBook"
-                                              method="post"
-                                              class="d-inline">
-                                            <input type="hidden" name="borrowId" value="@item.BorrowId" />
-                                            <button type="submit" class="btn btn-sm btn-warning">
-                                                Return
-                                            </button>
-                                        </form>
-                                    }
-                            </td>
-                        </tr>
-                      }
-                    </tbody>
-                </table>
+                                <th>Transaction ID</th>
+                                <th>Date</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Payment</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model.RecentOrders)
+                            {
+                                <tr>
+                                    <td><code>@order.TransactionId</code></td>
+                                    <td>@order.OrderDate.ToString("dd-MM-yyyy")</td>
+                                    <td>@order.ItemCount</td>
+                                    <td>
+                                        <strong class="text-success">৳@order.TotalAmount.ToString("N0")</strong>
+                                    </td>
+                                    <td>
+                                        @{
+                                            var statusClass = order.OrderStatus switch
+                                            {
+                                                "Delivered" => "bg-success",
+                                                "Shipped" => "bg-info",
+                                                "Packed" => "bg-warning text-dark",
+                                                "Confirmed" => "bg-primary",
+                                                _ => "bg-secondary"
+                                            };
+                                        }
+                                        <span class="badge @statusClass">@order.OrderStatus</span>
+                                    </td>
+                                    <td>
+                                        @{
+                                            var paymentClass = order.PaymentStatus switch
+                                            {
+                                                "Success" => "bg-success",
+                                                "Pending" => "bg-warning text-dark",
+                                                "Failed" => "bg-danger",
+                                                _ => "bg-secondary"
+                                            };
+                                        }
+                                        <span class="badge @paymentClass">@order.PaymentStatus</span>
+                                    </td>
+                                    <td>
+                                        <a asp-controller="Order" asp-action="Details" asp-route-id="@order.OrderId"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             }
         </div>
     </div>

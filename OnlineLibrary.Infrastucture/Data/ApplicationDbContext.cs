@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OnlineLibrary.Infrastructure.Domain.Entities;
-using System.Collections.Generic;
 
 namespace OnlineLibrary.Infrastructure.Data
 {
@@ -20,18 +19,18 @@ namespace OnlineLibrary.Infrastructure.Data
         public DbSet<Book> Books { get; set; }
         public DbSet<BookCategory> BookCategories { get; set; }
 
+        // Cart & Orders
+        public DbSet<Cart> Carts { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
 
-        // Membership & Transactions
-        public DbSet<Membership> Memberships { get; set; }
-        public DbSet<BorrowTransaction> BorrowTransactions { get; set; }
-        public DbSet<Fine> Fines { get; set; }
+        // Payments
         public DbSet<Payment> Payments { get; set; }
-
 
         // Optional
         public DbSet<Wishlist> Wishlists { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
-
     }
 }

@@ -5,31 +5,25 @@
 
         <li>
             <a asp-controller="Student" asp-action="Dashboard" class="nav-link text-white">
-                Dashboard
+                <i class="bi bi-house me-2"></i>Dashboard
             </a>
         </li>
 
         <li>
             <a asp-controller="Student" asp-action="BrowseBooks" class="nav-link text-white">
-                Books
+                <i class="bi bi-book me-2"></i>Browse Books
             </a>
         </li>
 
         <li>
-            <a asp-controller="Student" asp-action="MyBorrows" class="nav-link text-white">
-                My Borrowed Books
+            <a asp-controller="Cart" asp-action="Index" class="nav-link text-white">
+                <i class="bi bi-cart me-2"></i>My Cart
             </a>
         </li>
 
         <li>
-            <a asp-controller="Student" asp-action="BorrowHistory" class="nav-link text-white">
-                Borrow History
-            </a>
-        </li>
-
-        <li>
-            <a asp-controller="Student" asp-action="Membership" class="nav-link text-white">
-                Membership Status
+            <a asp-controller="Order" asp-action="MyOrders" class="nav-link text-white">
+                <i class="bi bi-box me-2"></i>My Orders
             </a>
         </li>
 

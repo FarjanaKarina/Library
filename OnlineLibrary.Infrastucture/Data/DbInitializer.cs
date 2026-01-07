@@ -10,7 +10,7 @@ namespace OnlineLibrary.Infrastructure.Data
     {
         public static void Seed(ApplicationDbContext context)
         {
-            context.Database.Migrate();
+            // context.Database.Migrate(); // Disabled manual migration management due to tool issues
 
             // Seed Roles
             if (!context.Roles.Any())

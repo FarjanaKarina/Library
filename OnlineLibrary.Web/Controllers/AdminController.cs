@@ -54,18 +54,6 @@ namespace OnlineLibrary.Web.Controllers
             ViewBag.ActiveLibrarians = _context.Users
                 .Count(u => u.RoleId == librarianRoleId && u.IsActive);
 
-            // =========================
-            // MEMBERSHIP REQUEST COUNTS
-            // =========================
-            ViewBag.PendingMemberships = _context.Memberships
-                .Count(m => m.Status == "Pending");
-
-            ViewBag.ApprovedMemberships = _context.Memberships
-                .Count(m => m.Status == "Approved");
-
-            ViewBag.ActiveMemberships = _context.Memberships
-                .Count(m => m.IsActive);
-
             return View();
         }
 
@@ -86,84 +74,7 @@ namespace OnlineLibrary.Web.Controllers
         }
 
 
-        // =========================
-        // Membership Requests
-        // =========================
-        public IActionResult MembershipRequests()
-        {
-            var requests =
-                from m in _context.Memberships
-                join u in _context.Users on m.UserId equals u.UserId
-                select new MembershipRequestViewModel
-                {
-                    MembershipId = m.MembershipId,
-                    FullName = u.FullName,
-                    Email = u.Email,
-                    Status = m.Status,
-                    AppliedAt = m.AppliedAt
-                };
-
-            return View(requests.ToList());
-        }
-
-        [HttpPost]
-        public IActionResult ApproveMembership(Guid membershipId)
-        {
-            var membership = _context.Memberships.Find(membershipId);
-
-            membership.Status = "Approved";
-            membership.StartDate = DateTime.Today;
-            membership.ExpiryDate = DateTime.Today.AddMonths(1); // or stored duration
-            membership.IsActive = true;
-            membership.ApprovedAt = DateTime.UtcNow;
-
-            // =========================
-            // AUDIT LOG: MEMBERSHIP APPROVED
-            // =========================
-            _context.AuditLogs.Add(new AuditLog
-            {
-                AuditLogId = Guid.NewGuid(),
-                ActorUserId = Guid.Parse(HttpContext.Session.GetString("UserId")),
-                ActorRole = "Admin",
-                Action = "Membership Approved",
-                EntityName = "Membership",
-                EntityId = membership.MembershipId,
-                Description = $"Membership approved for UserId {membership.UserId}",
-                CreatedAt = DateTime.UtcNow
-            });
-
-            _context.SaveChanges();
-
-            NotificationHelper.Send(
-                _context,
-                membership.UserId,
-                "Membership Approved",
-                "Your membership has been approved.",
-                "success"
-            );
-
-            return RedirectToAction("MembershipRequests");
-        }
-
-        [HttpPost]
-        public IActionResult RejectMembership(Guid membershipId)
-        {
-            var membership = _context.Memberships.Find(membershipId);
-            membership.Status = "Rejected";
-            membership.IsActive = false;
-
-            _context.SaveChanges();
-           
-        NotificationHelper.Send(
-                _context,
-                membership.UserId,
-                "Membership Rejected",
-                "Your membership has been rejected.",
-                "warning"
-            );
-
-            return RedirectToAction("MembershipRequests");
-        }
+       
         // =========================
         // CREATE LIBRARIAN (GET)
         // =========================

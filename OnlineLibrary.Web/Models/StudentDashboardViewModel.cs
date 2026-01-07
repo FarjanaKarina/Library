@@ -2,26 +2,36 @@
 {
     public class StudentDashboardViewModel
     {
-        public string FullName { get; set; }
-        public string Email { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
 
-        public string MembershipStatus { get; set; }
-        public DateTime? ExpiryDate { get; set; }
-        public List<BorrowHistoryItem> BorrowHistory { get; set; } = new();
-        public List<ContinueReadingItem> ContinueReading { get; set; } = new();
+        // Order Statistics
+        public int TotalOrders { get; set; }
+        public int ActiveOrders { get; set; }
+        public int PendingReturns { get; set; }
+
+        // Recent Orders
+        public List<OrderHistoryItem> RecentOrders { get; set; } = [];
+
+        // Continue Reading
+        public List<ContinueReadingItem> ContinueReading { get; set; } = [];
     }
 
-    public class BorrowHistoryItem
+    public class OrderHistoryItem
     {
-        public Guid BorrowId { get; set; }
-        public Guid BookId { get; set; }
-        public string BookTitle { get; set; }
-        public DateTime BorrowDate { get; set; }
-        public DateTime DueDate { get; set; }
-        public string Status { get; set; }
-        public decimal FineAmount { get; set; }
-        public List<BorrowHistoryItem> BorrowHistory { get; set; } = new();
-        
+        public Guid OrderId { get; set; }
+        public string TransactionId { get; set; } = string.Empty;
+        public DateTime OrderDate { get; set; }
+        public decimal TotalAmount { get; set; }
+        public string OrderStatus { get; set; } = string.Empty;
+        public string PaymentStatus { get; set; } = string.Empty;
+        public int ItemCount { get; set; }
+    }
 
+    public class ContinueReadingItem
+    {
+        public Guid BookId { get; set; } 
+        public string Title { get; set; } = string.Empty;
+        public string? ImageUrl { get; set; }
     }
 }

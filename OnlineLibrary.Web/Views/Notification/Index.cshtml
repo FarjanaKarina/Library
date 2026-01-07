@@ -4,30 +4,234 @@
 @{
     Layout = "_AppLayout";
     ViewData["Title"] = "Notifications";
+    var unreadIds = ViewBag.UnreadIds as HashSet<Guid> ?? new HashSet<Guid>();
 }
 
-<h2>Notifications</h2>
-
-@if (!Model.Any())
-{
-    <p class="text-muted">No notifications.</p>
-}
-else
-{
-    <ul class="list-group">
-        @foreach (var n in Model)
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-bell me-2"></i>Notifications</h2>
+        @if (unreadIds.Any())
         {
-            <li class="list-group-item @(n.IsRead ? "notification-read" : "notification-unread")">
-
-                <strong>@n.Title</strong>
-
-                <p class="mb-1">@n.Message</p>
-
-                <small class="text-muted">
-                    @TimeAgoHelper.TimeAgo(n.CreatedAt)
-                </small>
-
-            </li>
+            <span class="badge bg-primary">@unreadIds.Count new</span>
         }
-    </ul>
-}
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>No notifications yet.
+        </div>
+    }
+    else
+    {
+        <ul class="list-group notification-list">
+            @foreach (var n in Model)
+            {
+                var isNew = unreadIds.Contains(n.NotificationId);
+                <li class="list-group-item notification-item @(isNew ? "notification-unread" : "notification-read")">
+
+                    @if (isNew)
+                    {
+                        <span class="new-badge">NEW</span>
+                    }
+
+                    <div class="notification-icon @n.Type">
+                        @if (n.Type == "success")
+                        {
+                            <i class="bi bi-check-circle-fill"></i>
+                        }
+                        else if (n.Type == "warning")
+                        {
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                        }
+                        else if (n.Type == "error")
+                        {
+                            <i class="bi bi-x-circle-fill"></i>
+                        }
+                        else if (n.Type == "overdue")
+                        {
+                            <i class="bi bi-clock-fill"></i>
+                        }
+                        else
+                        {
+                            <i class="bi bi-info-circle-fill"></i>
+                        }
+                    </div>
+
+                    <div class="notification-content">
+                        <strong class="notification-title">@n.Title</strong>
+                        <p class="notification-message mb-1">@n.Message</p>
+                        <small class="text-muted">
+                            <i class="bi bi-clock me-1"></i>@TimeAgoHelper.TimeAgo(n.CreatedAt)
+                        </small>
+                    </div>
+
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+<style>
+    .notification-list {
+        max-width: 800px;
+    }
+
+    .notification-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        padding: 15px 20px;
+        position: relative;
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+    }
+
+    /* ===========================
+           UNREAD (NEW) NOTIFICATION
+        =========================== */
+    .notification-unread {
+        background: linear-gradient(135deg, #e8f4fd 0%, #f0f9ff 100%);
+        border-left-color: #0d6efd;
+        box-shadow: 0 2px 8px rgba(13, 110, 253, 0.15);
+    }
+
+        .notification-unread:hover {
+            background: linear-gradient(135deg, #dbeefe 0%, #e8f6ff 100%);
+        }
+
+    /* NEW Badge */
+    .new-badge {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+        color: white;
+        font-size: 10px;
+        font-weight: bold;
+        padding: 3px 8px;
+        border-radius: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        animation: pulse 2s infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        50% {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+    }
+
+    /* ===========================
+           READ (OLD) NOTIFICATION
+        =========================== */
+    .notification-read {
+        background-color: #fff;
+        border-left-color: #dee2e6;
+    }
+
+        .notification-read:hover {
+            background-color: #f8f9fa;
+        }
+
+    /* ===========================
+           NOTIFICATION ICON
+        =========================== */
+    .notification-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 18px;
+    }
+
+        .notification-icon.info {
+            background-color: #cfe2ff;
+            color: #0d6efd;
+        }
+
+        .notification-icon.success {
+            background-color: #d1e7dd;
+            color: #198754;
+        }
+
+        .notification-icon.warning {
+            background-color: #fff3cd;
+            color: #ffc107;
+        }
+
+        .notification-icon.error {
+            background-color: #f8d7da;
+            color: #dc3545;
+        }
+
+        .notification-icon.overdue {
+            background-color: #f8d7da;
+            color: #dc3545;
+        }
+
+        .notification-icon.system {
+            background-color: #e2e3e5;
+            color: #6c757d;
+        }
+
+    /* ===========================
+           NOTIFICATION CONTENT
+        =========================== */
+    .notification-content {
+        flex: 1;
+    }
+
+    .notification-title {
+        font-size: 15px;
+        color: #212529;
+    }
+
+    .notification-unread .notification-title {
+        color: #0d6efd;
+    }
+
+    .notification-message {
+        font-size: 14px;
+        color: #6c757d;
+        margin-top: 4px;
+    }
+
+    /* ===========================
+           DARK MODE SUPPORT
+        =========================== */
+    .dark-mode .notification-unread {
+        background: linear-gradient(135deg, #1a3a5c 0%, #1e3a5f 100%);
+        border-left-color: #4dabf7;
+    }
+
+    .dark-mode .notification-read {
+        background-color: #2d2d2d;
+        border-left-color: #444;
+    }
+
+    .dark-mode .notification-title {
+        color: #f8f9fa;
+    }
+
+    .dark-mode .notification-unread .notification-title {
+        color: #74c0fc;
+    }
+
+    .dark-mode .notification-message {
+        color: #adb5bd;
+    }
+
+    .dark-mode .new-badge {
+        background: linear-gradient(135deg, #4dabf7, #339af0);
+    }
+</style>

@@ -1,0 +1,173 @@
+﻿@model OnlineLibrary.Web.Models.ReportViewModel
+@{
+    ViewData["Title"] = "Reports & Analytics";
+    Layout = "_LibrarianLayout";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-graph-up me-2"></i>Reports & Analytics</h2>
+        <a asp-action="Dashboard" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-bg-primary h-100">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-cash-stack me-2"></i>Total Revenue</h6>
+                    <h3 class="display-6 fw-bold">৳@Model.Metrics?.TotalRevenue.ToString("N0")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-info h-100">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-box-seam me-2"></i>Total Orders</h6>
+                    <h3 class="display-6 fw-bold">@Model.Metrics?.TotalOrders.ToString("N0")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-success h-100">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-cash-coin me-2"></i>Total Refunds</h6>
+                    <h3 class="display-6 fw-bold">৳@Model.Metrics?.TotalRefunds.ToString("N0")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-warning h-100">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-arrow-repeat me-2"></i>Returned Items</h6>
+                    <h3 class="display-6 fw-bold">@Model.Metrics?.ReturnedItems.ToString("N0")</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Monthly Sales Chart -->
+        <div class="col-lg-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-bar-chart-line me-2"></i>Monthly Sales (Last 12 Months)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="monthlySalesChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Distribution Chart -->
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Category Popularity</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Selling Books -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-trophy me-2"></i>Top 5 Selling Books</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <tbody>
+                                @foreach (var book in Model.TopSellingBooks ?? [])
+                                {
+                                    <tr>
+                                        <td style="width: 80px;">
+                                            <img src="@(book.ImageUrl ?? "/images/default-book.png")" class="img-fluid rounded" style="height: 60px; width: 45px; object-fit: cover;" alt="@book.Title">
+                                        </td>
+                                        <td>
+                                            <h6 class="mb-0">@book.Title</h6>
+                                        </td>
+                                        <td class="text-end">
+                                            <span class="badge bg-primary rounded-pill fs-6">@book.OrderCount Orders</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Monthly Sales Chart (Bar)
+        const salesCtx = document.getElementById('monthlySalesChart').getContext('2d');
+        new Chart(salesCtx, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.MonthlySales?.Labels)),
+                datasets: [{
+                    label: 'Sales (BDT)',
+                    data: @Html.Raw(Json.Serialize(Model.MonthlySales?.Data)),
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function (value) { return '৳' + value.toLocaleString(); }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Category Distribution Chart (Doughnut)
+        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.CategoryDistribution?.Labels)),
+                datasets: [{
+                    label: 'Books Ordered',
+                    data: @Html.Raw(Json.Serialize(Model.CategoryDistribution?.Data)),
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)',
+                        'rgba(255, 159, 64, 0.7)'
+                    ],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+    });
+</script>
+}

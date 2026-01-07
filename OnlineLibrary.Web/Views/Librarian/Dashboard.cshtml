@@ -3,145 +3,153 @@
     Layout = "_LibrarianLayout";
 }
 
-
 <div class="container mt-4">
-
     <h2>Librarian Dashboard</h2>
 
-    <!-- ========================= -->
     <!-- SUMMARY CARDS -->
-    <!-- ========================= -->
     <div class="row mb-4">
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="card bg-dark text-white">
-                <div class="card-body">
-                    <h6>Total Books</h6>
-                    <h3>@ViewBag.TotalBooks</h3>
+                <div class="card-body text-center">
+                    <h3>@Model.TotalBooks</h3>
+                    <p class="mb-0">Total Books</p>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h6>Active Borrows</h6>
-                    <h3>@ViewBag.ActiveBorrows</h3>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card bg-danger text-white">
-                <div class="card-body">
-                    <h6>Overdue</h6>
-                    <h3>@ViewBag.OverdueBorrows</h3>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="card bg-success text-white">
-                <div class="card-body">
-                    <h6>Active Memberships</h6>
-                    <h3>@ViewBag.ActiveMemberships</h3>
+                <div class="card-body text-center">
+                    <h3>@Model.TotalOrders</h3>
+                    <p class="mb-0">Total Orders</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card bg-warning text-dark">
+                <div class="card-body text-center">
+                    <h3>@Model.PendingOrders</h3>
+                    <p class="mb-0">Pending Orders</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mt-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h3>@Model.PendingReturns</h3>
+                    <p class="mb-0">Pending Returns</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ========================= -->
-    <!-- OVERDUE BORROWS -->
-    <!-- ========================= -->
-    <h4>Overdue Borrowed Books</h4>
+    <!-- RECENT ORDERS -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Recent Orders</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.RecentOrders.Count == 0)
+            {
+                <p class="text-muted">No recent orders.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Transaction ID</th>
+                                <th>Student</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model.RecentOrders)
+                            {
+                                <tr>
+                                    <td><code>@order.TransactionId</code></td>
+                                    <td>@order.StudentName</td>
+                                    <td>@order.OrderDate.ToString("dd-MM-yyyy")</td>
+                                    <td><strong class="text-success">৳@order.TotalAmount.ToString("N0")</strong></td>
+                                    <td>
+                                        @{
+                                            var statusClass = order.OrderStatus switch
+                                            {
+                                                "Delivered" => "bg-success",
+                                                "Shipped" => "bg-info",
+                                                "Packed" => "bg-warning text-dark",
+                                                "Confirmed" => "bg-primary",
+                                                _ => "bg-secondary"
+                                            };
+                                        }
+                                        <span class="badge @statusClass">@order.OrderStatus</span>
+                                    </td>
+                                    <td>
+                                        <a asp-controller="Librarian" asp-action="OrderDetails" asp-route-id="@order.OrderId"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
 
-    @if (!Model.OverdueBorrows.Any())
-    {
-        <p class="text-muted">No overdue books.</p>
-    }
-    else
-    {
-        <table class="table table-bordered">
-            <thead class="table-dark">
-                <tr>
-                    <th>Student</th>
-                    <th>Book</th>
-                    <th>Due Date</th>
-                    <th>Days</th>
-                    <th>Fine (TK)</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var o in Model.OverdueBorrows)
-                {
-                    <tr>
-                        <td>@o.StudentName</td>
-                        <td>@o.BookTitle</td>
-                        <td>@o.DueDate.ToString("yyyy-MM-dd")</td>
-                        <td>@o.OverdueDays</td>
-                        <td>@o.FineAmount</td>
-                        <td>
-                            <form asp-action="SendOverdueWarning" method="post">
-                                <input type="hidden" name="borrowId" value="@o.BorrowId" />
-                                <button class="btn btn-warning btn-sm">
-                                    Send Warning
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-
-    <!-- ========================= -->
-    <!-- MEMBERSHIP REQUESTS -->
-    <!-- ========================= -->
-    <h4 class="mt-5">Pending Membership Requests</h4>
-
-    @if (!Model.PendingMemberships.Any())
-    {
-        <p class="text-muted">No pending membership requests.</p>
-    }
-    else
-    {
-        <table class="table table-bordered">
-            <thead class="table-dark">
-                <tr>
-                    <th>Student</th>
-                    <th>Email</th>
-                    <th>Applied At</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var m in Model.PendingMemberships)
-                {
-                    <tr>
-                        <td>@m.StudentName</td>
-                        <td>@m.Email</td>
-                        <td>@m.AppliedAt.ToString("yyyy-MM-dd")</td>
-                        <td>
-                            <form asp-controller="Admin"
-                                  asp-action="ApproveMembership"
-                                  method="post"
-                                  style="display:inline">
-                                <input type="hidden" name="id" value="@m.MembershipId" />
-                                <button class="btn btn-success btn-sm">Approve</button>
-                            </form>
-
-                            <form asp-controller="Admin"
-                                  asp-action="RejectMembership"
-                                  method="post"
-                                  style="display:inline">
-                                <input type="hidden" name="id" value="@m.MembershipId" />
-                                <button class="btn btn-danger btn-sm">Reject</button>
-                            </form>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-
+    <!-- PENDING RETURN REQUESTS -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-arrow-return-left me-2"></i>Pending Return Requests</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.PendingReturnRequests.Count == 0)
+            {
+                <p class="text-muted">No pending return requests.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Transaction ID</th>
+                                <th>Student</th>
+                                <th>Book</th>
+                                <th>Requested</th>
+                                <th>Refund Amount</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var req in Model.PendingReturnRequests)
+                            {
+                                <tr>
+                                    <td><code>@req.TransactionId</code></td>
+                                    <td>@req.StudentName</td>
+                                    <td>@req.BookTitle</td>
+                                    <td>@req.ReturnRequestedAt?.ToString("dd-MM-yyyy HH:mm")</td>
+                                    <td><strong class="text-success">৳@((req.Price * 0.5m).ToString("N0"))</strong></td>
+                                    <td>
+                                        <a asp-controller="Librarian" asp-action="ReturnRequests"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-check-circle"></i> Process
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
 </div>

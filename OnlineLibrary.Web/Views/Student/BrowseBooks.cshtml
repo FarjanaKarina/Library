@@ -2,13 +2,11 @@
 
 @{
     Layout = "_StudentLayout";
-}
-
-@{
     ViewData["Title"] = "Browse Books";
 }
 
 <div class="container mt-4">
+    <!-- Search Box - Matching Landing Page Style -->
     <div class="hero-search mb-4">
         <div class="search-box">
             <input type="text"
@@ -22,89 +20,82 @@
 
     <div class="row" id="searchResults"></div>
     <div class="row" id="defaultBooks">
-        <!-- your book cards -->
-        <div class="row">
-            @foreach (var book in Model)
-            {
-                <div class="col-md-3 mb-4">
-                    <div class="card shadow-sm h-100">
-                        <div class="position-relative">
-                            <!-- BOOK IMAGE -->
-                            <img src="@book.ImageUrl"
-                                 class="card-img-top"
-                                 style="height:230px; object-fit:cover;"
-                                 onerror="this.src='/images/no-book.png'" />
+        @foreach (var book in Model)
+        {
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="book-card">
+                    <!-- Book Image -->
+                    <div class="book-image-container">
+                        <img src="@(book.ImageUrl ?? "/images/default-book.png")"
+                             alt="@book.Title"
+                             class="book-image"
+                             onerror="this.src='/images/default-book.png'" />
 
-                            <!-- ❤️ WISHLIST -->
-                            <button class="wishlist-btn"
-                                    onclick="toggleWishlist('@book.BookId', this)">
+                        <!-- Hover Icons - Matching Landing Page Style -->
+                        <div class="hover-icons">
+                            <button class="icon-btn"
+                                    onclick="addToCart('@book.BookId')"
+                                    title="Add to Cart">
+                                <i class="bi bi-cart-plus"></i>
+                            </button>
+                            <button class="icon-btn wishlist-icon-btn"
+                                    onclick="toggleWishlist('@book.BookId', this)"
+                                    title="Add to Wishlist">
                                 <i class="bi bi-heart"></i>
                             </button>
-
                         </div>
 
-                        <div class="card-body d-flex flex-column">
+                        <!-- Availability Badge -->
+                        @if (book.AvailableCopies > 0)
+                        {
+                            <span class="badge bg-success availability-badge">
+                                <i class="bi bi-check-circle"></i> Available
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger availability-badge">
+                                <i class="bi bi-x-circle"></i> Out of Stock
+                            </span>
+                        }
+                    </div>
 
-                            <!-- TITLE -->
-                            <h6 class="fw-semibold mb-1">
-                                @book.Title
-                            </h6>
+                    <!-- Book Info -->
+                    <div class="book-info">
+                        <h6 class="book-title" title="@book.Title">@book.Title</h6>
+                        <p class="book-author">
+                            <i class="bi bi-person"></i> @book.Author
+                        </p>
 
-                            <!-- AUTHOR -->
-                            <small class="text-muted mb-2">
-                                @book.Author
-                            </small>
-
-                            <!-- PRICE + AVAILABILITY -->
-                            <div class="mb-3 small">
-
-                                <div>
-                                    <strong>Price:</strong>
-                                    <span class="text-dark">
-                                        @book.Price.ToString("0.00") TK
-                                    </span>
-                                </div>
-
-                                <div>
-                                    <strong>Status:</strong>
-                                    @if (book.AvailableCopies > 0)
-                                    {
-                                        <span class="text-success">Available</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-danger">Not Available</span>
-                                    }
-                                </div>
-
+                        <div class="book-meta">
+                            <div class="book-price">
+                                <i class="bi bi-tag-fill"></i> ৳@book.Price.ToString("N0")
                             </div>
-
-                            <!-- VIEW DETAILS -->
-                            <a asp-controller="Book"
-                               asp-action="Details"
-                               asp-route-id="@book.BookId"
-                               class="btn btn-sm btn-outline-primary mt-auto">
-                                View Details
-                            </a>
-
+                            <div class="book-stock text-muted">
+                                <i class="bi bi-box"></i> @book.AvailableCopies left
+                            </div>
                         </div>
+
+                        <a asp-controller="Book"
+                           asp-action="Details"
+                           asp-route-id="@book.BookId"
+                           class="btn btn-outline-primary btn-sm w-100">
+                            <i class="bi bi-eye"></i> View Details
+                        </a>
                     </div>
                 </div>
-            }
-        </div>
-
+            </div>
         }
     </div>
 </div>
+
 @section Scripts {
     <script>
         let timer = null;
 
         function loadSearch() {
             clearTimeout(timer);
-
             timer = setTimeout(function () {
-
                 const search = $("#searchInput").val();
 
                 if (search.trim().length === 0) {
@@ -116,30 +107,40 @@
                 $("#defaultBooks").hide();
 
                 $.get("/Home/Search", { search: search }, function (data) {
-
                     let html = "";
 
                     if (data.length === 0) {
-                        html = `
-                            <div class="col-12">
-                                <div class="alert alert-warning text-center">
-                                    No books found.
-                                </div>
-                            </div>`;
+                        html = `<div class="col-12">
+                                    <div class="alert alert-warning text-center">
+                                        <i class="bi bi-search"></i> No books found.
+                                    </div>
+                                </div>`;
                     } else {
                         data.forEach(b => {
                             html += `
-                            <div class="col-md-3 mb-4">
-                                <div class="card shadow-sm h-100">
-                                    <img src="${b.imageUrl}"
-                                         class="card-img-top"
-                                         style="height:220px;object-fit:cover;">
-                                    <div class="card-body">
-                                        <h6>${b.title}</h6>
-                                        <p class="text-muted">${b.author}</p>
-                                        <a href="/Book/Details/${b.bookId}"
-                                           class="btn btn-sm btn-secondary w-100">
-                                            View Details
+                            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                                <div class="book-card">
+                                    <div class="book-image-container">
+                                        <img src="${b.imageUrl || '/images/default-book.png'}"
+                                             class="book-image"
+                                             alt="${b.title}">
+                                        <div class="hover-icons">
+                                            <button class="icon-btn" onclick="addToCart('${b.bookId}')" title="Add to Cart">
+                                                <i class="bi bi-cart-plus"></i>
+                                            </button>
+                                            <button class="icon-btn wishlist-icon-btn" onclick="toggleWishlist('${b.bookId}', this)" title="Add to Wishlist">
+                                                <i class="bi bi-heart"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="book-info">
+                                        <h6 class="book-title">${b.title}</h6>
+                                        <p class="book-author"><i class="bi bi-person"></i> ${b.author}</p>
+                                        <div class="book-meta">
+                                            <div class="book-price">৳${b.price}</div>
+                                        </div>
+                                        <a href="/Book/Details/${b.bookId}" class="btn btn-outline-primary btn-sm w-100">
+                                            <i class="bi bi-eye"></i> View Details
                                         </a>
                                     </div>
                                 </div>
@@ -149,70 +150,247 @@
 
                     $("#searchResults").html(html);
                 });
-
             }, 400);
         }
 
         $("#searchInput").on("keyup", loadSearch);
 
-                     document.addEventListener("DOMContentLoaded", function () {
-
-            const searchBtn = document.getElementById("navSearchBtn");
-            const searchInput = document.getElementById("searchInput");
-            const searchSection = document.getElementById("topSearch");
-
-            if (!searchBtn || !searchInput || !searchSection) return;
-
-            searchBtn.addEventListener("click", function () {
-                // Scroll to search bar
-                searchSection.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center"
-                });
-
-                // Focus input after scroll
-                setTimeout(() => {
-                    searchInput.focus();
-                }, 500);
-            });
-
-        });
-          // ❤️ WISHLIST TOGGLE FUNCTION
+        // Wishlist Toggle
         function toggleWishlist(bookId, button) {
-            fetch('/Wishlist/Toggle', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(bookId)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        alert('Please log in to add books to your wishlist');
-                        return;
-                    }
-                    throw new Error('Failed to toggle wishlist');
-                }
-                return response.json();
-            })
-            .then(data => {
-                const icon = button.querySelector('i');
-                if (data.added) {
-                    icon.classList.remove('bi-heart');
-                    icon.classList.add('bi-heart-fill');
-                    button.style.background = 'rgba(220, 53, 69, 0.9)';
+            $.post('/Wishlist/Toggle', { bookId: bookId }, function (res) {
+                const icon = $(button).find('i');
+                if (res.added) {
+                    icon.removeClass('bi-heart').addClass('bi-heart-fill');
                 } else {
-                    icon.classList.remove('bi-heart-fill');
-                    icon.classList.add('bi-heart');
-                    button.style.background = 'rgba(255, 255, 255, 0.9)';
+                    icon.removeClass('bi-heart-fill').addClass('bi-heart');
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Failed to update wishlist');
+            }).fail(function (xhr) {
+                if (xhr.status === 401) {
+                    alert('Please log in to add books to your wishlist');
+                }
+            });
+        }
+
+        // Add to Cart
+        function addToCart(bookId) {
+            $.post('/Cart/Add', { bookId: bookId, quantity: 1 }, function (res) {
+                if (res.success) {
+                    // Show toast notification
+                    alert('✓ ' + res.message);
+                    // Update cart count in navbar (if you have one)
+                    if (res.cartCount) {
+                        $('.cart-count').text(res.cartCount);
+                    }
+                } else {
+                    alert(res.message);
+                }
+            }).fail(function () {
+                alert('Please log in to add items to cart');
             });
         }
     </script>
-
 }
+
+<style>
+    /* Search Box - Matching Landing Page */
+    .hero-search {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 24px;
+    }
+
+    .search-box {
+        display: flex;
+        width: 520px;
+        background: white;
+        border-radius: 50px;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+        .search-box input {
+            flex: 1;
+            border: none;
+            padding: 16px 22px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .search-box button {
+            background: #e63946;
+            border: none;
+            padding: 0 26px;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+            .search-box button:hover {
+                background: #d62828;
+            }
+
+    /* Modern Book Card Styles */
+    .book-card {
+        background: #fff;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 28px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+        .book-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+        }
+
+    .book-image-container {
+        position: relative;
+        overflow: hidden;
+        height: 300px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .book-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .book-card:hover .book-image {
+        transform: scale(1.05);
+    }
+
+    /* HOVER ICONS - Matching Landing Page Style */
+    .hover-icons {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.55);
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: 0.3s;
+    }
+
+    .book-card:hover .hover-icons {
+        opacity: 1;
+    }
+
+    .icon-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: none;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #dc3545;
+        font-size: 18px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .icon-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+    .wishlist-icon-btn i.bi-heart-fill {
+        color: #dc3545;
+    }
+
+    .availability-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        font-size: 11px;
+        padding: 5px 10px;
+        z-index: 2;
+    }
+
+    .book-info {
+        padding: 15px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .book-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 8px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        min-height: 40px;
+    }
+
+    .book-author {
+        font-size: 13px;
+        color: #718096;
+        margin-bottom: 12px;
+    }
+
+    .book-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        padding: 8px 0;
+        border-top: 1px solid #e2e8f0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .book-price {
+        font-size: 18px;
+        font-weight: 700;
+        color: #48bb78;
+    }
+
+    .book-stock {
+        font-size: 12px;
+    }
+
+    /* Dark mode support */
+    .dark-mode .book-card {
+        background: #2d3748;
+    }
+
+    .dark-mode .book-title {
+        color: #e2e8f0;
+    }
+
+    .dark-mode .book-author {
+        color: #a0aec0;
+    }
+
+    .dark-mode .book-meta {
+        border-color: #4a5568;
+    }
+
+    .dark-mode .search-box {
+        background: #2d3748;
+    }
+
+        .dark-mode .search-box input {
+            background: #2d3748;
+            color: #e2e8f0;
+        }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .search-box {
+            width: 100%;
+            max-width: 520px;
+        }
+    }
+</style>

@@ -1,0 +1,215 @@
+﻿@model OnlineLibrary.Web.Models.CartViewModel
+
+@{
+    Layout = "_AppLayout";
+    ViewData["Title"] = "Shopping Cart";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4"><i class="bi bi-cart3 me-2"></i>Shopping Cart</h2>
+
+    @if (Model.Items == null || Model.Items.Count == 0)
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>Your cart is empty.
+            <a href="@Url.Action("BrowseBooks", "Student")" class="alert-link">Browse books</a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <!-- Cart Items -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm">
+                    <div class="card-body p-0">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 50%">Book</th>
+                                    <th class="text-center">Price</th>
+                                    <th class="text-center">Quantity</th>
+                                    <th class="text-center">Subtotal</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Items)
+                                {
+                                    <tr data-cart-item-id="@item.CartItemId" data-price="@item.Price">
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="@(item.ImageUrl ?? "/images/default-book.png")"
+                                                     alt="@item.Title"
+                                                     class="rounded me-3"
+                                                     style="width: 60px; height: 80px; object-fit: cover;">
+                                                <div>
+                                                    <h6 class="mb-1">@item.Title</h6>
+                                                    <small class="text-muted">@item.Author</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <strong>৳<span class="item-price">@item.Price.ToString("N0")</span></strong>
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <div class="input-group input-group-sm justify-content-center" style="max-width: 120px; margin: auto;">
+                                                <button class="btn btn-outline-secondary btn-qty-minus" type="button">−</button>
+                                                <input type="number" class="form-control text-center qty-input"
+                                                       value="@item.Quantity" min="1" max="@item.AvailableCopies"
+                                                       data-cart-item-id="@item.CartItemId">
+                                                <button class="btn btn-outline-secondary btn-qty-plus" type="button">+</button>
+                                            </div>
+                                            <small class="text-muted">@item.AvailableCopies available</small>
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <strong class="item-subtotal">৳<span class="subtotal-value">@item.Subtotal.ToString("N0")</span></strong>
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <button class="btn btn-sm btn-outline-danger btn-remove"
+                                                    data-cart-item-id="@item.CartItemId">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <a href="@Url.Action("BrowseBooks", "Student")" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-left me-2"></i>Continue Shopping
+                    </a>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Order Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Items (<span id="total-items">@Model.TotalItems</span>)</span>
+                            <span id="summary-subtotal">৳@Model.TotalAmount.ToString("N0")</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Shipping</span>
+                            <span class="text-success">Free</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-3">
+                            <strong>Total</strong>
+                            <strong class="text-primary" id="summary-total">৳@Model.TotalAmount.ToString("N0")</strong>
+                        </div>
+
+                        <a href="@Url.Action("Index", "Checkout")" class="btn btn-primary w-100">
+                            <i class="bi bi-credit-card me-2"></i>Proceed to Checkout
+                        </a>
+
+                        <div class="mt-3 text-center">
+                            <small class="text-muted">
+                                <i class="bi bi-shield-check me-1"></i>Secure checkout with SSLCommerz
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Return Policy -->
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h6><i class="bi bi-arrow-repeat me-2 text-success"></i>Return Policy</h6>
+                        <small class="text-muted">
+                            Return books anytime and get <strong>50% refund</strong> of the book price.
+                            Returning is optional.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Quantity minus
+            $('.btn-qty-minus').click(function () {
+                var input = $(this).siblings('.qty-input');
+                var val = parseInt(input.val()) - 1;
+                if (val >= 1) {
+                    input.val(val);
+                    updateQuantity(input.data('cart-item-id'), val, $(this).closest('tr'));
+                }
+            });
+
+            // Quantity plus
+            $('.btn-qty-plus').click(function () {
+                var input = $(this).siblings('.qty-input');
+                var max = parseInt(input.attr('max'));
+                var val = parseInt(input.val()) + 1;
+                if (val <= max) {
+                    input.val(val);
+                    updateQuantity(input.data('cart-item-id'), val, $(this).closest('tr'));
+                }
+            });
+
+            // Quantity input change
+            $('.qty-input').change(function () {
+                var val = parseInt($(this).val());
+                var max = parseInt($(this).attr('max'));
+                if (val < 1) val = 1;
+                if (val > max) val = max;
+                $(this).val(val);
+                updateQuantity($(this).data('cart-item-id'), val, $(this).closest('tr'));
+            });
+
+            // Remove item
+            $('.btn-remove').click(function () {
+                var cartItemId = $(this).data('cart-item-id');
+                if (confirm('Remove this item from cart?')) {
+                    $.post('@Url.Action("Remove", "Cart")', { cartItemId: cartItemId }, function (res) {
+                        if (res.success) {
+                            location.reload();
+                        }
+                    });
+                }
+            });
+
+            function updateQuantity(cartItemId, quantity, row) {
+                $.post('@Url.Action("UpdateQuantity", "Cart")', {
+                    cartItemId: cartItemId,
+                    quantity: quantity
+                }, function (res) {
+                    if (res.success) {
+                        // Update subtotal for this row
+                        var price = parseFloat(row.data('price'));
+                        var subtotal = price * quantity;
+                        row.find('.subtotal-value').text(subtotal.toLocaleString());
+
+                        // Recalculate totals
+                        updateTotals();
+                    }
+                });
+            }
+
+            function updateTotals() {
+                var total = 0;
+                var itemCount = 0;
+
+                $('tbody tr').each(function () {
+                    var qty = parseInt($(this).find('.qty-input').val());
+                    var price = parseFloat($(this).data('price'));
+                    total += price * qty;
+                    itemCount += qty;
+                });
+
+                $('#total-items').text(itemCount);
+                $('#summary-subtotal').text('৳' + total.toLocaleString());
+                $('#summary-total').text('৳' + total.toLocaleString());
+            }
+        });
+    </script>
+}
