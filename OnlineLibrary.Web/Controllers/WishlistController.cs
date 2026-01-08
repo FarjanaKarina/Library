@@ -41,15 +41,37 @@ public class WishlistController : Controller
         return Json(new { added = true });
     }
 
-    public IActionResult Index()
+    // Get list of book IDs in user's wishlist (for UI to show filled hearts)
+    [HttpGet]
+    public IActionResult GetUserWishlistIds()
     {
-        var userId = Guid.Parse(HttpContext.Session.GetString("UserId"));
+        var userIdStr = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userIdStr))
+            return Json(new List<Guid>());
 
-        var books = from w in _context.Wishlists
-                    join b in _context.Books on w.BookId equals b.BookId
-                    select b;
+        var userId = Guid.Parse(userIdStr);
 
-        return View(books.ToList());
+        var wishlistBookIds = _context.Wishlists
+            .Where(w => w.UserId == userId)
+            .Select(w => w.BookId)
+            .ToList();
+
+        return Json(wishlistBookIds);
     }
 
+    public IActionResult Index()
+    {
+        var userIdStr = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userIdStr))
+            return RedirectToAction("Login", "Account");
+
+        var userId = Guid.Parse(userIdStr);
+
+        var books = (from w in _context.Wishlists
+                     join b in _context.Books on w.BookId equals b.BookId
+                     where w.UserId == userId
+                     select b).ToList();
+
+        return View(books);
+    }
 }

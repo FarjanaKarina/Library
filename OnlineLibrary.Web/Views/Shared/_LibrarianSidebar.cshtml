@@ -1,5 +1,25 @@
-﻿<div class="p-3">
-    <h5 class="mb-4">📚 Librarian Panel</h5>
+﻿@using OnlineLibrary.Infrastructure.Data
+@inject ApplicationDbContext Db
+
+@{
+    var roleIdStr = Context.Session.GetString("RoleId");
+    var isAdmin = false;
+    
+    if (!string.IsNullOrEmpty(roleIdStr))
+    {
+        var roleName = Db.Roles
+            .Where(r => r.RoleId == Guid.Parse(roleIdStr))
+            .Select(r => r.RoleName)
+            .FirstOrDefault();
+        isAdmin = roleName == "Admin";
+    }
+    
+    var panelTitle = isAdmin ? "Admin Panel" : "Librarian Panel";
+    var panelIcon = isAdmin ? "🔐" : "📚";
+}
+
+<div class="p-3">
+    <h5 class="mb-4">@panelIcon @panelTitle</h5>
 
     <ul class="nav flex-column gap-2">
         <li>
@@ -23,13 +43,12 @@
         <li>
             <a asp-controller="Librarian" asp-action="ReturnRequests" class="nav-link text-white">
                 <i class="bi bi-arrow-return-left me-2"></i>Return Requests
-                @{
-                    var pendingReturns = ViewBag.PendingReturnsCount ?? 0;
-                    if (pendingReturns > 0)
-                    {
-                        <span class="badge bg-danger">@pendingReturns</span>
-                    }
-                }
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Librarian" asp-action="Refunds" class="nav-link text-white">
+                <i class="bi bi-cash-coin me-2"></i>Refund History
             </a>
         </li>
 
@@ -44,5 +63,37 @@
                 <i class="bi bi-graph-up me-2"></i>Reports
             </a>
         </li>
+
+        <li>
+            <a asp-controller="Librarian" asp-action="ReadingAnalytics" class="nav-link text-white">
+                <i class="bi bi-book-half me-2"></i>Reading Analytics
+            </a>
+        </li>
+
+        @if (isAdmin)
+        {
+            <li class="mt-3">
+                <hr class="border-secondary" />
+                <small class="text-muted text-uppercase">Admin Only</small>
+            </li>
+
+            <li>
+                <a asp-controller="Admin" asp-action="Librarians" class="nav-link text-white">
+                    <i class="bi bi-person-badge me-2"></i>Manage Librarians
+                </a>
+            </li>
+
+            <li>
+                <a asp-controller="Admin" asp-action="AuditLogs" class="nav-link text-white">
+                    <i class="bi bi-shield-check me-2"></i>Audit Logs
+                </a>
+            </li>
+
+            <li>
+                <a asp-controller="Admin" asp-action="Dashboard" class="nav-link text-white">
+                    <i class="bi bi-gear me-2"></i>Admin Dashboard
+                </a>
+            </li>
+        }
     </ul>
 </div>

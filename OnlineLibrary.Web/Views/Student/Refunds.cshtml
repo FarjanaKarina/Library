@@ -1,0 +1,131 @@
+﻿@model List<OnlineLibrary.Web.Models.RefundViewModel>
+@{
+    ViewData["Title"] = "My Refunds";
+    Layout = "_StudentLayout";
+}
+
+<div class="container mt-4">
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-cash-coin me-2"></i>My Refunds</h2>
+        <a asp-action="Dashboard" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <!-- SUMMARY CARDS -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-receipt fs-1"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h2 class="mb-0">@ViewBag.TotalRefunds</h2>
+                            <span>Total Refunds Received</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-cash-stack fs-1"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h2 class="mb-0">৳@(((decimal)ViewBag.TotalRefundAmount).ToString("N0"))</h2>
+                            <span>Total Amount Refunded</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REFUNDS LIST -->
+    @if (Model.Count == 0)
+    {
+        <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-inbox fs-1 text-muted mb-3 d-block"></i>
+                <h5 class="text-muted">No Refunds Yet</h5>
+                <p class="text-muted mb-0">You haven't received any refunds yet.</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var refund in Model)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm h-100 border-success">
+                        <div class="card-header bg-success text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>
+                                    <i class="bi bi-check-circle me-2"></i>Refund Completed
+                                </span>
+                                <span class="badge bg-light text-success">
+                                    ৳@refund.RefundAmount.ToString("N0")
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex mb-3">
+                                <img src="@(refund.BookImageUrl ?? "/images/no-book.png")" 
+                                     class="rounded me-3" 
+                                     style="width: 60px; height: 80px; object-fit: cover;" 
+                                     alt="@refund.BookTitle" />
+                                <div>
+                                    <h6 class="mb-1">@refund.BookTitle</h6>
+                                    <small class="text-muted d-block">
+                                        <i class="bi bi-receipt me-1"></i>Order: #@refund.TransactionId
+                                    </small>
+                                    <small class="text-muted d-block">
+                                        <i class="bi bi-box me-1"></i>Quantity: @refund.Quantity
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="bg-light rounded p-3">
+                                <div class="row text-center">
+                                    <div class="col-4 border-end">
+                                        <small class="text-muted d-block">Original Price</small>
+                                        <strong>৳@refund.OriginalPrice.ToString("N0")</strong>
+                                    </div>
+                                    <div class="col-4 border-end">
+                                        <small class="text-muted d-block">Refund (50%)</small>
+                                        <strong class="text-success">৳@refund.RefundAmount.ToString("N0")</strong>
+                                    </div>
+                                    <div class="col-4">
+                                        <small class="text-muted d-block">Refunded On</small>
+                                        <strong>@refund.RefundedAt?.ToString("dd MMM")</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar me-1"></i>
+                                    @refund.RefundedAt?.ToString("dd MMM yyyy, hh:mm tt")
+                                </small>
+                                <a asp-controller="Order" asp-action="Details" asp-route-id="@refund.OrderId" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye me-1"></i>View Order
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<div class="mb-5 pb-5"></div>

@@ -1,0 +1,161 @@
+﻿@model OnlineLibrary.Web.Models.RefundSummaryViewModel
+@{
+    ViewData["Title"] = "Refund History";
+    Layout = "_LibrarianLayout";
+}
+
+<div class="container mt-4">
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-cash-coin me-2"></i>Refund History</h2>
+        <a asp-action="Dashboard" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <!-- SUMMARY CARDS -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-receipt fs-2 mb-2"></i>
+                    <h3 class="mb-0">@Model.TotalRefunds</h3>
+                    <small>Total Refunds</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-cash-stack fs-2 mb-2"></i>
+                    <h3 class="mb-0">৳@Model.TotalRefundAmount.ToString("N0")</h3>
+                    <small>Total Refunded</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-calendar-check fs-2 mb-2"></i>
+                    <h3 class="mb-0">@Model.RefundsThisMonth</h3>
+                    <small>This Month</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-currency-exchange fs-2 mb-2"></i>
+                    <h3 class="mb-0">৳@Model.RefundAmountThisMonth.ToString("N0")</h3>
+                    <small>Refunded This Month</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTER CARD -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">From Date</label>
+                    <input type="date" name="fromDate" class="form-control" 
+                           value="@(ViewBag.FromDate?.ToString("yyyy-MM-dd"))" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">To Date</label>
+                    <input type="date" name="toDate" class="form-control" 
+                           value="@(ViewBag.ToDate?.ToString("yyyy-MM-dd"))" />
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="bi bi-funnel me-1"></i>Filter
+                    </button>
+                    <a asp-action="Refunds" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle me-1"></i>Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- REFUNDS LIST -->
+    @if (Model.Refunds.Count == 0)
+    {
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle me-2"></i>No refunds found.
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>Refund Records (@Model.Refunds.Count)</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Book</th>
+                                <th>Student</th>
+                                <th>Transaction ID</th>
+                                <th>Original Price</th>
+                                <th>Qty</th>
+                                <th>Refund Amount</th>
+                                <th>Refunded On</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var refund in Model.Refunds)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="@(refund.BookImageUrl ?? "/images/no-book.png")" 
+                                                 class="rounded me-2" 
+                                                 style="width: 40px; height: 50px; object-fit: cover;" 
+                                                 alt="@refund.BookTitle" />
+                                            <div>
+                                                <strong class="d-block">@refund.BookTitle</strong>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>@refund.StudentName</strong>
+                                            <small class="d-block text-muted">@refund.StudentEmail</small>
+                                        </div>
+                                    </td>
+                                    <td><code>@refund.TransactionId</code></td>
+                                    <td>৳@refund.OriginalPrice.ToString("N0")</td>
+                                    <td>@refund.Quantity</td>
+                                    <td>
+                                        <span class="badge bg-success fs-6">৳@refund.RefundAmount.ToString("N0")</span>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">
+                                            @refund.RefundedAt?.ToString("dd MMM yyyy")
+                                        </span>
+                                        <small class="d-block text-muted">
+                                            @refund.RefundedAt?.ToString("hh:mm tt")
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <a asp-action="OrderDetails" asp-route-id="@refund.OrderId" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="mb-5 pb-5"></div>

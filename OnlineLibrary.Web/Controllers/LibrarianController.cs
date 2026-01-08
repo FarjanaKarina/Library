@@ -251,20 +251,28 @@ namespace OnlineLibrary.Web.Controllers
                 (from oi in _context.OrderItems
                  join o in _context.Orders on oi.OrderId equals o.OrderId
                  join u in _context.Users on o.UserId equals u.UserId
-                 where oi.Status == "ReturnRequested" || oi.Status == "ReturnApproved"
-                 orderby oi.ReturnRequestedAt
+                 where oi.Status == "ReturnRequested" 
+                    || oi.Status == "ReturnApproved" 
+                    || oi.Status == "Received"
+                    || oi.Status == "Refunded"
+                 orderby oi.Status == "Refunded" ? 1 : 0, // Non-refunded first
+                         oi.ReturnRequestedAt descending
                  select new ReturnRequestViewModel
                  {
                      OrderItemId = oi.OrderItemId,
                      OrderId = o.OrderId,
                      TransactionId = o.TransactionId ?? "",
-                     StudentName = u.FullName + " (" + u.Email + ")",
+                     StudentName = u.FullName,
+                     StudentEmail = u.Email,
                      BookTitle = oi.BookTitle,
                      Price = oi.Price,
                      Quantity = oi.Quantity,
                      Status = oi.Status,
                      ReturnRequestedAt = oi.ReturnRequestedAt,
-                     ReturnApprovedAt = oi.ReturnApprovedAt
+                     ReturnApprovedAt = oi.ReturnApprovedAt,
+                     ReceivedAt = oi.ReceivedAt,
+                     RefundedAt = oi.RefundedAt,
+                     ActualRefundAmount = oi.RefundAmount
                  }).ToList();
 
             return View(requests);
@@ -505,6 +513,74 @@ namespace OnlineLibrary.Web.Controllers
         }
 
         // =========================
+        // REFUND HISTORY (LIBRARIAN)
+        // =========================
+        public IActionResult Refunds(DateTime? fromDate, DateTime? toDate)
+        {
+            if (!IsAuthorized())
+                return RedirectToAction("Login", "Account");
+
+            var refundsQuery = from oi in _context.OrderItems
+                               join o in _context.Orders on oi.OrderId equals o.OrderId
+                               join u in _context.Users on o.UserId equals u.UserId
+                               join b in _context.Books on oi.BookId equals b.BookId
+                               where oi.Status == "Refunded"
+                               orderby oi.RefundedAt descending
+                               select new RefundViewModel
+                               {
+                                   OrderItemId = oi.OrderItemId,
+                                   OrderId = o.OrderId,
+                                   TransactionId = o.TransactionId ?? "",
+                                   StudentName = u.FullName,
+                                   StudentEmail = u.Email,
+                                   BookTitle = oi.BookTitle,
+                                   OriginalPrice = oi.Price,
+                                   Quantity = oi.Quantity,
+                                   RefundAmount = oi.RefundAmount ?? 0,
+                                   RefundedAt = oi.RefundedAt,
+                                   BookImageUrl = b.ImageUrl
+                               };
+
+            // Date filters
+            if (fromDate.HasValue)
+            {
+                refundsQuery = refundsQuery.Where(r => r.RefundedAt >= fromDate.Value);
+            }
+
+            if (toDate.HasValue)
+            {
+                refundsQuery = refundsQuery.Where(r => r.RefundedAt <= toDate.Value.AddDays(1));
+            }
+
+            var refunds = refundsQuery.ToList();
+
+            // Summary stats
+            var allRefunds = _context.OrderItems.Where(oi => oi.Status == "Refunded");
+            var thisMonth = DateTime.UtcNow.Month;
+            var thisYear = DateTime.UtcNow.Year;
+
+            var model = new RefundSummaryViewModel
+            {
+                TotalRefunds = allRefunds.Count(),
+                TotalRefundAmount = allRefunds.Sum(oi => oi.RefundAmount ?? 0),
+                RefundsThisMonth = allRefunds.Count(oi => oi.RefundedAt.HasValue && 
+                    oi.RefundedAt.Value.Month == thisMonth && 
+                    oi.RefundedAt.Value.Year == thisYear),
+                RefundAmountThisMonth = allRefunds
+                    .Where(oi => oi.RefundedAt.HasValue && 
+                        oi.RefundedAt.Value.Month == thisMonth && 
+                        oi.RefundedAt.Value.Year == thisYear)
+                    .Sum(oi => oi.RefundAmount ?? 0),
+                Refunds = refunds
+            };
+
+            ViewBag.FromDate = fromDate;
+            ViewBag.ToDate = toDate;
+
+            return View(model);
+        }
+
+        // =========================
         // ROLE CHECK (UPDATED)
         // =========================
         private bool IsAuthorized()
@@ -518,7 +594,7 @@ namespace OnlineLibrary.Web.Controllers
                 .Select(r => r.RoleName)
                 .FirstOrDefault();
 
-            return roleName == "Librarian" || roleName == "Admin";
+            return roleName == "Librarian" || roleName == "Admin"; // ✅ Already allows Admin!
         }
 
         private bool IsLibrarian() // Keep for specific librarian-only actions if any
@@ -533,6 +609,71 @@ namespace OnlineLibrary.Web.Controllers
                 .FirstOrDefault();
 
             return roleName == "Librarian";
+        }
+
+        // =========================
+        // READING ANALYTICS
+        // =========================
+        public IActionResult ReadingAnalytics()
+        {
+            if (!IsAuthorized())
+                return RedirectToAction("Login", "Account");
+
+            var today = DateTime.UtcNow.Date;
+            var weekAgo = DateTime.UtcNow.AddDays(-7);
+
+            // Get all reading activity (books with LastReadAt set)
+            var readingData = (from w in _context.Wishlists
+                               join b in _context.Books on w.BookId equals b.BookId
+                               join u in _context.Users on w.UserId equals u.UserId
+                               where w.LastReadAt != null
+                               select new
+                               {
+                                   w.BookId,
+                                   b.Title,
+                                   b.Author,
+                                   b.ImageUrl,
+                                   w.UserId,
+                                   u.FullName,
+                                   u.Email,
+                                   w.LastReadAt
+                               }).ToList();
+
+            // Group by book
+            var bookStats = readingData
+                .GroupBy(r => new { r.BookId, r.Title, r.Author, r.ImageUrl })
+                .Select(g => new BookReadingStats
+                {
+                    BookId = g.Key.BookId,
+                    Title = g.Key.Title,
+                    Author = g.Key.Author,
+                    ImageUrl = g.Key.ImageUrl,
+                    ReaderCount = g.Count(),
+                    LastReadTime = g.Max(x => x.LastReadAt),
+                    Readers = g.Select(x => new ReaderInfo
+                    {
+                        UserId = x.UserId,
+                        FullName = x.FullName,
+                        Email = x.Email,
+                        LastReadAt = x.LastReadAt
+                    })
+                    .OrderByDescending(x => x.LastReadAt)
+                    .ToList()
+                })
+                .OrderByDescending(b => b.ReaderCount)
+                .ThenByDescending(b => b.LastReadTime)
+                .ToList();
+
+            var model = new ReadingAnalyticsViewModel
+            {
+                TotalActiveReaders = readingData.Select(r => r.UserId).Distinct().Count(),
+                TotalBooksBeingRead = bookStats.Count,
+                ReadersToday = readingData.Count(r => r.LastReadAt >= today),
+                ReadersThisWeek = readingData.Count(r => r.LastReadAt >= weekAgo),
+                BookStats = bookStats
+            };
+
+            return View(model);
         }
     }
 }

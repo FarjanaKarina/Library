@@ -12,6 +12,8 @@
             .Select(r => r.RoleName)
             .FirstOrDefault() ?? "";
     }
+
+    var hideFooter = ViewData["HideFooter"] as bool? ?? false;
 }
 
 <!DOCTYPE html>
@@ -34,7 +36,10 @@
         @RenderBody()
     </main>
 
-    @Html.Partial("_Footer")
+    @if (!hideFooter)
+    {
+        @Html.Partial("_Footer")
+    }
 
     <!-- === ADDED: Generic Modal for Authentication === -->
     <div class="modal fade" id="authModal" tabindex="-1" aria-hidden="true">

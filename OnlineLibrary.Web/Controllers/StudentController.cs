@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OnlineLibrary.Infrastructure.Data;
+using OnlineLibrary.Infrastructure.Security;
 using OnlineLibrary.Web.Models;
 
 namespace OnlineLibrary.Web.Controllers
@@ -146,6 +147,181 @@ namespace OnlineLibrary.Web.Controllers
                 .ToList();
 
             return View(notifications);
+        }
+
+        // =========================
+        // PROFILE (GET)
+        // =========================
+        public IActionResult Profile()
+        {
+            if (!IsStudent())
+                return RedirectToAction("Login", "Account");
+
+            var userIdStr = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userIdStr))
+                return RedirectToAction("Login", "Account");
+
+            var userId = Guid.Parse(userIdStr);
+            var user = _context.Users.Find(userId);
+
+            if (user == null)
+                return RedirectToAction("Login", "Account");
+
+            var model = new StudentProfileViewModel
+            {
+                UserId = user.UserId,
+                FullName = user.FullName,
+                Email = user.Email,
+                Phone = user.Phone,
+                Address = user.Address,
+                CreatedAt = user.CreatedAt
+            };
+
+            return View(model);
+        }
+
+        // =========================
+        // PROFILE (POST) - SAVE CHANGES
+        // =========================
+        [HttpPost]
+        public IActionResult Profile(StudentProfileViewModel model)
+        {
+            if (!IsStudent())
+                return RedirectToAction("Login", "Account");
+
+            var userIdStr = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userIdStr))
+                return RedirectToAction("Login", "Account");
+
+            var userId = Guid.Parse(userIdStr);
+            var user = _context.Users.Find(userId);
+
+            if (user == null)
+                return RedirectToAction("Login", "Account");
+
+            // =========================
+            // VALIDATION
+            // =========================
+            if (string.IsNullOrWhiteSpace(model.FullName))
+            {
+                ViewBag.Error = "Full name is required.";
+                model.CreatedAt = user.CreatedAt;
+                return View(model);
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Email))
+            {
+                ViewBag.Error = "Email is required.";
+                model.CreatedAt = user.CreatedAt;
+                return View(model);
+            }
+
+            // Check if email is already taken by another user
+            var emailExists = _context.Users
+                .Any(u => u.Email == model.Email && u.UserId != userId);
+
+            if (emailExists)
+            {
+                ViewBag.Error = "This email is already in use by another account.";
+                model.CreatedAt = user.CreatedAt;
+                return View(model);
+            }
+
+            // =========================
+            // PASSWORD CHANGE (OPTIONAL)
+            // =========================
+            if (!string.IsNullOrEmpty(model.NewPassword))
+            {
+                if (string.IsNullOrEmpty(model.CurrentPassword))
+                {
+                    ViewBag.Error = "Current password is required to change password.";
+                    model.CreatedAt = user.CreatedAt;
+                    return View(model);
+                }
+
+                var currentHash = PasswordHelper.HashPassword(model.CurrentPassword);
+                if (user.PasswordHash != currentHash)
+                {
+                    ViewBag.Error = "Current password is incorrect.";
+                    model.CreatedAt = user.CreatedAt;
+                    return View(model);
+                }
+
+                if (model.NewPassword != model.ConfirmPassword)
+                {
+                    ViewBag.Error = "New password and confirm password do not match.";
+                    model.CreatedAt = user.CreatedAt;
+                    return View(model);
+                }
+
+                if (model.NewPassword.Length < 6)
+                {
+                    ViewBag.Error = "New password must be at least 6 characters.";
+                    model.CreatedAt = user.CreatedAt;
+                    return View(model);
+                }
+
+                user.PasswordHash = PasswordHelper.HashPassword(model.NewPassword);
+            }
+
+            // =========================
+            // UPDATE USER
+            // =========================
+            user.FullName = model.FullName;
+            user.Email = model.Email;
+            user.Phone = model.Phone;
+            user.Address = model.Address;
+
+            _context.SaveChanges();
+
+            ViewBag.Success = "Profile updated successfully!";
+            model.CreatedAt = user.CreatedAt;
+
+            // Clear password fields
+            model.CurrentPassword = null;
+            model.NewPassword = null;
+            model.ConfirmPassword = null;
+
+            return View(model);
+        }
+
+        // =========================
+        // REFUND HISTORY (STUDENT)
+        // =========================
+        public IActionResult Refunds()
+        {
+            if (!IsStudent())
+                return RedirectToAction("Login", "Account");
+
+            var userIdStr = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userIdStr))
+                return RedirectToAction("Login", "Account");
+
+            var userId = Guid.Parse(userIdStr);
+
+            var refunds = (from oi in _context.OrderItems
+                           join o in _context.Orders on oi.OrderId equals o.OrderId
+                           join b in _context.Books on oi.BookId equals b.BookId
+                           where o.UserId == userId && oi.Status == "Refunded"
+                           orderby oi.RefundedAt descending
+                           select new RefundViewModel
+                           {
+                               OrderItemId = oi.OrderItemId,
+                               OrderId = o.OrderId,
+                               TransactionId = o.TransactionId ?? "",
+                               BookTitle = oi.BookTitle,
+                               OriginalPrice = oi.Price,
+                               Quantity = oi.Quantity,
+                               RefundAmount = oi.RefundAmount ?? 0,
+                               RefundedAt = oi.RefundedAt,
+                               BookImageUrl = b.ImageUrl
+                           }).ToList();
+
+            // Calculate totals
+            ViewBag.TotalRefunds = refunds.Count;
+            ViewBag.TotalRefundAmount = refunds.Sum(r => r.RefundAmount);
+
+            return View(refunds);
         }
 
         // =========================

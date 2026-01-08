@@ -36,17 +36,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
 
-    <script>
-        function openMembershipModal() {
-            fetch('/Student/ApplyMembership')
-                .then(r => r.text())
-                .then(html => {
-                    document.getElementById('authModalContent').innerHTML = html;
-                    new bootstrap.Modal(document.getElementById('authModal')).show();
-                });
-        }
-    </script>
-
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

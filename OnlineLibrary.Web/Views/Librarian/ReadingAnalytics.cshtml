@@ -1,0 +1,184 @@
+@model OnlineLibrary.Web.Models.ReadingAnalyticsViewModel
+
+@{
+    Layout = "_StaffLayout";
+    ViewData["Title"] = "Reading Analytics";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-book-half me-2"></i>Reading Analytics</h2>
+        <a asp-action="Dashboard" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-people fs-1 mb-2"></i>
+                    <h3 class="mb-0">@Model.TotalActiveReaders</h3>
+                    <small>Total Active Readers</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-book fs-1 mb-2"></i>
+                    <h3 class="mb-0">@Model.TotalBooksBeingRead</h3>
+                    <small>Books Being Read</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-calendar-day fs-1 mb-2"></i>
+                    <h3 class="mb-0">@Model.ReadersToday</h3>
+                    <small>Readers Today</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-calendar-week fs-1 mb-2"></i>
+                    <h3 class="mb-0">@Model.ReadersThisWeek</h3>
+                    <small>Readers This Week</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Books Reading Stats -->
+    @if (Model.BookStats.Count == 0)
+    {
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle me-2"></i>No reading activity recorded yet.
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Books by Reader Count</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="accordion" id="readingAccordion">
+                    @foreach (var book in Model.BookStats)
+                    {
+                        var accordionId = $"book-{book.BookId.ToString().Replace("-", "")}";
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#@accordionId">
+                                    <div class="d-flex align-items-center w-100 me-3">
+                                        <img src="@(book.ImageUrl ?? "/images/default-book.png")" 
+                                             alt="@book.Title"
+                                             class="rounded me-3"
+                                             style="width: 50px; height: 65px; object-fit: cover;"
+                                             onerror="this.src='/images/default-book.png'">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-0">@book.Title</h6>
+                                            <small class="text-muted">
+                                                <i class="bi bi-person me-1"></i>@book.Author
+                                            </small>
+                                        </div>
+                                        <div class="text-end me-3">
+                                            <span class="badge bg-primary fs-6">
+                                                <i class="bi bi-people me-1"></i>@book.ReaderCount readers
+                                            </span>
+                                            @if (book.LastReadTime.HasValue)
+                                            {
+                                                <br>
+                                                <small class="text-muted">
+                                                    Last read: @book.LastReadTime.Value.ToString("dd MMM yyyy, hh:mm tt")
+                                                </small>
+                                            }
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="@accordionId" class="accordion-collapse collapse" 
+                                 data-bs-parent="#readingAccordion">
+                                <div class="accordion-body bg-light">
+                                    <h6 class="mb-3">
+                                        <i class="bi bi-people-fill me-2"></i>Readers (@book.Readers.Count)
+                                    </h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover mb-0">
+                                            <thead class="table-secondary">
+                                                <tr>
+                                                    <th>Student Name</th>
+                                                    <th>Email</th>
+                                                    <th>Last Read</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var reader in book.Readers)
+                                                {
+                                                    var isRecent = reader.LastReadAt >= DateTime.UtcNow.AddHours(-24);
+                                                    <tr>
+                                                        <td>
+                                                            <i class="bi bi-person-circle me-2 text-primary"></i>
+                                                            @reader.FullName
+                                                        </td>
+                                                        <td>
+                                                            <a href="mailto:@reader.Email" class="text-decoration-none">
+                                                                @reader.Email
+                                                            </a>
+                                                        </td>
+                                                        <td>
+                                                            @if (reader.LastReadAt.HasValue)
+                                                            {
+                                                                @reader.LastReadAt.Value.ToString("dd MMM yyyy, hh:mm tt")
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            @if (isRecent)
+                                                            {
+                                                                <span class="badge bg-success">
+                                                                    <i class="bi bi-circle-fill me-1" style="font-size: 8px;"></i>
+                                                                    Active
+                                                                </span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="badge bg-secondary">Inactive</span>
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .accordion-button:not(.collapsed) {
+        background-color: #e7f1ff;
+        color: #0c63e4;
+    }
+
+    .accordion-button:focus {
+        box-shadow: none;
+        border-color: rgba(0,0,0,.125);
+    }
+
+    .accordion-body {
+        border-top: 1px solid rgba(0,0,0,.125);
+    }
+</style>

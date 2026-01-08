@@ -72,93 +72,101 @@
                     <h5 class="mb-0"><i class="bi bi-box me-2"></i>Order Items</h5>
                 </div>
                 <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th style="width: 50%">Book</th>
-                                    <th class="text-center">Price</th>
-                                    <th class="text-center">Qty</th>
-                                    <th class="text-center">Subtotal</th>
-                                    <th class="text-center">Status</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in Model.Items)
-                                {
-                                    <tr>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <img src="@(item.ImageUrl ?? "/images/default-book.png")"
-                                                     alt="@item.BookTitle"
-                                                     class="rounded me-3"
-                                                     style="width: 50px; height: 65px; object-fit: cover;">
-                                                <div>
-                                                    <h6 class="mb-0">@item.BookTitle</h6>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="text-center align-middle">৳@item.Price.ToString("N0")</td>
-                                        <td class="text-center align-middle">@item.Quantity</td>
-                                        <td class="text-center align-middle"><strong>৳@item.Subtotal.ToString("N0")</strong></td>
-                                        <td class="text-center align-middle">
-                                            @{
-                                                var itemStatusClass = item.Status switch
-                                                {
-                                                    "Refunded" => "bg-success",
-                                                    "Received" => "bg-success", // Changed to success since it means return completed
-                                                    "ReturnApproved" => "bg-primary",
-                                                    "ReturnRequested" => "bg-warning text-dark",
-                                                    _ => "bg-secondary"
-                                                };
-                                                
-                                                var statusText = item.Status switch
-                                                {
-                                                    "Refunded" => "Returned & Refunded",
-                                                    "Received" => "Return Completed",
-                                                    "ReturnApproved" => "Return Approved",
-                                                    "ReturnRequested" => "Return Requested",
-                                                    _ => item.Status
-                                                };
-                                            }
-                                            <span class="badge @itemStatusClass">@statusText</span>
-                                        </td>
-                                        <td class="text-center align-middle">
-                                            @if (item.CanRequestReturn && Model.OrderStatus == "Delivered")
-                                            {
-                                                <button class="btn btn-sm btn-outline-warning btn-request-return"
-                                                        data-item-id="@item.OrderItemId"
-                                                        data-book-title="@item.BookTitle">
-                                                    <i class="bi bi-arrow-return-left"></i> Return
-                                                </button>
-                                            }
-                                            else if (item.CanCancelReturn)
-                                            {
+                    @foreach (var item in Model.Items)
+                    {
+                        <div class="p-3 border-bottom">
+                            <div class="row align-items-center">
+                                <div class="col-md-5">
+                                    <div class="d-flex align-items-center">
+                                        <img src="@(item.ImageUrl ?? "/images/default-book.png")"
+                                             alt="@item.BookTitle"
+                                             class="rounded me-3"
+                                             style="width: 60px; height: 80px; object-fit: cover;">
+                                        <div>
+                                            <h6 class="mb-1">@item.BookTitle</h6>
+                                            <small class="text-muted">৳@item.Price.ToString("N0") × @item.Quantity</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 text-center">
+                                    <strong>৳@item.Subtotal.ToString("N0")</strong>
+                                </div>
+                                <div class="col-md-5">
+                                    @* Return Status Progress *@
+                                    @if (item.Status == "Active" && Model.OrderStatus == "Delivered")
+                                    {
+                                        <button class="btn btn-sm btn-outline-warning btn-request-return"
+                                                data-item-id="@item.OrderItemId"
+                                                data-book-title="@item.BookTitle">
+                                            <i class="bi bi-arrow-return-left me-1"></i>Request Return
+                                        </button>
+                                    }
+                                    else if (item.Status == "ReturnRequested")
+                                    {
+                                        <div class="return-progress">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <span class="badge bg-warning text-dark me-2">Return Requested</span>
                                                 <button class="btn btn-sm btn-outline-danger btn-cancel-return"
                                                         data-item-id="@item.OrderItemId">
-                                                    <i class="bi bi-x-circle"></i> Cancel
+                                                    <i class="bi bi-x"></i> Cancel
                                                 </button>
-                                            }
-                                            else if (item.Status == "Refunded" && item.RefundAmount.HasValue)
-                                            {
-                                                <small class="text-success">
-                                                    <i class="bi bi-check-circle"></i> ৳@item.RefundAmount.Value.ToString("N0") refunded
-                                                </small>
-                                            }
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                                            </div>
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar bg-warning" style="width: 25%"></div>
+                                            </div>
+                                            <small class="text-muted">Waiting for librarian approval</small>
+                                        </div>
+                                    }
+                                    else if (item.Status == "ReturnApproved")
+                                    {
+                                        <div class="return-progress">
+                                            <span class="badge bg-info mb-2">Return Approved</span>
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar bg-info" style="width: 50%"></div>
+                                            </div>
+                                            <small class="text-muted">Rider will pick up your book</small>
+                                        </div>
+                                    }
+                                    else if (item.Status == "Received")
+                                    {
+                                        <div class="return-progress">
+                                            <span class="badge bg-primary mb-2">Book Received</span>
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar bg-primary" style="width: 75%"></div>
+                                            </div>
+                                            <small class="text-muted">Refund processing...</small>
+                                        </div>
+                                    }
+                                    else if (item.Status == "Refunded")
+                                    {
+                                        <div class="return-progress">
+                                            <span class="badge bg-success mb-2">
+                                                <i class="bi bi-check-circle me-1"></i>Refunded
+                                            </span>
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar bg-success" style="width: 100%"></div>
+                                            </div>
+                                            <div class="mt-2 p-2 bg-success bg-opacity-10 rounded">
+                                                <strong class="text-success">৳@item.RefundAmount?.ToString("N0")</strong>
+                                                <small class="text-muted d-block">Refunded on @item.RefundedAt?.ToString("dd MMM yyyy")</small>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">@item.Status</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
 
             <!-- Shipping Info -->
             <div class="card shadow-sm">
                 <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="bi bi-truck me-2"></i>Shipping Information</h5>
+                    <h5 class="mb-0"><i class="bi bi-geo-alt me-2"></i>Shipping Information</h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -200,10 +208,20 @@
                         <span>Shipping</span>
                         <span class="text-success">Free</span>
                     </div>
+                    @{
+                        var totalRefunded = Model.Items.Where(i => i.RefundAmount.HasValue).Sum(i => i.RefundAmount ?? 0);
+                    }
+                    @if (totalRefunded > 0)
+                    {
+                        <div class="d-flex justify-content-between mb-2 text-success">
+                            <span>Refunded</span>
+                            <strong>-৳@totalRefunded.ToString("N0")</strong>
+                        </div>
+                    }
                     <hr>
                     <div class="d-flex justify-content-between">
                         <strong>Total</strong>
-                        <strong class="text-primary fs-5">৳@Model.TotalAmount.ToString("N0")</strong>
+                        <strong class="text-primary fs-5">৳@((Model.TotalAmount - totalRefunded).ToString("N0"))</strong>
                     </div>
                 </div>
             </div>
@@ -211,7 +229,7 @@
             <!-- Payment Info -->
             @if (Model.PaymentStatus == "Success")
             {
-                <div class="card shadow-sm">
+                <div class="card shadow-sm mb-3">
                     <div class="card-header bg-success text-white">
                         <h6 class="mb-0"><i class="bi bi-credit-card me-2"></i>Payment Info</h6>
                     </div>
@@ -233,19 +251,22 @@
             }
 
             <!-- Return Policy -->
-            <div class="card mt-3">
+            <div class="card border-info">
                 <div class="card-body">
-                    <h6><i class="bi bi-arrow-repeat me-2 text-success"></i>Return Policy</h6>
+                    <h6><i class="bi bi-arrow-repeat me-2 text-info"></i>Return Policy</h6>
                     <ul class="small text-muted mb-0">
                         <li>Returns accepted after delivery</li>
-                        <li>Get <strong>50% refund</strong> on returns</li>
-                        <li>Returning is optional</li>
+                        <li>Get <strong class="text-success">50% refund</strong> on returns</li>
+                        <li>Rider will pick up the book</li>
+                        <li>Refund processed after book received</li>
                     </ul>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<div class="mb-5 pb-5"></div>
 
 @section Scripts {
     <script>
@@ -255,13 +276,13 @@
                 const itemId = $(this).data('item-id');
                 const bookTitle = $(this).data('book-title');
 
-                if (confirm(`Request return for "${bookTitle}"?\n\nYou will receive 50% refund after the book is received.`)) {
+                if (confirm(`Request return for "${bookTitle}"?\n\nYou will receive 50% refund after the book is picked up and received.`)) {
                     $.post('@Url.Action("RequestReturn", "Order")', { orderItemId: itemId }, function (res) {
                         if (res.success) {
-                            alert(res.message);
+                            alert('Return requested! You will be notified when approved.');
                             location.reload();
                         } else {
-                            alert(res.message);
+                            alert(res.message || 'Failed to request return.');
                         }
                     });
                 }
@@ -274,10 +295,10 @@
                 if (confirm('Cancel this return request?')) {
                     $.post('@Url.Action("CancelReturn", "Order")', { orderItemId: itemId }, function (res) {
                         if (res.success) {
-                            alert(res.message);
+                            alert('Return request cancelled.');
                             location.reload();
                         } else {
-                            alert(res.message);
+                            alert(res.message || 'Failed to cancel.');
                         }
                     });
                 }
@@ -287,17 +308,18 @@
 }
 
 <style>
-    /* Order Tracking Styles */
-    .order-tracking {
-        padding: 20px 0;
+    .return-progress {
+        padding: 8px;
+        background: #f8f9fa;
+        border-radius: 8px;
     }
 
+    /* Order Tracking Styles */
     .tracking-container {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        position: relative;
-        max-width: 700px;
+        max-width: 600px;
         margin: 0 auto;
     }
 
@@ -305,21 +327,19 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        position: relative;
         z-index: 2;
     }
 
     .tracking-icon {
-        width: 50px;
-        height: 50px;
+        width: 45px;
+        height: 45px;
         border-radius: 50%;
         background: #e9ecef;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 24px;
+        font-size: 20px;
         color: #6c757d;
-        transition: all 0.3s ease;
         border: 3px solid #e9ecef;
     }
 
@@ -327,7 +347,6 @@
         background: #28a745;
         color: white;
         border-color: #28a745;
-        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
     }
 
     .tracking-step.current .tracking-icon {
@@ -335,71 +354,30 @@
         color: white;
         border-color: #007bff;
         animation: pulse 2s infinite;
-        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
     }
 
     @@keyframes pulse {
-        0%, 100% {
-            transform: scale(1);
-        }
-
-        50% {
-            transform: scale(1.1);
-        }
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
     }
 
     .tracking-label {
-        margin-top: 12px;
-        font-size: 13px;
+        margin-top: 8px;
+        font-size: 12px;
         font-weight: 600;
         color: #6c757d;
-        text-align: center;
-        white-space: nowrap;
     }
 
-    .tracking-step.completed .tracking-label {
-        color: #28a745;
-    }
-
-    .tracking-step.current .tracking-label {
-        color: #007bff;
-    }
+    .tracking-step.completed .tracking-label { color: #28a745; }
+    .tracking-step.current .tracking-label { color: #007bff; }
 
     .tracking-line {
         flex: 1;
         height: 4px;
         background: #e9ecef;
-        position: relative;
+        margin: 0 -5px;
         z-index: 1;
-        margin: 0 -10px;
-        transition: all 0.3s ease;
     }
 
-        .tracking-line.completed {
-            background: #28a745;
-        }
-
-    /* Responsive */
-    @@media (max-width: 768px) {
-        .tracking-container {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .tracking-step {
-            flex-direction: row;
-            width: 100%;
-            margin-bottom: 20px;
-        }
-
-        .tracking-label {
-            margin-top: 0;
-            margin-left: 15px;
-            text-align: left;
-        }
-
-        .tracking-line {
-            display: none;
-        }
-    }
+    .tracking-line.completed { background: #28a745; }
 </style>

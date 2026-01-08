@@ -2,48 +2,91 @@
 
 @{
     Layout = "_LibrarianLayout";
-    ViewData["Title"] = "Return Requests";
+    ViewData["Title"] = "Return & Refund Management";
 }
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-arrow-return-left me-2"></i>Return Requests</h2>
+        <h2><i class="bi bi-arrow-return-left me-2"></i>Return & Refund Management</h2>
         <a asp-action="Dashboard" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
         </a>
     </div>
 
-    @if (Model == null || !Model.Any())
-    {
-        <div class="alert alert-info text-center">
-            <i class="bi bi-info-circle me-2"></i>No return requests at the moment.
+    <!-- Workflow Info Card -->
+    <div class="alert alert-light border mb-4">
+        <h6 class="mb-2"><i class="bi bi-info-circle me-2"></i>Return & Refund Workflow</h6>
+        <div class="d-flex flex-wrap gap-2 align-items-center small">
+            <span class="badge bg-warning text-dark">1. User Requests</span>
+            <i class="bi bi-arrow-right"></i>
+            <span class="badge bg-info">2. Librarian Approves</span>
+            <i class="bi bi-arrow-right"></i>
+            <span class="badge bg-primary">3. Book Picked Up</span>
+            <i class="bi bi-arrow-right"></i>
+            <span class="badge bg-success">4. Received & Refunded (50%)</span>
         </div>
-    }
-    else
-    {
-        <!-- Tab Navigation -->
-        <ul class="nav nav-tabs mb-4" id="returnTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="requested-tab" data-bs-toggle="tab" data-bs-target="#requested" type="button">
-                    Requested Returns
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="approved-tab" data-bs-toggle="tab" data-bs-target="#approved" type="button">
-                    Approved Returns
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="received-tab" data-bs-toggle="tab" data-bs-target="#received" type="button">
-                    Received Returns
-                </button>
-            </li>
-        </ul>
+    </div>
 
-        <!-- Tab Content -->
-        <div class="tab-content" id="returnTabContent">
-            <!-- Requested Returns -->
-            <div class="tab-pane fade show active" id="requested" role="tabpanel">
+    @{
+        var requestedCount = Model?.Count(r => r.Status == "ReturnRequested") ?? 0;
+        var approvedCount = Model?.Count(r => r.Status == "ReturnApproved") ?? 0;
+        var receivedCount = Model?.Count(r => r.Status == "Received") ?? 0;
+        var refundedCount = Model?.Count(r => r.Status == "Refunded") ?? 0;
+    }
+
+    <!-- Tab Navigation -->
+    <ul class="nav nav-tabs mb-4" id="returnTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="requested-tab" data-bs-toggle="tab" data-bs-target="#requested" type="button">
+                <i class="bi bi-hourglass me-1"></i>Requested
+                @if (requestedCount > 0)
+                {
+                    <span class="badge bg-warning text-dark ms-1">@requestedCount</span>
+                }
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="approved-tab" data-bs-toggle="tab" data-bs-target="#approved" type="button">
+                <i class="bi bi-check me-1"></i>Approved
+                @if (approvedCount > 0)
+                {
+                    <span class="badge bg-info ms-1">@approvedCount</span>
+                }
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="received-tab" data-bs-toggle="tab" data-bs-target="#received" type="button">
+                <i class="bi bi-box-seam me-1"></i>Received
+                @if (receivedCount > 0)
+                {
+                    <span class="badge bg-primary ms-1">@receivedCount</span>
+                }
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="refunded-tab" data-bs-toggle="tab" data-bs-target="#refunded" type="button">
+                <i class="bi bi-cash-coin me-1"></i>Refunded
+                @if (refundedCount > 0)
+                {
+                    <span class="badge bg-success ms-1">@refundedCount</span>
+                }
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="returnTabContent">
+        
+        <!-- STEP 1: Requested Returns -->
+        <div class="tab-pane fade show active" id="requested" role="tabpanel">
+            @if (requestedCount == 0)
+            {
+                <div class="alert alert-secondary text-center">
+                    <i class="bi bi-inbox me-2"></i>No pending return requests.
+                </div>
+            }
+            else
+            {
                 <div class="row">
                     @foreach (var req in Model.Where(r => r.Status == "ReturnRequested"))
                     {
@@ -52,21 +95,24 @@
                                 <div class="card-header bg-warning text-dark">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h6 class="mb-0">
-                                            <i class="bi bi-receipt me-2"></i>Order #@req.TransactionId
+                                            <i class="bi bi-receipt me-2"></i>#@req.TransactionId
                                         </h6>
-                                        <span class="badge bg-dark">Pending Review</span>
+                                        <span class="badge bg-dark">Step 1: Pending Review</span>
                                     </div>
                                 </div>
                                 <div class="card-body">
                                     <div class="d-flex align-items-start mb-3">
                                         <div class="me-3">
                                             <div class="bg-light rounded p-2">
-                                                <i class="bi bi-book fs-2 text-primary"></i>
+                                                <i class="bi bi-book fs-2 text-warning"></i>
                                             </div>
                                         </div>
                                         <div class="flex-grow-1">
-                                            <h6 class="mb-1 text-primary">@req.BookTitle</h6>
-                                            <p class="text-muted small mb-0">@req.StudentName</p>
+                                            <h6 class="mb-1">@req.BookTitle</h6>
+                                            <p class="text-muted small mb-1">@req.StudentName</p>
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar me-1"></i>Requested: @req.ReturnRequestedAt?.ToString("dd MMM yyyy, hh:mm tt")
+                                            </small>
                                         </div>
                                     </div>
 
@@ -87,17 +133,26 @@
 
                                     <button class="btn btn-success w-100"
                                             onclick="approveReturn('@req.OrderItemId', '@req.BookTitle')">
-                                        <i class="bi bi-check-circle me-2"></i>Approve Return Request
+                                        <i class="bi bi-check-circle me-2"></i>Approve Return
                                     </button>
                                 </div>
                             </div>
                         </div>
                     }
                 </div>
-            </div>
+            }
+        </div>
 
-            <!-- Approved Returns -->
-            <div class="tab-pane fade" id="approved" role="tabpanel">
+        <!-- STEP 2: Approved Returns (Waiting for Pickup) -->
+        <div class="tab-pane fade" id="approved" role="tabpanel">
+            @if (approvedCount == 0)
+            {
+                <div class="alert alert-secondary text-center">
+                    <i class="bi bi-inbox me-2"></i>No approved returns awaiting pickup.
+                </div>
+            }
+            else
+            {
                 <div class="row">
                     @foreach (var req in Model.Where(r => r.Status == "ReturnApproved"))
                     {
@@ -106,34 +161,32 @@
                                 <div class="card-header bg-info text-white">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h6 class="mb-0">
-                                            <i class="bi bi-receipt me-2"></i>Order #@req.TransactionId
+                                            <i class="bi bi-receipt me-2"></i>#@req.TransactionId
                                         </h6>
-                                        <span class="badge bg-light text-dark">Awaiting Return</span>
+                                        <span class="badge bg-light text-dark">Step 2: Awaiting Pickup</span>
                                     </div>
                                 </div>
                                 <div class="card-body">
                                     <div class="d-flex align-items-start mb-3">
                                         <div class="me-3">
                                             <div class="bg-light rounded p-2">
-                                                <i class="bi bi-book fs-2 text-info"></i>
+                                                <i class="bi bi-truck fs-2 text-info"></i>
                                             </div>
                                         </div>
                                         <div class="flex-grow-1">
-                                            <h6 class="mb-1 text-info">@req.BookTitle</h6>
-                                            <p class="text-muted small mb-0">@req.StudentName</p>
+                                            <h6 class="mb-1">@req.BookTitle</h6>
+                                            <p class="text-muted small mb-1">@req.StudentName</p>
                                             @if (req.ReturnApprovedAt.HasValue)
                                             {
                                                 <small class="text-success">
-                                                    <i class="bi bi-check-circle"></i>
-                                                    Approved: @req.ReturnApprovedAt.Value.ToString("dd MMM yyyy")
+                                                    <i class="bi bi-check-circle me-1"></i>Approved: @req.ReturnApprovedAt.Value.ToString("dd MMM yyyy")
                                                 </small>
                                             }
                                         </div>
                                     </div>
 
-                                    <div class="alert alert-info mb-3">
-                                        <i class="bi bi-info-circle me-2"></i>
-                                        <small>Student has been notified to return the book.</small>
+                                    <div class="alert alert-info mb-3 py-2">
+                                        <small><i class="bi bi-info-circle me-2"></i>Student notified. Rider will pick up the book.</small>
                                     </div>
 
                                     <button class="btn btn-primary w-100"
@@ -145,49 +198,55 @@
                         </div>
                     }
                 </div>
-            </div>
+            }
+        </div>
 
-            <!-- Received Returns (Ready for Refund) -->
-            <div class="tab-pane fade" id="received" role="tabpanel">
+        <!-- STEP 3: Received (Ready for Refund) -->
+        <div class="tab-pane fade" id="received" role="tabpanel">
+            @if (receivedCount == 0)
+            {
+                <div class="alert alert-secondary text-center">
+                    <i class="bi bi-inbox me-2"></i>No books received pending refund.
+                </div>
+            }
+            else
+            {
                 <div class="row">
                     @foreach (var req in Model.Where(r => r.Status == "Received"))
                     {
                         <div class="col-lg-6 mb-4">
-                            <div class="card shadow-sm h-100 border-success">
-                                <div class="card-header bg-success text-white">
+                            <div class="card shadow-sm h-100 border-primary">
+                                <div class="card-header bg-primary text-white">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h6 class="mb-0">
-                                            <i class="bi bi-receipt me-2"></i>Order #@req.TransactionId
+                                            <i class="bi bi-receipt me-2"></i>#@req.TransactionId
                                         </h6>
-                                        <span class="badge bg-light text-dark">Ready for Refund</span>
+                                        <span class="badge bg-light text-dark">Step 3: Process Refund</span>
                                     </div>
                                 </div>
                                 <div class="card-body">
                                     <div class="d-flex align-items-start mb-3">
                                         <div class="me-3">
-                                            <div class="bg-success-subtle rounded p-2">
-                                                <i class="bi bi-check-circle-fill fs-2 text-success"></i>
+                                            <div class="bg-primary bg-opacity-10 rounded p-2">
+                                                <i class="bi bi-box-arrow-in-down fs-2 text-primary"></i>
                                             </div>
                                         </div>
                                         <div class="flex-grow-1">
-                                            <h6 class="mb-1 text-success">@req.BookTitle</h6>
-                                            <p class="text-muted small mb-0">@req.StudentName</p>
+                                            <h6 class="mb-1">@req.BookTitle</h6>
+                                            <p class="text-muted small mb-1">@req.StudentName</p>
                                             <small class="text-success">
-                                                <i class="bi bi-box-arrow-in-down"></i>
-                                                Book received & restocked
+                                                <i class="bi bi-check-circle me-1"></i>Book received & inventory updated
                                             </small>
                                         </div>
                                     </div>
 
-                                    <div class="bg-success-subtle rounded p-3 mb-3">
-                                        <div class="text-center">
-                                            <h5 class="text-success mb-1">৳@req.RefundAmount.ToString("N0")</h5>
-                                            <small class="text-muted">Refund Amount (50%)</small>
-                                        </div>
+                                    <div class="bg-success bg-opacity-10 rounded p-3 mb-3 text-center">
+                                        <small class="text-muted d-block">Refund Amount (50%)</small>
+                                        <h4 class="text-success mb-0">৳@req.RefundAmount.ToString("N0")</h4>
                                     </div>
 
                                     <button class="btn btn-success w-100"
-                                            onclick="processRefund('@req.OrderItemId', '@req.BookTitle', '@req.RefundAmount')">
+                                            onclick="processRefund('@req.OrderItemId', '@req.BookTitle', '@req.RefundAmount.ToString("N0")')">
                                         <i class="bi bi-cash-coin me-2"></i>Process Refund
                                     </button>
                                 </div>
@@ -195,28 +254,88 @@
                         </div>
                     }
                 </div>
-            </div>
+            }
         </div>
-    }
+
+        <!-- STEP 4: Refunded (Completed) -->
+        <div class="tab-pane fade" id="refunded" role="tabpanel">
+            @if (refundedCount == 0)
+            {
+                <div class="alert alert-secondary text-center">
+                    <i class="bi bi-inbox me-2"></i>No completed refunds yet.
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var req in Model.Where(r => r.Status == "Refunded"))
+                    {
+                        <div class="col-lg-6 mb-4">
+                            <div class="card shadow-sm h-100 border-success">
+                                <div class="card-header bg-success text-white">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">
+                                            <i class="bi bi-check-circle me-2"></i>#@req.TransactionId
+                                        </h6>
+                                        <span class="badge bg-light text-success">✓ Completed</span>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex align-items-start mb-3">
+                                        <div class="me-3">
+                                            <div class="bg-success bg-opacity-10 rounded p-2">
+                                                <i class="bi bi-check-circle-fill fs-2 text-success"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">@req.BookTitle</h6>
+                                            <p class="text-muted small mb-1">@req.StudentName</p>
+                                            @if (req.RefundedAt.HasValue)
+                                            {
+                                                <small class="text-success">
+                                                    <i class="bi bi-calendar-check me-1"></i>Refunded: @req.RefundedAt.Value.ToString("dd MMM yyyy, hh:mm tt")
+                                                </small>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-success bg-opacity-10 rounded p-3 text-center">
+                                        <small class="text-muted d-block">Refund Processed</small>
+                                        <h4 class="text-success mb-0">৳@(req.ActualRefundAmount?.ToString("N0") ?? "0")</h4>
+                                        <small class="text-muted">Student has been notified</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
 </div>
+
+<div class="mb-5 pb-5"></div>
+
+<!-- Toast Container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
 
 @section Scripts {
     <script>
         function approveReturn(orderItemId, bookTitle) {
-            if (confirm(`Approve return request for "${bookTitle}"?\n\nThe student will be notified to return the book.`)) {
+            if (confirm(`Approve return for "${bookTitle}"?\n\nStudent will be notified to prepare the book for pickup.`)) {
                 $.post('@Url.Action("ApproveReturn", "Librarian")', { orderItemId: orderItemId }, function (res) {
                     if (res.success) {
-                        showToast('Return request approved!', 'success');
+                        showToast('Return approved! Student notified.', 'success');
                         setTimeout(() => location.reload(), 1000);
                     } else {
-                        showToast(res.message || 'Failed to approve request.', 'error');
+                        showToast(res.message || 'Failed to approve.', 'error');
                     }
                 });
             }
         }
 
         function markAsReceived(orderItemId, bookTitle) {
-            if (confirm(`Confirm receipt of "${bookTitle}"?\n\n• Inventory will be updated\n• Book will be ready for refund processing`)) {
+            if (confirm(`Confirm book received: "${bookTitle}"?\n\n✓ Inventory will be updated\n✓ Ready for refund processing`)) {
                 $.post('@Url.Action("MarkAsReceived", "Librarian")', { orderItemId: orderItemId }, function (res) {
                     if (res.success) {
                         showToast('Book received! Inventory updated.', 'success');
@@ -229,10 +348,10 @@
         }
 
         function processRefund(orderItemId, bookTitle, refundAmount) {
-            if (confirm(`Process refund for "${bookTitle}"?\n\nRefund Amount: ৳${refundAmount}\nThis action cannot be undone.`)) {
+            if (confirm(`Process refund for "${bookTitle}"?\n\nAmount: ৳${refundAmount}\n\nStudent will be notified.`)) {
                 $.post('@Url.Action("ProcessRefund", "Librarian")', { orderItemId: orderItemId }, function (res) {
                     if (res.success) {
-                        showToast(`Refund of ৳${res.refundAmount} processed successfully!`, 'success');
+                        showToast(`Refund of ৳${res.refundAmount} processed!`, 'success');
                         setTimeout(() => location.reload(), 1500);
                     } else {
                         showToast(res.message || 'Failed to process refund.', 'error');
@@ -242,22 +361,18 @@
         }
 
         function showToast(message, type) {
+            const bgClass = type === 'success' ? 'bg-success' : 'bg-danger';
             const toast = $(`
-                <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert">
+                <div class="toast align-items-center text-white ${bgClass} border-0" role="alert">
                     <div class="d-flex">
                         <div class="toast-body">${message}</div>
                         <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
                     </div>
                 </div>
             `);
-
             $('.toast-container').append(toast);
             new bootstrap.Toast(toast[0]).show();
-
             setTimeout(() => toast.remove(), 5000);
         }
     </script>
 }
-
-<!-- Toast Container -->
-<div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
