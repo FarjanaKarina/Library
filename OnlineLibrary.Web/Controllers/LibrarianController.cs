@@ -203,13 +203,19 @@ namespace OnlineLibrary.Web.Controllers
             // AUDIT LOG
             // =========================
             var userIdStr = HttpContext.Session.GetString("UserId");
-            if (userIdStr != null)
+            var roleIdStr = HttpContext.Session.GetString("RoleId");
+            if (userIdStr != null && roleIdStr != null)
             {
+                var roleName = _context.Roles
+                    .Where(r => r.RoleId == Guid.Parse(roleIdStr))
+                    .Select(r => r.RoleName)
+                    .FirstOrDefault() ?? "Librarian";
+
                 _context.AuditLogs.Add(new AuditLog
                 {
                     AuditLogId = Guid.NewGuid(),
                     ActorUserId = Guid.Parse(userIdStr),
-                    ActorRole = "Librarian",
+                    ActorRole = roleName,
                     Action = "Order Status Updated",
                     EntityName = "Order",
                     EntityId = orderId,
@@ -389,13 +395,19 @@ namespace OnlineLibrary.Web.Controllers
             // AUDIT LOG
             // =========================
             var userIdStr = HttpContext.Session.GetString("UserId");
-            if (userIdStr != null)
+            var roleIdStr = HttpContext.Session.GetString("RoleId");
+            if (userIdStr != null && roleIdStr != null)
             {
+                var roleName = _context.Roles
+                    .Where(r => r.RoleId == Guid.Parse(roleIdStr))
+                    .Select(r => r.RoleName)
+                    .FirstOrDefault() ?? "Librarian";
+
                 _context.AuditLogs.Add(new AuditLog
                 {
                     AuditLogId = Guid.NewGuid(),
                     ActorUserId = Guid.Parse(userIdStr),
-                    ActorRole = "Librarian",
+                    ActorRole = roleName,
                     Action = "Refund Processed",
                     EntityName = "OrderItem",
                     EntityId = orderItemId,
@@ -420,97 +432,6 @@ namespace OnlineLibrary.Web.Controllers
             return Json(new { success = true, refundAmount });
         }
 
-        // =========================
-        // REPORTS & ANALYTICS
-        // =========================
-        public IActionResult Reports()
-        {
-            if (!IsAuthorized())
-                return RedirectToAction("Login", "Account");
-
-            // 1. Monthly Sales Data (Last 12 Months)
-            var monthlySales = _context.Orders
-                .Where(o => o.PaymentStatus == "Success" && o.OrderDate >= DateTime.UtcNow.AddYears(-1))
-                .GroupBy(o => new { o.OrderDate.Year, o.OrderDate.Month })
-                .Select(g => new
-                {
-                    Year = g.Key.Year,
-                    Month = g.Key.Month,
-                    Total = g.Sum(o => o.TotalAmount)
-                })
-                .OrderBy(s => s.Year).ThenBy(s => s.Month)
-                .ToList();
-
-            var salesData = new ChartData();
-            var culture = CultureInfo.CreateSpecificCulture("en-US");
-            for (int i = 11; i >= 0; i--)
-            {
-                var date = DateTime.UtcNow.AddMonths(-i);
-                var monthData = monthlySales.FirstOrDefault(s => s.Year == date.Year && s.Month == date.Month);
-                salesData.Labels.Add(date.ToString("MMM yyyy", culture));
-                salesData.Data.Add(monthData?.Total ?? 0);
-            }
-                
-            // 2. Category Distribution (FIXED QUERY)
-            var categoryDistribution = (from oi in _context.OrderItems
-                                        join b in _context.Books on oi.BookId equals b.BookId
-                                        join c in _context.Categories on b.CategoryId equals c.CategoryId
-                                        group oi by c.CategoryName into g
-                                        select new
-                                        {
-                                            Category = g.Key,
-                                            Count = g.Sum(oi => oi.Quantity)
-                                        })
-                                        .OrderByDescending(c => c.Count)
-                                        .ToList();
-
-            var categoryData = new ChartData
-            {
-                Labels = categoryDistribution.Select(c => c.Category).ToList(),
-                Data = categoryDistribution.Select(c => (decimal)c.Count).ToList()
-            };
-
-            // 3. Top Selling Books
-            var topSellingBooks = _context.OrderItems
-                .GroupBy(oi => new { oi.BookId, oi.BookTitle })
-                .Select(g => new
-                {
-                    BookId = g.Key.BookId,
-                    Title = g.Key.BookTitle,
-                    Count = g.Sum(oi => oi.Quantity)
-                })
-                .OrderByDescending(b => b.Count)
-                .Take(5)
-                .Join(_context.Books,
-                      orderInfo => orderInfo.BookId,
-                      book => book.BookId,
-                      (orderInfo, book) => new BookPerformanceViewModel
-                      {
-                          Title = orderInfo.Title,
-                          OrderCount = orderInfo.Count,
-                          ImageUrl = book.ImageUrl
-                      })
-                .ToList();
-
-            // 4. Key Metrics
-            var metrics = new ReportMetricsViewModel
-            {
-                TotalRevenue = _context.Orders.Where(o => o.PaymentStatus == "Success").Sum(o => o.TotalAmount),
-                TotalOrders = _context.Orders.Count(o => o.PaymentStatus == "Success"),
-                TotalRefunds = _context.OrderItems.Where(oi => oi.Status == "Refunded").Sum(oi => oi.RefundAmount ?? 0),
-                ReturnedItems = _context.OrderItems.Count(oi => oi.Status == "Refunded" || oi.Status == "Received")
-            };
-
-            var model = new ReportViewModel
-            {
-                MonthlySales = salesData,
-                CategoryDistribution = categoryData,
-                TopSellingBooks = topSellingBooks,
-                Metrics = metrics
-            };
-
-            return View(model);
-        }
 
         // =========================
         // REFUND HISTORY (LIBRARIAN)
@@ -594,7 +515,8 @@ namespace OnlineLibrary.Web.Controllers
                 .Select(r => r.RoleName)
                 .FirstOrDefault();
 
-            return roleName == "Librarian" || roleName == "Admin"; // ✅ Already allows Admin!
+            ViewBag.CurrentRole = roleName;
+            return roleName == "Librarian" || roleName == "Admin";
         }
 
         private bool IsLibrarian() // Keep for specific librarian-only actions if any
@@ -611,69 +533,5 @@ namespace OnlineLibrary.Web.Controllers
             return roleName == "Librarian";
         }
 
-        // =========================
-        // READING ANALYTICS
-        // =========================
-        public IActionResult ReadingAnalytics()
-        {
-            if (!IsAuthorized())
-                return RedirectToAction("Login", "Account");
-
-            var today = DateTime.UtcNow.Date;
-            var weekAgo = DateTime.UtcNow.AddDays(-7);
-
-            // Get all reading activity (books with LastReadAt set)
-            var readingData = (from w in _context.Wishlists
-                               join b in _context.Books on w.BookId equals b.BookId
-                               join u in _context.Users on w.UserId equals u.UserId
-                               where w.LastReadAt != null
-                               select new
-                               {
-                                   w.BookId,
-                                   b.Title,
-                                   b.Author,
-                                   b.ImageUrl,
-                                   w.UserId,
-                                   u.FullName,
-                                   u.Email,
-                                   w.LastReadAt
-                               }).ToList();
-
-            // Group by book
-            var bookStats = readingData
-                .GroupBy(r => new { r.BookId, r.Title, r.Author, r.ImageUrl })
-                .Select(g => new BookReadingStats
-                {
-                    BookId = g.Key.BookId,
-                    Title = g.Key.Title,
-                    Author = g.Key.Author,
-                    ImageUrl = g.Key.ImageUrl,
-                    ReaderCount = g.Count(),
-                    LastReadTime = g.Max(x => x.LastReadAt),
-                    Readers = g.Select(x => new ReaderInfo
-                    {
-                        UserId = x.UserId,
-                        FullName = x.FullName,
-                        Email = x.Email,
-                        LastReadAt = x.LastReadAt
-                    })
-                    .OrderByDescending(x => x.LastReadAt)
-                    .ToList()
-                })
-                .OrderByDescending(b => b.ReaderCount)
-                .ThenByDescending(b => b.LastReadTime)
-                .ToList();
-
-            var model = new ReadingAnalyticsViewModel
-            {
-                TotalActiveReaders = readingData.Select(r => r.UserId).Distinct().Count(),
-                TotalBooksBeingRead = bookStats.Count,
-                ReadersToday = readingData.Count(r => r.LastReadAt >= today),
-                ReadersThisWeek = readingData.Count(r => r.LastReadAt >= weekAgo),
-                BookStats = bookStats
-            };
-
-            return View(model);
-        }
     }
 }

@@ -4,7 +4,8 @@
     // Dynamic layout selection logic
     string layout = "_AppLayout";
     if (ViewBag.CurrentRole == "Student") { layout = "_StudentLayout"; }
-    else if (ViewBag.CurrentRole == "Admin" || ViewBag.CurrentRole == "Librarian") { layout = "_LibrarianLayout"; }
+    else if (ViewBag.CurrentRole == "Admin") { layout = "_AdminLayout"; }
+    else if (ViewBag.CurrentRole == "Librarian") { layout = "_LibrarianLayout"; }
     Layout = layout;
 
     ViewData["Title"] = Model.Title;
@@ -89,24 +90,12 @@
                     </div>
                 </div>
             </div>
-            <!-- Back button for Admins/Librarians remains at the top -->
-            @if (ViewBag.CurrentRole == "Admin" || ViewBag.CurrentRole == "Librarian")
-            {
-                <div class="mt-4 d-flex justify-content-end">
-                <a asp-controller="Book" asp-action="Index" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left"></i> Back to List
-                </a>
-                </div>
-            }
-            <!-- === ADDED: Back button for Students and Guests at the bottom-right === -->
-            @if (ViewBag.CurrentRole != "Admin" && ViewBag.CurrentRole != "Librarian")
-            {
-                <div class="mt-4 d-flex justify-content-end">
-                    <button class="btn btn-secondary" onclick="history.back()">
-                        <i class="bi bi-arrow-left"></i> Back
-                    </button>
-                </div>
-            }
+            <!-- === MODIFIED: Dynamic Back button for all roles === -->
+            <div class="mt-4 d-flex justify-content-end">
+                <button class="btn btn-secondary" onclick="window.history.length > 1 ? history.back() : window.location.href='@Url.Action("Index", "Home")'">
+                    <i class="bi bi-arrow-left"></i> @(ViewBag.CurrentRole == "Admin" || ViewBag.CurrentRole == "Librarian" ? "Back to Previous" : "Back")
+                </button>
+            </div>
         </div>
     </div>
 </div>

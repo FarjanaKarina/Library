@@ -1,5 +1,6 @@
 ﻿@{
-    Layout = "_LibrarianLayout";
+    var currentRole = ViewBag.CurrentRole as string;
+    Layout = currentRole == "Admin" ? "_AdminLayout" : "_LibrarianLayout";
     ViewData["Title"] = "Order Details";
 
     var order = ViewBag.Order as OnlineLibrary.Infrastructure.Domain.Entities.Order;
@@ -298,7 +299,7 @@
             }
 
             if (confirm(`Update order status to "${newStatus}"?`)) {
-                $.post('@Url.Action("UpdateOrderStatus", "Librarian")', {
+                $.post('@Url.Action("UpdateOrderStatus", ViewContext.RouteData.Values["controller"].ToString())', {
                     orderId: orderId,
                     newStatus: newStatus
                 }, function (res) {

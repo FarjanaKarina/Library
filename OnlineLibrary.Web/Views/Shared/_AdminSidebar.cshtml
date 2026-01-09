@@ -1,9 +1,7 @@
 ﻿<div class="p-3">
-
-    <h5 class="mb-4">Admin Panel</h5>
+    <h5 class="mb-4">🔐 Admin Panel</h5>
 
     <ul class="nav flex-column gap-2">
-
         <li>
             <a asp-controller="Admin" asp-action="Dashboard" class="nav-link text-white">
                 <i class="bi bi-speedometer2 me-2"></i> Dashboard
@@ -11,14 +9,8 @@
         </li>
 
         <li>
-            <a asp-controller="Admin" asp-action="Users" class="nav-link text-white">
-                <i class="bi bi-people me-2"></i> Users
-            </a>
-        </li>
-
-        <li>
             <a asp-controller="Book" asp-action="Index" class="nav-link text-white">
-                <i class="bi bi-book me-2"></i> Books
+                <i class="bi bi-book me-2"></i> Manage Books
             </a>
         </li>
 
@@ -28,9 +20,31 @@
             </a>
         </li>
 
+        <li class="mt-2"><small class="text-secondary text-uppercase xsmall">Operations</small></li>
+
         <li>
-            <a asp-controller="Admin" asp-action="Memberships" class="nav-link text-white">
-                <i class="bi bi-person-check me-2"></i> Memberships
+            <a asp-controller="Admin" asp-action="Orders" class="nav-link text-white">
+                <i class="bi bi-box-seam me-2"></i> All Orders
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Admin" asp-action="ReturnRequests" class="nav-link text-white">
+                <i class="bi bi-arrow-return-left me-2"></i> Return Requests
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Admin" asp-action="Refunds" class="nav-link text-white">
+                <i class="bi bi-cash-coin me-2"></i> Refund History
+            </a>
+        </li>
+
+        <li class="mt-2"><small class="text-secondary text-uppercase xsmall">Management</small></li>
+
+        <li>
+            <a asp-controller="Admin" asp-action="Librarians" class="nav-link text-white">
+                <i class="bi bi-person-badge me-2"></i> Manage Librarians
             </a>
         </li>
 
@@ -41,8 +55,8 @@
         </li>
 
         <li>
-            <a asp-controller="Admin" asp-action="SystemSettings" class="nav-link text-white">
-                <i class="bi bi-gear me-2"></i> System Settings
+            <a asp-controller="Admin" asp-action="ReadingAnalytics" class="nav-link text-white">
+                <i class="bi bi-book-half me-2"></i> Reading Analytics
             </a>
         </li>
 

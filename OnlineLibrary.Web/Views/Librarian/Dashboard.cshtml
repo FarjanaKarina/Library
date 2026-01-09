@@ -1,10 +1,12 @@
 ﻿@model OnlineLibrary.Web.Models.LibrarianDashboardViewModel
 @{
-    Layout = "_LibrarianLayout";
+    var currentRole = ViewBag.CurrentRole as string;
+    Layout = currentRole == "Admin" ? "_AdminLayout" : "_LibrarianLayout";
+    ViewData["Title"] = (currentRole == "Admin" ? "Admin" : "Librarian") + " Operations Dashboard";
 }
 
 <div class="container mt-4">
-    <h2>Librarian Dashboard</h2>
+    <h2>@(currentRole == "Admin" ? "Admin" : "Librarian") Operations Dashboard</h2>
 
     <!-- SUMMARY CARDS -->
     <div class="row mb-4">

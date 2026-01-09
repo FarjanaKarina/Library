@@ -600,7 +600,8 @@ namespace OnlineLibrary.Web.Controllers
                 .Select(r => r.RoleName)
                 .FirstOrDefault();
 
-            return roleName == "Admin" || roleName == "Librarian";
+            ViewBag.CurrentRole = roleName;
+    return roleName == "Admin" || roleName == "Librarian";
         }
 
 

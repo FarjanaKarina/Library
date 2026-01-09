@@ -18,7 +18,7 @@ namespace OnlineLibrary.Web.Controllers
         // =========================
         public IActionResult Index()
         {
-            if (!IsAdmin())
+            if (!IsAuthorized())
                 return RedirectToAction("Login", "Account");
 
             var categories = _context.Categories
@@ -33,7 +33,7 @@ namespace OnlineLibrary.Web.Controllers
         // =========================
         public IActionResult Create()
         {
-            if (!IsAdmin())
+            if (!IsAuthorized())
                 return RedirectToAction("Login", "Account");
 
             var maxOrderNo = _context.Categories.Any()
@@ -52,7 +52,7 @@ namespace OnlineLibrary.Web.Controllers
         [HttpPost]
         public IActionResult Create(Category model)
         {
-            if (!IsAdmin())
+            if (!IsAuthorized())
                 return RedirectToAction("Login", "Account");
 
             // Trim inputs
@@ -95,7 +95,7 @@ namespace OnlineLibrary.Web.Controllers
         // =========================
         public IActionResult Edit(Guid id)
         {
-            if (!IsAdmin())
+            if (!IsAuthorized())
                 return RedirectToAction("Login", "Account");
 
             var category = _context.Categories.Find(id);
@@ -118,7 +118,7 @@ namespace OnlineLibrary.Web.Controllers
         [HttpPost]
         public IActionResult Edit(Category model)
         {
-            if (!IsAdmin())
+            if (!IsAuthorized())
                 return RedirectToAction("Login", "Account");
 
             var categoryName = model.CategoryName?.Trim();
@@ -169,7 +169,7 @@ namespace OnlineLibrary.Web.Controllers
         [HttpPost]
         public IActionResult Delete(Guid id)
         {
-            if (!IsAdmin())
+            if (!IsAuthorized())
                 return RedirectToAction("Login", "Account");
 
             var category = _context.Categories.Find(id);
@@ -184,9 +184,9 @@ namespace OnlineLibrary.Web.Controllers
 
 
         // =========================
-        // ADMIN CHECK
+        // ROLE CHECK
         // =========================
-        private bool IsAdmin()
+        private bool IsAuthorized()
         {
             var roleId = HttpContext.Session.GetString("RoleId");
             if (string.IsNullOrEmpty(roleId))
@@ -197,7 +197,8 @@ namespace OnlineLibrary.Web.Controllers
                 .Select(r => r.RoleName)
                 .FirstOrDefault();
 
-            return roleName == "Admin";
+            ViewBag.CurrentRole = roleName;
+    return roleName == "Admin" || roleName == "Librarian";
         }
     }
 }

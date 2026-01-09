@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Online Library";
-    
+
     // Use StudentLayout if logged in as Student, otherwise use AppLayout
     var currentRole = ViewBag.CurrentRole as string;
     if (currentRole == "Student")
@@ -23,147 +23,146 @@
     }
 }
 
-@if (ViewBag.CurrentRole != "Admin" && ViewBag.CurrentRole != "Librarian")
-{
-    <!-- =========================
-         HERO + SEARCH
-    ========================= -->
-    <section class="hero-section">
 
-        <!-- SEARCH BAR -->
-        <div class="hero-search" id="topSearch">
-            <div class="search-box">
-                <input type="text"
-                       id="searchInput"
-                       placeholder="Search by title, author, publisher or category" />
-                <button type="button">
-                    <i class="bi bi-search"></i>
-                </button>
-            </div>
+<!-- =========================
+     HERO + SEARCH
+========================= -->
+<section class="hero-section">
+
+    <!-- SEARCH BAR -->
+    <div class="hero-search" id="topSearch">
+        <div class="search-box">
+            <input type="text"
+                   id="searchInput"
+                   placeholder="Search by title, author, publisher or category" />
+            <button type="button">
+                <i class="bi bi-search"></i>
+            </button>
         </div>
+    </div>
 
-        <!-- FEATURED CAROUSEL -->
-        <div id="featuredCarousel"
-             class="carousel slide hero-carousel"
-             data-bs-ride="carousel">
+    <!-- FEATURED CAROUSEL -->
+    <div id="featuredCarousel"
+         class="carousel slide hero-carousel"
+         data-bs-ride="carousel">
 
-            <div class="carousel-inner">
-                @{
-                    var isFirst = true;
-                }
+        <div class="carousel-inner">
+            @{
+                var isFirst = true;
+            }
 
-                @foreach (var book in Model.FeaturedBooks)
-                {
-                    <div class="carousel-item @(isFirst ? "active" : "")">
-                        @{
-                            isFirst = false;
-                        }
+            @foreach (var book in Model.FeaturedBooks)
+            {
+                <div class="carousel-item @(isFirst ? "active" : "")">
+                    @{
+                        isFirst = false;
+                    }
 
-                        <div class="row align-items-center">
+                    <div class="row align-items-center">
 
-                            <!-- LEFT -->
-                            <div class="col-md-6 px-5">
-                                <span class="hero-badge">New Release</span>
+                        <!-- LEFT -->
+                        <div class="col-md-6 px-5">
+                            <span class="hero-badge">New Release</span>
 
-                                <h1 class="hero-title">@book.Title</h1>
+                            <h1 class="hero-title">@book.Title</h1>
 
-                                <p class="hero-text mt-3">
-                                    @book.Description
-                                </p>
+                            <p class="hero-text mt-3">
+                                @book.Description
+                            </p>
 
-                                <div class="mt-4 d-flex gap-3 flex-wrap">
+                            <div class="mt-4 d-flex gap-3 flex-wrap">
+                                <a asp-controller="Book"
+                                   asp-action="Details"
+                                   asp-route-id="@book.BookId"
+                                   class="hero-btn">
+                                    View Details
+                                </a>
+
+                                @if (!string.IsNullOrEmpty(book.PdfUrl))
+                                {
                                     <a asp-controller="Book"
                                        asp-action="Details"
                                        asp-route-id="@book.BookId"
-                                       class="hero-btn">
-                                        View Details
+                                       class="hero-btn-outline">
+                                        Read Online
                                     </a>
-
-                                    @if (!string.IsNullOrEmpty(book.PdfUrl))
-                                    {
-                                        <a asp-controller="Book"
-                                           asp-action="Details"
-                                           asp-route-id="@book.BookId"
-                                           class="hero-btn-outline">
-                                            Read Online
-                                        </a>
-                                    }
-                                </div>
-                            </div>
-
-                            <!-- RIGHT -->
-                            <div class="col-md-6 text-center">
-                                <img src="@book.ImageUrl"
-                                     class="hero-book-img"
-                                     alt="@book.Title" />
+                                }
                             </div>
                         </div>
+
+                        <!-- RIGHT -->
+                        <div class="col-md-6 text-center">
+                            <img src="@book.ImageUrl"
+                                 class="hero-book-img"
+                                 alt="@book.Title" />
+                        </div>
                     </div>
-                }
+                </div>
+            }
+        </div>
+
+        <!-- ARROWS -->
+        <button class="carousel-control-prev"
+                type="button"
+                data-bs-target="#featuredCarousel"
+                data-bs-slide="prev">
+            <span class="hero-arrow">&#10094;</span>
+        </button>
+
+        <button class="carousel-control-next"
+                type="button"
+                data-bs-target="#featuredCarousel"
+                data-bs-slide="next">
+            <span class="hero-arrow">&#10095;</span>
+        </button>
+    </div>
+</section>
+
+<!-- =========================
+     STORE BENEFITS
+========================= -->
+<section class="store-benefits">
+    <div class="container">
+        <div class="row text-center">
+
+            <div class="col-md-3 col-6 mb-4">
+                <i class="bi bi-truck benefit-icon"></i>
+                <h6>Fast Delivery</h6>
+                <p>Quick and reliable delivery.</p>
             </div>
 
-            <!-- ARROWS -->
-            <button class="carousel-control-prev"
-                    type="button"
-                    data-bs-target="#featuredCarousel"
-                    data-bs-slide="prev">
-                <span class="hero-arrow">&#10094;</span>
-            </button>
-
-            <button class="carousel-control-next"
-                    type="button"
-                    data-bs-target="#featuredCarousel"
-                    data-bs-slide="next">
-                <span class="hero-arrow">&#10095;</span>
-            </button>
-        </div>
-    </section>
-
-    <!-- =========================
-         STORE BENEFITS
-    ========================= -->
-    <section class="store-benefits">
-        <div class="container">
-            <div class="row text-center">
-
-                <div class="col-md-3 col-6 mb-4">
-                    <i class="bi bi-truck benefit-icon"></i>
-                    <h6>Fast Delivery</h6>
-                    <p>Quick and reliable delivery.</p>
-                </div>
-
-                <div class="col-md-3 col-6 mb-4">
-                    <i class="bi bi-book benefit-icon"></i>
-                    <h6>Read Sample</h6>
-                    <p>Preview before purchase.</p>
-                </div>
-
-                <div class="col-md-3 col-6 mb-4">
-                    <i class="bi bi-shield-lock benefit-icon"></i>
-                    <h6>Secure Payment</h6>
-                    <p>Safe & trusted methods.</p>
-                </div>
-
-                <div class="col-md-3 col-6 mb-4">
-                    <i class="bi bi-arrow-repeat benefit-icon"></i>
-                    <h6>Easy Returns</h6>
-                    <p>Hassle-free policy.</p>
-                </div>
-
+            <div class="col-md-3 col-6 mb-4">
+                <i class="bi bi-book benefit-icon"></i>
+                <h6>Read Sample</h6>
+                <p>Preview before purchase.</p>
             </div>
-        </div>
-    </section>
 
-    <!-- =========================
-         BEST SELLING / TOP RATED
-    ========================= -->
+            <div class="col-md-3 col-6 mb-4">
+                <i class="bi bi-shield-lock benefit-icon"></i>
+                <h6>Secure Payment</h6>
+                <p>Safe & trusted methods.</p>
+            </div>
+
+            <div class="col-md-3 col-6 mb-4">
+                <i class="bi bi-arrow-repeat benefit-icon"></i>
+                <h6>Easy Returns</h6>
+                <p>Hassle-free policy.</p>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- =========================
+     BEST SELLING / TOP RATED
+========================= -->
     <section class="best-selling-section">
         <div class="container my-5">
 
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h3 class="fw-bold">Best Selling Books</h3>
-                <a asp-controller="Book"
-                   asp-action="Browse"
+                <a asp-controller="Home"
+                   asp-action="BestSellers"
                    class="btn btn-danger rounded-pill px-4">
                     View All
                 </a>
@@ -185,12 +184,12 @@
                                        asp-action="Details"
                                        asp-route-id="@book.BookId"
                                        class="icon-btn">
-                                        <i class="bi bi-book"></i>
+                                        <i class="bi bi-eye"></i>
                                     </a>
 
                                     <button class="icon-btn"
-                                            onclick="toggleWishlist('@book.BookId', this)">
-                                        <i class="bi bi-heart"></i>
+                                            onclick="addToCart('@book.BookId')">
+                                        <i class="bi bi-cart-plus"></i>
                                     </button>
                                 </div>
                             </div>
@@ -198,7 +197,6 @@
                             <div class="best-book-info">
                                 <h6>@book.Title</h6>
                                 <small>@book.Author</small>
-                                <div class="text-warning">★★★★★</div>
                                 <div class="price">@book.Price.ToString("0.00") TK</div>
                             </div>
                         </div>
@@ -209,281 +207,322 @@
             </div>
         </div>
     </section>
+<!-- =========================
+       EXPLORE OUR COLLECTION
+  ========================= -->
+<section class="container my-5 text-center">
 
-    <!-- =========================
-         EXPLORE OUR COLLECTION
-    ========================= -->
-    <section class="container my-5 text-center">
+    <h2 class="fw-bold mb-1">Explore Our Collection</h2>
+    <p class="text-muted mb-4">
+        Discover a wide range of books from our library collection
+    </p>
 
-        <h2 class="fw-bold mb-1">Explore Our Collection</h2>
-        <p class="text-muted mb-4">
-            Discover a wide range of books from our library collection
-        </p>
+    <div class="row g-4 text-start">
+        @foreach (var book in Model.ExploreBooks)
+        {
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="book-card">
+                    <!-- Book Image -->
+                    <div class="book-image-container">
+                        <img src="@(book.ImageUrl ?? "/images/default-book.png")"
+                             alt="@book.Title"
+                             class="book-image"
+                             onerror="this.src='/images/default-book.png'" />
 
-        <div class="collection-grid">
-            @foreach (var book in Model.ExploreBooks)
+                        <!-- Hover Icons - Matching Landing Page Style -->
+                        <div class="hover-icons">
+                            <button class="icon-btn"
+                                    onclick="addToCart('@book.BookId')"
+                                    title="Add to Cart">
+                                <i class="bi bi-cart-plus"></i>
+                            </button>
+                            <button class="icon-btn wishlist-icon-btn"
+                                    onclick="toggleWishlist('@book.BookId', this)"
+                                    title="Add to Wishlist">
+                                <i class="bi bi-heart"></i>
+                            </button>
+                        </div>
+
+                        <!-- Availability Badge -->
+                        @if (book.AvailableCopies > 0)
+                        {
+                            <span class="badge bg-success availability-badge">
+                                <i class="bi bi-check-circle"></i> Available
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger availability-badge">
+                                <i class="bi bi-x-circle"></i> Out of Stock
+                            </span>
+                        }
+                    </div>
+
+                    <!-- Book Info -->
+                    <div class="book-info">
+                        <h6 class="book-title" title="@book.Title">@book.Title</h6>
+                        <p class="book-author">
+                            <i class="bi bi-person"></i> @book.Author
+                        </p>
+
+                        <div class="book-meta">
+                            <div class="book-price">
+                                <i class="bi bi-tag-fill"></i> ৳@book.Price.ToString("N0")
+                            </div>
+                            <div class="book-stock text-muted">
+                                <i class="bi bi-box"></i> @book.AvailableCopies left
+                            </div>
+                        </div>
+
+                        <a asp-controller="Book"
+                           asp-action="Details"
+                           asp-route-id="@book.BookId"
+                           class="btn btn-outline-primary btn-sm w-100">
+                            <i class="bi bi-eye"></i> View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="mt-4">
+        <a asp-controller="Home"
+           asp-action="Browse"
+           class="discover-btn">
+            DISCOVER MORE BOOKS
+        </a>
+    </div>
+</section>
+<!-- =========================
+     SECTION: ABOUT BOOKNEST (HOME)
+========================= -->
+<section class="home-about-section py-5" id="about-section">
+    <div class="container">
+
+        <div class="row align-items-start">
+
+            <!-- LEFT COLUMN -->
+            <div class="col-lg-6 pe-lg-5">
+
+                <h2 class="about-heading mb-4">
+                    Welcome to <span class="text-danger">BookNest</span>
+                </h2>
+                <p class="text-muted mb-4">
+                    BookNest is a modern, user-centric online book platform designed to
+                    bridge the gap between traditional libraries and contemporary digital
+                    commerce. Our system enables readers to explore a vast collection of
+                    physical books, read selected samples online, and securely place
+                    purchase orders from anywhere.
+                </p>
+                <p class="text-muted mb-4">
+                    Unlike conventional online stores, BookNest emphasizes structured
+                    book management, transparent order tracking, and librarian-controlled
+                    fulfillment. Readers can browse by category, author, or publisher,
+                    view detailed book information, and make informed purchasing decisions
+                    before placing an order.
+                </p>
+                <!-- IMAGE BELOW TEXT -->
+                <div class="about-image-wrapper mt-4">
+                    <img src="/images/about-image.jpg"
+                         class="img-fluid rounded shadow-lg"
+                         alt="BookNest Library" />
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div class="col-lg-6 ps-lg-5 mt-5 mt-lg-0">
+                <!-- OUR VISION -->
+                <h3 class="about-subheading mb-3">
+                    Our Vision
+                </h3>
+
+                <p class="about-text mb-3">
+                    We envision BookNest as a trusted digital destination where
+                    readers can seamlessly discover, purchase, and enjoy books
+                    without complexity or barriers.
+                </p>
+
+                <!-- QUOTE STYLE -->
+                <blockquote class="about-quote mb-4">
+                    Empowering readers through accessible books, transparent systems,
+                    and thoughtful design.
+                </blockquote>
+
+                <p class="about-text mb-4">
+                    Our goal is to bridge the gap between traditional libraries and
+                    modern e-commerce by providing a system that respects books as
+                    valuable assets while making them easier to access and manage.
+                </p>
+
+                <!-- HOW IT WORKS (WORKFLOW) -->
+                <h3 class="about-subheading mb-3">
+                    How It Works
+                </h3>
+
+                <div class="workflow-steps mb-4">
+                    <div class="workflow-step d-flex mb-3">
+                        <div class="step-num me-3">1</div>
+                        <div>
+                            <strong>Explore & Discover</strong>
+                            <p class="small text-muted mb-0">Browse through categories, authors, or use the search bar to find your favorite books.</p>
+                        </div>
+                    </div>
+                    <div class="workflow-step d-flex mb-3">
+                        <div class="step-num me-3">2</div>
+                        <div>
+                            <strong>Read Samples</strong>
+                            <p class="small text-muted mb-0">Get a taste of the book by reading curated samples directly on our platform before deciding.</p>
+                        </div>
+                    </div>
+                    <div class="workflow-step d-flex mb-3">
+                        <div class="step-num me-3">3</div>
+                        <div>
+                            <strong>Secure Purchase</strong>
+                            <p class="small text-muted mb-0">Add books to your cart and complete your purchase using our secure SSLCommerz payment gateway.</p>
+                        </div>
+                    </div>
+                    <div class="workflow-step d-flex mb-3">
+                        <div class="step-num me-3">4</div>
+                        <div>
+                            <strong>Track & Receive</strong>
+                            <p class="small text-muted mb-0">Follow your order status in real-time until it is delivered to your doorstep by our librarians.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- OUR MISSION -->
+                <h3 class="about-subheading mb-3">
+                    Our Mission
+                </h3>
+
+                <p class="about-text mb-3">
+                    Our mission is to build a reliable, user-friendly platform that
+                    enables readers to explore books, read curated samples, purchase
+                    securely, and track their orders effortlessly.
+                </p>
+
+                <p class="about-text mb-3">
+                    We focus on simplicity, security, and clarity—ensuring every user,
+                    from casual readers to administrators and librarians, can interact
+                    with the system efficiently and confidently.
+                </p>
+
+                <p class="about-text">
+                    By combining technology with a love for books, BookNest aims to
+                    redefine how readers connect with stories in the digital age.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+</section>
+<!-- =========================
+     SECTION 7: MEET OUR LIBRARIANS (MINIMALIST)
+========================= -->
+<section class="librarian-section py-5 bg-white">
+    <div class="container text-center">
+        <h2 class="section-title fw-bold mb-5">Meet Our Librarians</h2>
+        
+        <div class="row g-3 justify-content-center">
+            @foreach (var lib in Model.Librarians)
             {
-                <div class="collection-item">
-                    <img src="@book.ImageUrl"
-                         onerror="this.src='/images/no-book.png'" />
-
-                    <div class="collection-meta">
-                        <p class="book-title">@book.Title</p>
-                        <div class="book-rating">★★★★★</div>
-                        <p class="book-price">@book.Price.ToString("0.00") TK</p>
+                <div class="col-lg-3 col-md-4">
+                    <div class="librarian-minimal-card">
+                        <div class="lib-image-wrapper mx-auto mb-4">
+                            <img src="@(string.IsNullOrEmpty(lib.ImageUrl) || lib.ImageUrl == "/images/librarian-placeholder.png" ? "/images/sara.jpg" : lib.ImageUrl)" 
+                                 alt="@lib.FullName" 
+                                 class="lib-img-circle shadow-sm" 
+                                 onerror="this.src='/images/sara.jpg'"/>
+                        </div>
+                        <h5 class="lib-name fw-bold mb-1">@lib.FullName</h5>
+                        <p class="lib-role text-muted text-uppercase small ls-1">@lib.Role</p>
                     </div>
                 </div>
             }
         </div>
+    </div>
+</section>
 
-        <div class="mt-4">
-            <a asp-controller="Book"
-               asp-action="Explore"
-               class="discover-btn">
-                DISCOVER MORE BOOKS
-            </a>
-        </div>
-    </section>
-    <!-- =========================
-         SECTION: ABOUT BOOKNEST (HOME)
-    ========================= -->
-    <section class="home-about-section py-5" id="about-section">
-        <div class="container">
+<!-- =========================
+     CONTACT US
+========================= -->
+<section class="contact-section py-5" id="contact-section">
+    <div class="container">
+        <div class="row align-items-center">
 
-            <div class="row align-items-start">
+            <!-- LEFT INFO -->
+            <div class="col-md-5 mb-4 mb-md-0">
+                <h2 class="fw-bold mb-3">Get In Touch</h2>
 
-                <!-- LEFT COLUMN -->
-                <div class="col-lg-6 pe-lg-5">
-
-                    <h2 class="about-heading mb-4">
-                        Welcome to <span class="text-danger">BookNest</span>
-                    </h2>
-                    <p class="text-muted mb-4">
-                        BookNest is a modern, user-centric online book platform designed to
-                        bridge the gap between traditional libraries and contemporary digital
-                        commerce. Our system enables readers to explore a vast collection of
-                        physical books, read selected samples online, and securely place
-                        purchase orders from anywhere.
-                    </p>
-                    <!-- IMAGE BELOW TEXT -->
-                    <div class="about-image-wrapper mt-4">
-                        <img src="/images/about-image.jpg"
-                             class="img-fluid rounded shadow-lg"
-                             alt="BookNest Library" />
-                    </div>
-
-                </div>
-
-                <!-- RIGHT COLUMN -->
-                <div class="col-lg-6 ps-lg-5 mt-lg-4">
-                    <p class="text-muted mb-4">
-                        Unlike conventional online stores, BookNest emphasizes structured
-                        book management, transparent order tracking, and librarian-controlled
-                        fulfillment. Readers can browse by category, author, or publisher,
-                        view detailed book information, and make informed purchasing decisions
-                        before placing an order.
-                    </p>
-                    <!-- OUR VISION -->
-                    <h3 class="about-subheading mb-3">
-                        Our Vision
-                    </h3>
-
-                    <p class="about-text mb-3">
-                        We envision BookNest as a trusted digital destination where
-                        readers can seamlessly discover, purchase, and enjoy books
-                        without complexity or barriers.
-                    </p>
-
-                    <!-- QUOTE STYLE -->
-                    <blockquote class="about-quote mb-4">
-                        Empowering readers through accessible books, transparent systems,
-                        and thoughtful design.
-                    </blockquote>
-
-                    <p class="about-text mb-4">
-                        Our goal is to bridge the gap between traditional libraries and
-                        modern e-commerce by providing a system that respects books as
-                        valuable assets while making them easier to access and manage.
-                    </p>
-                    
-                    <!-- OUR MISSION -->
-                    <h3 class="about-subheading mb-3">
-                        Our Mission
-                    </h3>
-
-                    <p class="about-text mb-3">
-                        Our mission is to build a reliable, user-friendly platform that
-                        enables readers to explore books, read curated samples, purchase
-                        securely, and track their orders effortlessly.
-                    </p>
-
-                    <p class="about-text mb-3">
-                        We focus on simplicity, security, and clarity—ensuring every user,
-                        from casual readers to administrators and librarians, can interact
-                        with the system efficiently and confidently.
-                    </p>
-
-                    <p class="about-text">
-                        By combining technology with a love for books, BookNest aims to
-                        redefine how readers connect with stories in the digital age.
-                    </p>
-
-                </div>
-
-            </div>
-
-        </div>
-    </section>
-
-    <!-- =========================
-         MEET OUR LIBRARIANS
-    ========================= -->
-    <section class="librarian-section py-5">
-        <div class="container">
-
-            <!-- SECTION HEADER -->
-            <div class="text-center mb-5">
-                <h2 class="fw-bold">Meet Our Librarians</h2>
-                <p class="text-muted mt-2">
-                    The professionals behind BookNest who manage collections, orders, and deliveries.
+                <p class="text-muted mb-4">
+                    Have questions about books, orders, deliveries, or support?
+                    Our team is here to help you every step of the way.
                 </p>
-            </div>
 
-            <div class="row justify-content-center g-4">
-
-                @if (Model.Librarians != null && Model.Librarians.Any())
-                {
-                    @foreach (var lib in Model.Librarians)
-                    {
-                        <div class="col-lg-4 col-md-6">
-                            <div class="librarian-card text-center h-100">
-                                <img src="@(string.IsNullOrEmpty(lib.ImageUrl) ? "/images/sara.jpg" : lib.ImageUrl)"
-                                     class="librarian-img"
-                                     alt="@lib.FullName" />
-
-                                <h5 class="mt-3 mb-1">@lib.FullName</h5>
-                                <p class="text-danger fw-semibold small mb-2">@lib.Role</p>
-
-                                <p class="text-muted small px-3">
-                                    Responsible for managing book inventory, approving orders,
-                                    and ensuring timely delivery to readers.
-                                </p>
-                            </div>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <!-- FALLBACK STATIC CONTENT -->
-                    <div class="col-lg-4 col-md-6">
-                        <div class="librarian-card text-center h-100">
-                            <img src="/images/liba.jpg" class="librarian-img" alt="Head Librarian" />
-                            <h5 class="mt-3 mb-1">Sarah Jenkins</h5>
-                            <p class="text-danger fw-semibold small mb-2">Head Librarian</p>
-                            <p class="text-muted small px-3">
-                                Oversees library operations, verifies orders, and coordinates deliveries.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <div class="librarian-card text-center h-100">
-                            <img src="/images/janne.jpg" class="librarian-img" alt="Senior Librarian" />
-                            <h5 class="mt-3 mb-1">David Chen</h5>
-                            <p class="text-danger fw-semibold small mb-2">Senior Librarian</p>
-                            <p class="text-muted small px-3">
-                                Manages catalog accuracy, stock updates, and order fulfillment records.
-                            </p>
-                        </div>
-                    </div>
-                }
-
-            </div>
-        </div>
-    </section>
-    <!-- =========================
-         CONTACT US
-    ========================= -->
-    <section class="contact-section py-5" id="contact-section">
-        <div class="container">
-            <div class="row align-items-center">
-
-                <!-- LEFT INFO -->
-                <div class="col-md-5 mb-4 mb-md-0">
-                    <h2 class="fw-bold mb-3">Get In Touch</h2>
-
-                    <p class="text-muted mb-4">
-                        Have questions about books, orders, deliveries, or support?
-                        Our team is here to help you every step of the way.
-                    </p>
-
-                    <div class="contact-item">
-                        <i class="bi bi-geo-alt"></i>
-                        <div>
-                            <strong>Our Location</strong>
-                            <p class="mb-0">Dhaka, Bangladesh</p>
-                        </div>
-                    </div>
-
-                    <div class="contact-item">
-                        <i class="bi bi-telephone"></i>
-                        <div>
-                            <strong>Call Us</strong>
-                            <p class="mb-0">+880 1234 567 890</p>
-                        </div>
-                    </div>
-
-                    <div class="contact-item">
-                        <i class="bi bi-envelope"></i>
-                        <div>
-                            <strong>Email</strong>
-                            <p class="mb-0">support@booknest.com</p>
-                        </div>
-                    </div>
-
-                    <div class="contact-social mt-4">
-                        <a href="#"><i class="bi bi-facebook"></i></a>
-                        <a href="#"><i class="bi bi-twitter"></i></a>
-                        <a href="#"><i class="bi bi-instagram"></i></a>
-                        <a href="#"><i class="bi bi-youtube"></i></a>
+                <div class="contact-item">
+                    <i class="bi bi-geo-alt"></i>
+                    <div>
+                        <strong>Our Location</strong>
+                        <p class="mb-0">Dhaka, Bangladesh</p>
                     </div>
                 </div>
 
-                <!-- RIGHT FORM -->
-                <div class="col-md-7">
-                    <div class="card shadow-sm border-0 p-4">
-                        <h5 class="fw-bold mb-3">Send Us a Message</h5>
+                <div class="contact-item">
+                    <i class="bi bi-telephone"></i>
+                    <div>
+                        <strong>Call Us</strong>
+                        <p class="mb-0">+880 1234 567 890</p>
+                    </div>
+                </div>
 
-                        <form>
-                            <div class="mb-3">
-                                <input class="form-control" placeholder="Your Name" />
-                            </div>
+                <div class="contact-item">
+                    <i class="bi bi-envelope"></i>
+                    <div>
+                        <strong>Email</strong>
+                        <p class="mb-0">support@booknest.com</p>
+                    </div>
+                </div>
+            </div>
 
-                            <div class="mb-3">
-                                <input type="email" class="form-control" placeholder="Your Email" />
-                            </div>
+            <!-- RIGHT FORM -->
+            <div class="col-md-7">
+                <div class="card shadow-sm border-0 p-4">
+                    <h5 class="fw-bold mb-3">Send Us a Message</h5>
 
-                            <div class="mb-3">
-                                <input class="form-control" placeholder="Subject" />
-                            </div>
+                    <form>
+                        <div class="mb-3">
+                            <input class="form-control" placeholder="Your Name" />
+                        </div>
 
-                            <div class="mb-3">
-                                <textarea class="form-control"
+                        <div class="mb-3">
+                            <input type="email" class="form-control" placeholder="Your Email" />
+                        </div>
+
+                        <div class="mb-3">
+                            <input class="form-control" placeholder="Subject" />
+                        </div>
+
+                        <div class="mb-3">
+                            <textarea class="form-control"
                                       rows="4"
                                       placeholder="Your Message"></textarea>
-                            </div>
+                        </div>
 
-                            <button type="submit" class="btn btn-danger px-4 rounded-pill">
-                                Send Message
-                            </button>
-                        </form>
-                    </div>
+                        <button type="submit" class="btn btn-danger px-4 rounded-pill">
+                            Send Message
+                        </button>
+                    </form>
                 </div>
-
             </div>
+
         </div>
-    </section>
-}
+    </div>
+</section>
+
 @section Scripts {
     <script>
         let timer = null;

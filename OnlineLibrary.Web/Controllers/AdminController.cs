@@ -4,6 +4,7 @@ using OnlineLibrary.Infrastructure.Domain.Entities;
 using OnlineLibrary.Infrastructure.Helpers;
 using OnlineLibrary.Infrastructure.Security;
 using OnlineLibrary.Web.Models;
+using System.Globalization;
 
 namespace OnlineLibrary.Web.Controllers
 {
@@ -145,6 +146,163 @@ namespace OnlineLibrary.Web.Controllers
             return View(librarians);
         }
         // =========================
+        // REPORTS & ANALYTICS
+        // =========================
+        public IActionResult Reports()
+        {
+            if (!IsAdmin())
+                return RedirectToAction("Login", "Account");
+
+            // 1. Monthly Sales Data (Last 12 Months)
+            var monthlySales = _context.Orders
+                .Where(o => o.PaymentStatus == "Success" && o.OrderDate >= DateTime.UtcNow.AddYears(-1))
+                .GroupBy(o => new { o.OrderDate.Year, o.OrderDate.Month })
+                .Select(g => new
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    Total = g.Sum(o => o.TotalAmount)
+                })
+                .OrderBy(s => s.Year).ThenBy(s => s.Month)
+                .ToList();
+
+            var salesData = new ChartData();
+            var culture = CultureInfo.CreateSpecificCulture("en-US");
+            for (int i = 11; i >= 0; i--)
+            {
+                var date = DateTime.UtcNow.AddMonths(-i);
+                var monthData = monthlySales.FirstOrDefault(s => s.Year == date.Year && s.Month == date.Month);
+                salesData.Labels.Add(date.ToString("MMM yyyy", culture));
+                salesData.Data.Add(monthData?.Total ?? 0);
+            }
+                
+            // 2. Category Distribution
+            var categoryDistribution = (from oi in _context.OrderItems
+                                        join b in _context.Books on oi.BookId equals b.BookId
+                                        join c in _context.Categories on b.CategoryId equals c.CategoryId
+                                        group oi by c.CategoryName into g
+                                        select new
+                                        {
+                                            Category = g.Key,
+                                            Count = g.Sum(oi => oi.Quantity)
+                                        })
+                                        .OrderByDescending(c => c.Count)
+                                        .ToList();
+
+            var categoryData = new ChartData
+            {
+                Labels = categoryDistribution.Select(c => c.Category).ToList(),
+                Data = categoryDistribution.Select(c => (decimal)c.Count).ToList()
+            };
+
+            // 3. Top Selling Books
+            var topSellingBooks = _context.OrderItems
+                .GroupBy(oi => new { oi.BookId, oi.BookTitle })
+                .Select(g => new
+                {
+                    BookId = g.Key.BookId,
+                    Title = g.Key.BookTitle,
+                    Count = g.Sum(oi => oi.Quantity)
+                })
+                .OrderByDescending(b => b.Count)
+                .Take(5)
+                .Join(_context.Books,
+                      orderInfo => orderInfo.BookId,
+                      book => book.BookId,
+                      (orderInfo, book) => new BookPerformanceViewModel
+                      {
+                          Title = orderInfo.Title,
+                          OrderCount = orderInfo.Count,
+                          ImageUrl = book.ImageUrl
+                      })
+                .ToList();
+
+            // 4. Key Metrics
+            var metrics = new ReportMetricsViewModel
+            {
+                TotalRevenue = _context.Orders.Where(o => o.PaymentStatus == "Success").Sum(o => o.TotalAmount),
+                TotalOrders = _context.Orders.Count(o => o.PaymentStatus == "Success"),
+                TotalRefunds = _context.OrderItems.Where(oi => oi.Status == "Refunded").Sum(oi => oi.RefundAmount ?? 0),
+                ReturnedItems = _context.OrderItems.Count(oi => oi.Status == "Refunded" || oi.Status == "Received")
+            };
+
+            var model = new ReportViewModel
+            {
+                MonthlySales = salesData,
+                CategoryDistribution = categoryData,
+                TopSellingBooks = topSellingBooks,
+                Metrics = metrics
+            };
+
+            return View(model);
+        }
+
+        // =========================
+        // READING ANALYTICS
+        // =========================
+        public IActionResult ReadingAnalytics()
+        {
+            if (!IsAdmin())
+                return RedirectToAction("Login", "Account");
+
+            var today = DateTime.UtcNow.Date;
+            var weekAgo = DateTime.UtcNow.AddDays(-7);
+
+            // Get all reading activity (books with LastReadAt set)
+            var readingData = (from w in _context.Wishlists
+                               join b in _context.Books on w.BookId equals b.BookId
+                               join u in _context.Users on w.UserId equals u.UserId
+                               where w.LastReadAt != null
+                               select new
+                               {
+                                   w.BookId,
+                                   b.Title,
+                                   b.Author,
+                                   b.ImageUrl,
+                                   w.UserId,
+                                   u.FullName,
+                                   u.Email,
+                                   w.LastReadAt
+                               }).ToList();
+
+            // Group by book
+            var bookStats = readingData
+                .GroupBy(r => new { r.BookId, r.Title, r.Author, r.ImageUrl })
+                .Select(g => new BookReadingStats
+                {
+                    BookId = g.Key.BookId,
+                    Title = g.Key.Title,
+                    Author = g.Key.Author,
+                    ImageUrl = g.Key.ImageUrl,
+                    ReaderCount = g.Count(),
+                    LastReadTime = g.Max(x => x.LastReadAt),
+                    Readers = g.Select(x => new ReaderInfo
+                    {
+                        UserId = x.UserId,
+                        FullName = x.FullName,
+                        Email = x.Email,
+                        LastReadAt = x.LastReadAt
+                    })
+                    .OrderByDescending(x => x.LastReadAt)
+                    .ToList()
+                })
+                .OrderByDescending(b => b.ReaderCount)
+                .ThenByDescending(b => b.LastReadTime)
+                .ToList();
+
+            var model = new ReadingAnalyticsViewModel
+            {
+                TotalActiveReaders = readingData.Select(r => r.UserId).Distinct().Count(),
+                TotalBooksBeingRead = bookStats.Count,
+                ReadersToday = readingData.Count(r => r.LastReadAt >= today),
+                ReadersThisWeek = readingData.Count(r => r.LastReadAt >= weekAgo),
+                BookStats = bookStats
+            };
+
+            return View(model);
+        }
+
+        // =========================
         // AUDIT LOGS (READ ONLY)
         // =========================
         public IActionResult AuditLogs()
@@ -172,6 +330,288 @@ namespace OnlineLibrary.Web.Controllers
 
 
         // =========================
+        // SHARED OPERATIONAL TASKS (ADMIN VIEW)
+        // =========================
+
+        public IActionResult Orders(string? status)
+        {
+            if (!IsAdmin()) return RedirectToAction("Login", "Account");
+
+            var ordersQuery =
+                from o in _context.Orders
+                join u in _context.Users on o.UserId equals u.UserId
+                where o.PaymentStatus == "Success"
+                orderby o.OrderDate descending
+                select new RecentOrderViewModel
+                {
+                    OrderId = o.OrderId,
+                    TransactionId = o.TransactionId ?? "",
+                    StudentName = u.FullName,
+                    OrderDate = o.OrderDate,
+                    TotalAmount = o.TotalAmount,
+                    OrderStatus = o.OrderStatus,
+                    ItemCount = _context.OrderItems.Count(oi => oi.OrderId == o.OrderId)
+                };
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                ordersQuery = ordersQuery.Where(o => o.OrderStatus == status);
+            }
+
+            ViewBag.CurrentStatus = status;
+            return View("~/Views/Librarian/Orders.cshtml", ordersQuery.ToList());
+        }
+
+        public IActionResult OrderDetails(Guid id)
+        {
+            if (!IsAdmin()) return RedirectToAction("Login", "Account");
+
+            var order = (from o in _context.Orders
+                         join u in _context.Users on o.UserId equals u.UserId
+                         where o.OrderId == id
+                         select new
+                         {
+                             Order = o,
+                             StudentName = u.FullName,
+                             StudentEmail = u.Email,
+                             StudentPhone = u.Phone
+                         }).FirstOrDefault();
+
+            if (order == null) return NotFound();
+
+            var orderItems = (from oi in _context.OrderItems
+                              join b in _context.Books on oi.BookId equals b.BookId
+                              where oi.OrderId == id
+                              select new
+                              {
+                                  oi.OrderItemId,
+                                  oi.BookId,
+                                  oi.BookTitle,
+                                  oi.Price,
+                                  oi.Quantity,
+                                  oi.Status,
+                                  oi.ReturnRequestedAt,
+                                  oi.ReturnApprovedAt,
+                                  oi.ReceivedAt,
+                                  oi.RefundedAt,
+                                  oi.RefundAmount,
+                                  b.ImageUrl
+                              }).ToList();
+
+            ViewBag.Order = order.Order;
+            ViewBag.StudentName = order.StudentName;
+            ViewBag.StudentEmail = order.StudentEmail;
+            ViewBag.StudentPhone = order.StudentPhone;
+            ViewBag.OrderItems = orderItems;
+
+            return View("~/Views/Librarian/OrderDetails.cshtml");
+        }
+
+        public IActionResult ReturnRequests()
+        {
+            if (!IsAdmin()) return RedirectToAction("Login", "Account");
+
+            var requests =
+                (from oi in _context.OrderItems
+                 join o in _context.Orders on oi.OrderId equals o.OrderId
+                 join u in _context.Users on o.UserId equals u.UserId
+                 where oi.Status == "ReturnRequested" 
+                    || oi.Status == "ReturnApproved" 
+                    || oi.Status == "Received"
+                    || oi.Status == "Refunded"
+                 orderby oi.Status == "Refunded" ? 1 : 0,
+                         oi.ReturnRequestedAt descending
+                 select new ReturnRequestViewModel
+                 {
+                     OrderItemId = oi.OrderItemId,
+                     OrderId = o.OrderId,
+                     TransactionId = o.TransactionId ?? "",
+                     StudentName = u.FullName,
+                     StudentEmail = u.Email,
+                     BookTitle = oi.BookTitle,
+                     Price = oi.Price,
+                     Quantity = oi.Quantity,
+                     Status = oi.Status,
+                     ReturnRequestedAt = oi.ReturnRequestedAt,
+                     ReturnApprovedAt = oi.ReturnApprovedAt,
+                     ReceivedAt = oi.ReceivedAt,
+                     RefundedAt = oi.RefundedAt,
+                     ActualRefundAmount = oi.RefundAmount
+                 }).ToList();
+
+            return View("~/Views/Librarian/ReturnRequests.cshtml", requests);
+        }
+
+        public IActionResult Refunds(DateTime? fromDate, DateTime? toDate)
+        {
+            if (!IsAdmin()) return RedirectToAction("Login", "Account");
+
+            var refundsQuery = from oi in _context.OrderItems
+                               join o in _context.Orders on oi.OrderId equals o.OrderId
+                               join u in _context.Users on o.UserId equals u.UserId
+                               join b in _context.Books on oi.BookId equals b.BookId
+                               where oi.Status == "Refunded"
+                               orderby oi.RefundedAt descending
+                               select new RefundViewModel
+                               {
+                                   OrderItemId = oi.OrderItemId,
+                                   OrderId = o.OrderId,
+                                   TransactionId = o.TransactionId ?? "",
+                                   StudentName = u.FullName,
+                                   StudentEmail = u.Email,
+                                   BookTitle = oi.BookTitle,
+                                   OriginalPrice = oi.Price,
+                                   Quantity = oi.Quantity,
+                                   RefundAmount = oi.RefundAmount ?? 0,
+                                   RefundedAt = oi.RefundedAt,
+                                   BookImageUrl = b.ImageUrl
+                               };
+
+            if (fromDate.HasValue)
+                refundsQuery = refundsQuery.Where(r => r.RefundedAt >= fromDate.Value);
+            if (toDate.HasValue)
+                refundsQuery = refundsQuery.Where(r => r.RefundedAt <= toDate.Value);
+
+            var refunds = refundsQuery.ToList();
+
+            var model = new RefundSummaryViewModel
+            {
+                Refunds = refunds,
+                TotalRefunds = refunds.Count,
+                TotalRefundAmount = refunds.Sum(r => r.RefundAmount),
+                RefundsThisMonth = refunds.Count(r => r.RefundedAt >= new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1)),
+                RefundAmountThisMonth = refunds.Where(r => r.RefundedAt >= new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1)).Sum(r => r.RefundAmount)
+            };
+
+            ViewBag.FromDate = fromDate;
+            ViewBag.ToDate = toDate;
+
+            return View("~/Views/Librarian/Refunds.cshtml", model);
+        }
+
+        [HttpPost]
+        public IActionResult UpdateOrderStatus(Guid orderId, string newStatus)
+        {
+            if (!IsAdmin()) return Json(new { success = false });
+
+            var order = _context.Orders.Find(orderId);
+            if (order == null) return Json(new { success = false, message = "Order not found" });
+
+            var oldStatus = order.OrderStatus;
+            order.OrderStatus = newStatus;
+
+            if (newStatus == "Shipped") order.ShippedDate = DateTime.UtcNow;
+            else if (newStatus == "Delivered") order.DeliveredDate = DateTime.UtcNow;
+
+            _context.SaveChanges();
+
+            // Audit
+            var userIdStr = HttpContext.Session.GetString("UserId");
+            if (userIdStr != null)
+            {
+                _context.AuditLogs.Add(new AuditLog
+                {
+                    AuditLogId = Guid.NewGuid(),
+                    ActorUserId = Guid.Parse(userIdStr),
+                    ActorRole = "Admin",
+                    Action = "Order Status Updated",
+                    EntityName = "Order",
+                    EntityId = orderId,
+                    Description = $"Order #{order.TransactionId} status changed from {oldStatus} to {newStatus}"
+                });
+                _context.SaveChanges();
+            }
+
+            // Notify
+            NotificationHelper.Send(_context, order.UserId, $"Order {newStatus}", $"Order #{order.TransactionId}: Status updated to {newStatus}", "info");
+
+            return Json(new { success = true });
+        }
+
+        [HttpPost]
+        public IActionResult ApproveReturn(Guid orderItemId)
+        {
+            if (!IsAdmin()) return Json(new { success = false });
+
+            var orderItem = _context.OrderItems.Find(orderItemId);
+            if (orderItem == null || orderItem.Status != "ReturnRequested")
+                return Json(new { success = false, message = "Invalid request" });
+
+            orderItem.Status = "ReturnApproved";
+            orderItem.ReturnApprovedAt = DateTime.UtcNow;
+            _context.SaveChanges();
+
+            var order = _context.Orders.Find(orderItem.OrderId);
+            if (order != null)
+                NotificationHelper.Send(_context, order.UserId, "Return Approved", $"Return for '{orderItem.BookTitle}' approved.", "success");
+
+            return Json(new { success = true });
+        }
+
+        [HttpPost]
+        public IActionResult MarkAsReceived(Guid orderItemId)
+        {
+            if (!IsAdmin()) return Json(new { success = false });
+
+            var orderItem = _context.OrderItems.Find(orderItemId);
+            if (orderItem == null || orderItem.Status != "ReturnApproved")
+                return Json(new { success = false, message = "Invalid request" });
+
+            orderItem.Status = "Received";
+            orderItem.ReceivedAt = DateTime.UtcNow;
+
+            var book = _context.Books.Find(orderItem.BookId);
+            if (book != null) book.TotalCopies += orderItem.Quantity;
+
+            _context.SaveChanges();
+
+            var order = _context.Orders.Find(orderItem.OrderId);
+            if (order != null)
+                NotificationHelper.Send(_context, order.UserId, "Book Received", $"We received '{orderItem.BookTitle}'.", "info");
+
+            return Json(new { success = true });
+        }
+
+        [HttpPost]
+        public IActionResult ProcessRefund(Guid orderItemId)
+        {
+            if (!IsAdmin()) return Json(new { success = false });
+
+            var orderItem = _context.OrderItems.Find(orderItemId);
+            if (orderItem == null || orderItem.Status != "Received")
+                return Json(new { success = false, message = "Invalid request" });
+
+            var refundAmount = orderItem.Price * orderItem.Quantity * 0.5m;
+            orderItem.Status = "Refunded";
+            orderItem.RefundedAt = DateTime.UtcNow;
+            orderItem.RefundAmount = refundAmount;
+            _context.SaveChanges();
+
+            // Audit
+            var userIdStr = HttpContext.Session.GetString("UserId");
+            if (userIdStr != null)
+            {
+                _context.AuditLogs.Add(new AuditLog
+                {
+                    AuditLogId = Guid.NewGuid(),
+                    ActorUserId = Guid.Parse(userIdStr),
+                    ActorRole = "Admin",
+                    Action = "Refund Processed",
+                    EntityName = "OrderItem",
+                    EntityId = orderItemId,
+                    Description = $"Refund of ৳{refundAmount:N0} processed for '{orderItem.BookTitle}'"
+                });
+                _context.SaveChanges();
+            }
+
+            var order = _context.Orders.Find(orderItem.OrderId);
+            if (order != null)
+                NotificationHelper.Send(_context, order.UserId, "Refund Processed", $"Refund of ৳{refundAmount:N0} for '{orderItem.BookTitle}' processed.", "success");
+
+            return Json(new { success = true, refundAmount });
+        }
+
+        // =========================
         // Helper: Is Admin
         // =========================
         private bool IsAdmin()
@@ -185,7 +625,8 @@ namespace OnlineLibrary.Web.Controllers
                 .Select(r => r.RoleName)
                 .FirstOrDefault();
 
-            return roleName == "Admin";
+            ViewBag.CurrentRole = roleName;
+    return roleName == "Admin";
         }
     }
 }

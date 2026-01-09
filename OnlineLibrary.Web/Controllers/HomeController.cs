@@ -56,12 +56,21 @@ namespace OnlineLibrary.Web.Controllers
                 .ToList();
 
             // =========================
-            // BEST SELLING / TOP RATED
+            // BEST SELLING (BY ACTUAL SALES)
             // =========================
-            var topRatedBooks = _context.Books
-                .Where(b => b.Rating >= 4.5)
-                .OrderByDescending(b => b.Rating)
+            var bestSellingData = _context.OrderItems
+                .GroupBy(oi => oi.BookId)
+                .Select(g => new { BookId = g.Key, Count = g.Sum(oi => oi.Quantity) })
+                .OrderByDescending(x => x.Count)
                 .Take(10)
+                .ToList();
+
+            var bestSellingIds = bestSellingData.Select(x => x.BookId).ToList();
+
+            var topRatedBooks = _context.Books
+                .Where(b => bestSellingIds.Contains(b.BookId))
+                .ToList()
+                .OrderBy(b => bestSellingIds.IndexOf(b.BookId))
                 .Select(b => new BestSellingBookViewModel
                 {
                     BookId = b.BookId,
@@ -72,36 +81,21 @@ namespace OnlineLibrary.Web.Controllers
                 })
                 .ToList();
 
-            // Fallback if no ratings yet
-            if (!topRatedBooks.Any())
-            {
-                topRatedBooks = _context.Books
-                    .OrderByDescending(b => b.CreatedAt)
-                    .Take(10)
-                    .Select(b => new BestSellingBookViewModel
-                    {
-                        BookId = b.BookId,
-                        Title = b.Title,
-                        Author = b.Author,
-                        Price = b.Price,
-                        ImageUrl = b.ImageUrl
-                    })
-                    .ToList();
-            }
-
             // =========================
             // EXPLORE OUR COLLECTION
             // FIRST 8 ADDED BOOKS
             // =========================
             var exploreBooks = _context.Books
-                .OrderBy(b => b.CreatedAt)
+                .OrderByDescending(b => b.CreatedAt)
                 .Take(8)
                 .Select(b => new PublicBookViewModel
                 {
                     BookId = b.BookId,
                     Title = b.Title,
+                    Author = b.Author, // Added Author for better info
                     Price = b.Price,
-                    ImageUrl = b.ImageUrl
+                    ImageUrl = b.ImageUrl,
+                    AvailableCopies = b.TotalCopies
                 })
                 .ToList();
 
@@ -171,9 +165,16 @@ namespace OnlineLibrary.Web.Controllers
                 {
                     FullName = u.FullName,
                     Role = "Librarian",
-                    ImageUrl = "/images/librarian-placeholder.png"
+                    ImageUrl = "/images/librarian-placeholder.png" // Default, will be overwritten
                 })
                 .ToList();
+
+            // Assign specific images as requested
+            var libImages = new[] { "/images/sara.jpg", "/images/liba.jpg", "/images/janne.jpg" };
+            for (int i = 0; i < librarians.Count && i < libImages.Length; i++)
+            {
+                librarians[i].ImageUrl = libImages[i];
+            }
 
             // =========================
             // FINAL VIEW MODEL
@@ -192,8 +193,81 @@ namespace OnlineLibrary.Web.Controllers
         }
 
         // =========================
-        // AJAX SEARCH (UNCHANGED)
+        // VIEW ALL BEST SELLERS (PUBLIC)
         // =========================
+        public IActionResult BestSellers(string? search)
+        {
+            var bestSellingData = _context.OrderItems
+                .GroupBy(oi => oi.BookId)
+                .Select(g => new { BookId = g.Key, Count = g.Sum(oi => oi.Quantity) })
+                .OrderByDescending(x => x.Count)
+                .ToList();
+
+            var bestSellingIds = bestSellingData.Select(x => x.BookId).ToList();
+
+            var booksQuery = _context.Books
+                .Where(b => bestSellingIds.Contains(b.BookId));
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.ToLower();
+                booksQuery = booksQuery.Where(b => b.Title.ToLower().Contains(s) || b.Author.ToLower().Contains(s));
+            }
+
+            var books = booksQuery.ToList()
+                .OrderBy(b => bestSellingIds.IndexOf(b.BookId))
+                .Select(b => new StudentBookViewModel
+                {
+                    BookId = b.BookId,
+                    Title = b.Title,
+                    Author = b.Author,
+                    ImageUrl = b.ImageUrl,
+                    Price = b.Price,
+                    AvailableCopies = b.TotalCopies
+                })
+                .ToList();
+
+            ViewBag.Search = search;
+            return View(books);
+        }
+
+        // =========================
+        // PUBLIC BROWSE PAGE (DISCOVER MORE)
+        // =========================
+        public IActionResult Browse(string? search, Guid? categoryId)
+        {
+            var query = from b in _context.Books
+                        select new StudentBookViewModel
+                        {
+                            BookId = b.BookId,
+                            Title = b.Title,
+                            Author = b.Author,
+                            ImageUrl = b.ImageUrl,
+                            Price = b.Price,
+                            AvailableCopies = b.TotalCopies
+                        };
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.ToLower();
+                query = query.Where(b => b.Title.ToLower().Contains(s) || b.Author.ToLower().Contains(s));
+            }
+
+            if (categoryId.HasValue)
+            {
+                query = from b in query
+                        join bc in _context.BookCategories on b.BookId equals bc.BookId
+                        where bc.CategoryId == categoryId.Value
+                        select b;
+            }
+
+            ViewBag.Categories = _context.Categories.ToList();
+            ViewBag.SelectedCategory = categoryId;
+            ViewBag.Search = search;
+
+            return View(query.ToList());
+        }
+
         [HttpGet]
         public IActionResult Search(string? search)
         {

@@ -1,23 +1,28 @@
 ﻿html {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+    html {
+        font-size: 16px;
+    }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 html {
-  position: relative;
-  min-height: 100%;
+    position: relative;
+    min-height: 100%;
 }
 
-html, body {
+html,
+body {
     margin: 0;
     padding: 0;
     height: 100%;
@@ -29,25 +34,30 @@ main {
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
 }
 
 /* === ADDED: This rule specifically targets the public layout to fix overlap === */
 body.public-layout {
-    padding-top: 75px; /* Matches your navbar height */
+    padding-top: 75px;
+    /* Matches your navbar height */
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+.form-floating>.form-control-plaintext::placeholder,
+.form-floating>.form-control::placeholder {
+    color: var(--bs-secondary-color);
+    text-align: end;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+.form-floating>.form-control-plaintext:focus::placeholder,
+.form-floating>.form-control:focus::placeholder {
+    text-align: start;
 }
+
 /* MAKE NAVBAR TALLER */
 .navbar {
-    min-height: 75px; /* taller navbar */
+    min-height: 75px;
+    /* taller navbar */
 }
 
 .navbar-brand {
@@ -60,49 +70,6 @@ body.public-layout {
     padding-bottom: 0.75rem;
 }
 
-
-/* DARK MODE */
-.dark-mode {
-    background-color: #121212;
-    color: #ffffff;
-}
-
-    .dark-mode .navbar {
-        background-color: #1f1f1f !important;
-    }
-
-        .dark-mode .navbar .nav-link,
-        .dark-mode .navbar-brand,
-        .dark-mode .navbar i {
-            color: #ffffff !important;
-        }
-
-    .dark-mode .dropdown-menu {
-        background-color: #1f1f1f;
-    }
-
-    .dark-mode .dropdown-item {
-        color: #ffffff;
-    }
-
-        .dark-mode .dropdown-item:hover {
-            background-color: #2a2a2a;
-        }
-
-        /* For Search Bar Dark Mode */
-    .dark-mode .input-group,
-    .dark-mode .form-control {
-        background-color: #1f1f1f;
-        color: #ffffff;
-    }
-
-        .dark-mode .form-control::placeholder {
-            color: #bbbbbb;
-        }
-
-    .dark-mode .btn-danger {
-        background-color: #dc3545;
-    }
 
 /* MAKE SEARCH BAR NICER */
 .input-group input:focus {
@@ -117,7 +84,8 @@ body.public-layout {
 .sidebar {
     width: 240px;
     position: fixed;
-    top: 70px; /* height of navbar */
+    top: 70px;
+    /* height of navbar */
     left: 0;
     height: calc(100vh - 70px);
     background-color: #f8f9fa;
@@ -130,7 +98,8 @@ body.public-layout {
 .main-content {
     margin-left: 240px;
     padding: 20px;
-    margin-top: 70px; /* navbar height */
+    margin-top: 70px;
+    /* navbar height */
 }
 
 /* Fixed navbar */
@@ -142,11 +111,12 @@ body.public-layout {
 }
 
 .hero-section {
-    background: linear-gradient( 120deg, #eaf6f8 0%, #f6f0f7 50%, #fdeef1 100% );
+    background: linear-gradient(120deg, #eaf6f8 0%, #f6f0f7 50%, #fdeef1 100%);
     padding: 80px 0;
     position: relative;
     overflow: hidden;
 }
+
 .carousel-control-prev-icon,
 .carousel-control-next-icon {
     background-size: 20px 20px;
@@ -158,6 +128,7 @@ body.public-layout {
     width: auto;
     z-index: 10;
 }
+
 .carousel-control-prev {
     left: 20px;
 }
@@ -165,10 +136,13 @@ body.public-layout {
 .carousel-control-next {
     right: 20px;
 }
+
 /* HERO BACKGROUND */
 .hero-section {
     min-height: 100vh;
-    padding-top: 50px; /* ONLY small space for navbar */ /* ⬅️ closer to navbar */
+    padding-top: 50px;
+    /* ONLY small space for navbar */
+    /* ⬅️ closer to navbar */
     background: linear-gradient(135deg, #eef6f8 0%, #f7eef3 50%, #f8f4ef 100%);
     position: relative;
 }
@@ -177,7 +151,8 @@ body.public-layout {
 .hero-search {
     display: flex;
     justify-content: center;
-    margin-bottom: 24px; /* ⬅️ less gap */
+    margin-bottom: 24px;
+    /* ⬅️ less gap */
 }
 
 .search-box {
@@ -185,29 +160,31 @@ body.public-layout {
     width: 520px;
     background: white;
     border-radius: 50px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
     overflow: hidden;
 }
 
-    .search-box input {
-        flex: 1;
-        border: none;
-        padding: 16px 22px;
-        font-size: 16px;
-        outline: none;
-    }
+.search-box input {
+    flex: 1;
+    border: none;
+    padding: 16px 22px;
+    font-size: 16px;
+    outline: none;
+}
 
-    .search-box button {
-        background: #e63946;
-        border: none;
-        padding: 0 26px;
-        color: white;
-        font-size: 18px;
-    }
+.search-box button {
+    background: #e63946;
+    border: none;
+    padding: 0 26px;
+    color: white;
+    font-size: 18px;
+}
 
 /* CAROUSEL LAYOUT */
 .hero-carousel .carousel-item {
-    padding: 40px 0; /* vertical only */ /* ⬅️ tighter like SS */
+    padding: 40px 0;
+    /* vertical only */
+    /* ⬅️ tighter like SS */
 }
 
 .hero-carousel .col-md-6 {
@@ -220,22 +197,27 @@ body.public-layout {
 }
 
 .hero-carousel .carousel-inner {
-    max-width: 1200px; /* controls content width */
-    margin: 0 auto; /* centers content */
+    max-width: 1200px;
+    /* controls content width */
+    margin: 0 auto;
+    /* centers content */
 }
 
 /* LEFT TEXT */
 .hero-title {
     font-family: 'Playfair Display', serif;
-    fontfont-size: 64px; /* ⬅️ was 48px */
+    font-size: 64px;
+    /* ⬅️ was 48px */
     font-weight: 600;
     line-height: 1.15;
 }
 
 .hero-text {
     font-family: 'Inter', sans-serif;
-    font-size: 18px; /* ⬅️ was 16px */
-    max-width: 520px; /* ⬅️ wider like SS */
+    font-size: 18px;
+    /* ⬅️ was 16px */
+    max-width: 520px;
+    /* ⬅️ wider like SS */
     color: #555;
 }
 
@@ -271,10 +253,10 @@ body.public-layout {
     text-decoration: none;
 }
 
-    .hero-btn:hover {
-        background: #e14b50;
-        color: #fff;
-    }
+.hero-btn:hover {
+    background: #e14b50;
+    color: #fff;
+}
 
 .hero-btn-outline {
     border: 2px solid #ff5a5f;
@@ -285,15 +267,16 @@ body.public-layout {
     text-decoration: none;
 }
 
-    .hero-btn-outline:hover {
-        background: #ff5a5f;
-        color: #fff;
-    }
+.hero-btn-outline:hover {
+    background: #ff5a5f;
+    color: #fff;
+}
 
 .hero-book-img {
-    max-height: 620px; /* ⬅️ bigger */
+    max-height: 620px;
+    /* ⬅️ bigger */
     width: auto;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
     border-radius: 6px;
 }
 
@@ -309,37 +292,32 @@ body.public-layout {
     height: 46px;
     border-radius: 50%;
     border: none;
-    background-color: #dc3545; /* BookNest red */
+    background-color: #dc3545;
+    /* BookNest red */
     color: #fff;
     font-size: 1.25rem;
     display: none;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     z-index: 999;
     transition: all 0.3s ease;
 }
 
-    .back-to-top:hover {
-        background-color: #bb2d3b;
-        transform: translateY(-3px);
-    }
-
-body.dark-mode .back-to-top {
-    background-color: #ff4d4f;
+.back-to-top:hover {
+    background-color: #bb2d3b;
+    transform: translateY(-3px);
 }
 
-    body.dark-mode .back-to-top:hover {
-        background-color: #ff6b6b;
-    }
 
 /* ===== DASHBOARD LAYOUT ===== */
 
 .dashboard-wrapper {
     display: flex;
     min-height: 100vh;
-    margin-top: 75px; /* height of top navbar */
+    margin-top: 75px;
+    /* height of top navbar */
 }
 
 .dashboard-sidebar {
@@ -347,7 +325,8 @@ body.dark-mode .back-to-top {
     background-color: #1f2933;
     color: #ffffff;
     position: sticky;
-    top: 75px; /* Adjusted to match navbar height */
+    top: 75px;
+    /* Adjusted to match navbar height */
     height: calc(100vh - 75px);
     overflow-y: auto;
 }
@@ -382,7 +361,8 @@ body.dark-mode .back-to-top {
     position: absolute;
     top: 0;
     right: 0;
-    background-color: #dc3545; /* Bootstrap red */
+    background-color: #dc3545;
+    /* Bootstrap red */
     color: #ffffff;
     font-size: 12px;
     font-weight: 700;
@@ -398,13 +378,10 @@ body.dark-mode .back-to-top {
     z-index: 10;
 }
 
-/* Dark mode support */
-body.dark-mode .notification-badge {
-    border-color: #1f2933;
-}
 
 .notification-unread {
-    background-color: #f0f7ff; /* light blue */
+    background-color: #f0f7ff;
+    /* light blue */
     border-left: 4px solid #0d6efd;
 }
 
@@ -424,7 +401,8 @@ body.dark-mode .notification-badge {
 ========================= */
 
 .booknest-footer {
-    background-color: #fff5f5; /* soft pastel like your screenshot */
+    background-color: #fff5f5;
+    /* soft pastel like your screenshot */
     font-family: 'Inter', sans-serif;
     margin-bottom: 0;
     padding-bottom: 0;
@@ -447,20 +425,21 @@ body.dark-mode .notification-badge {
     margin: 0;
 }
 
-    .footer-links li {
-        margin-bottom: 0.5rem;
-    }
+.footer-links li {
+    margin-bottom: 0.5rem;
+}
 
-    .footer-links a {
-        text-decoration: none;
-        color: #444;
-        font-size: 0.95rem;
-        transition: color 0.2s ease;
-    }
+.footer-links a {
+    text-decoration: none;
+    color: #444;
+    font-size: 0.95rem;
+    transition: color 0.2s ease;
+}
 
-        .footer-links a:hover {
-            color: #dc3545; /* bootstrap danger */
-        }
+.footer-links a:hover {
+    color: #dc3545;
+    /* bootstrap danger */
+}
 
 .footer-social a {
     display: inline-flex;
@@ -472,18 +451,19 @@ body.dark-mode .notification-badge {
     background: #fff;
     color: #444;
     margin-right: 0.5rem;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     transition: all 0.2s ease;
 }
 
-    .footer-social a:hover {
-        background: #dc3545;
-        color: #fff;
-    }
+.footer-social a:hover {
+    background: #dc3545;
+    color: #fff;
+}
 
 .container {
     margin-bottom: 0;
 }
+
 .footer-bottom {
     border-top: 1px solid #f0dede;
     background-color: #fff0f0;
@@ -491,42 +471,7 @@ body.dark-mode .notification-badge {
     color: #666;
     margin-bottom: 0;
 }
-/* =========================
-   DARK MODE FOOTER
-========================= */
 
-body.dark-mode .booknest-footer {
-    background-color: #121212;
-}
-
-body.dark-mode .footer-bottom {
-    background-color: #0f0f0f;
-    border-top: 1px solid #222;
-}
-
-body.dark-mode .footer-title {
-    color: #fff;
-}
-
-body.dark-mode .footer-text,
-body.dark-mode .footer-links a {
-    color: #ccc;
-}
-
-    body.dark-mode .footer-links a:hover {
-        color: #ff6b6b;
-    }
-
-body.dark-mode .footer-social a {
-    background-color: #1f1f1f;
-    color: #ccc;
-    box-shadow: none;
-}
-
-    body.dark-mode .footer-social a:hover {
-        background-color: #dc3545;
-        color: #fff;
-    }
 
 /* =========================
    PDF WATERMARK
@@ -560,16 +505,16 @@ body.dark-mode .footer-social a {
     height: 36px;
     border-radius: 50%;
     border: none;
-    background: rgba(255,255,255,0.9);
+    background: rgba(255, 255, 255, 0.9);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
 }
 
-    .wishlist-btn i {
-        color: #dc3545;
-    }
+.wishlist-btn i {
+    color: #dc3545;
+}
 
 /*This is for Notification page Sidebar*/
 /* REMOVED: Duplicate .dashboard-wrapper rules */
@@ -588,13 +533,14 @@ body.dark-mode .footer-social a {
     text-align: left;
 }
 
-    /* Book Cover */
-    .collection-item img {
-        width: 100%;
-        height: 300px; /* 🔑 SAME HEIGHT */
-        object-fit: cover;
-        display: block;
-    }
+/* Book Cover */
+.collection-item img {
+    width: 100%;
+    height: 300px;
+    /* 🔑 SAME HEIGHT */
+    object-fit: cover;
+    display: block;
+}
 
 /* Meta */
 .collection-meta {
@@ -632,9 +578,9 @@ body.dark-mode .footer-social a {
     text-decoration: none;
 }
 
-    .discover-btn:hover {
-        background: #e0a93c;
-    }
+.discover-btn:hover {
+    background: #e0a93c;
+}
 
 /* Responsive */
 @media (max-width: 992px) {
@@ -648,13 +594,15 @@ body.dark-mode .footer-social a {
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
 /* =========================
    BEST SELLING FIXED SLIDER
-========================= */
+ ========================= */
 .best-selling-section {
-    background-color: #f7f4ef; /* 🔥 change to any color */
-    padding: 40px 0; /* space top & bottom */
+    background-color: #f7f4ef;
+    padding: 40px 0;
 }
+
 .best-slider {
     position: relative;
     overflow: hidden;
@@ -664,6 +612,12 @@ body.dark-mode .footer-social a {
     display: flex;
     gap: 24px;
     scroll-behavior: smooth;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.best-slider-track::-webkit-scrollbar {
+    display: none;
 }
 
 .best-book-card {
@@ -671,29 +625,29 @@ body.dark-mode .footer-social a {
     flex-shrink: 0;
     background: #fff;
     border-radius: 16px;
-    box-shadow: 0 10px 28px rgba(0,0,0,0.08);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
 }
 
 /* IMAGE */
 .best-book-img {
     position: relative;
     width: 100%;
-    height: 300px; /* 🔑 FIXED HEIGHT */
+    height: 300px;
     overflow: hidden;
     border-radius: 16px 16px 0 0;
 }
 
-    .best-book-img img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover; /* 🔑 SAME SHAPE */
-    }
+.best-book-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
 
 /* HOVER ICONS */
 .hover-icons {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,0.55);
+    background: rgba(0, 0, 0, 0.55);
     display: flex;
     gap: 14px;
     align-items: center;
@@ -716,24 +670,33 @@ body.dark-mode .footer-social a {
     align-items: center;
     justify-content: center;
     color: #dc3545;
+    text-decoration: none;
+}
+
+.icon-btn:hover {
+    background: #dc3545;
+    color: #fff;
 }
 
 /* INFO */
 .best-book-info {
     padding: 12px;
-    height: 120px; /* 🔑 SAME HEIGHT */
+    text-align: center;
 }
 
-    .best-book-info h6 {
-        font-size: 14px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
+.best-book-info h6 {
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 5px;
+}
 
-    .best-book-info small {
-        color: #777;
-    }
+.best-book-info small {
+    color: #777;
+    display: block;
+    margin-bottom: 8px;
+}
 
 /* PRICE */
 .price {
@@ -751,29 +714,60 @@ body.dark-mode .footer-social a {
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-    .slider-arrow.left {
-        left: -15px;
-    }
+.slider-arrow.left {
+    left: -15px;
+}
 
-    .slider-arrow.right {
-        right: -15px;
+.slider-arrow.right {
+    right: -15px;
+}
+
+/* =========================
+   DASHBOARD SIDEBAR ADAPTATION
+========================= */
+.dashboard-content .hero-section {
+    min-height: auto;
+    padding: 60px 20px;
+}
+
+.dashboard-content .hero-title {
+    font-size: 3rem;
+}
+
+.dashboard-content .hero-book-img {
+    max-height: 400px;
+}
+
+.dashboard-content .search-box {
+    width: 100%;
+    max-width: 450px;
+}
+
+@media (max-width: 1200px) {
+    .dashboard-content .hero-title {
+        font-size: 2.5rem;
     }
-    /*Contact Page*/
+}
+
+/*Contact Page*/
 .contact-item {
     display: flex;
     gap: 15px;
     margin-top: 20px;
 }
 
-    .contact-item i {
-        font-size: 22px;
-        color: #f0ad4e;
-    }
+.contact-item i {
+    font-size: 22px;
+    color: #f0ad4e;
+}
 
 .contact-social a {
     display: inline-block;
@@ -781,24 +775,26 @@ body.dark-mode .footer-social a {
     font-size: 20px;
     color: #333;
 }
+
 /* =========================
    STORE BENEFITS STRIP
 ========================= */
 .store-benefits {
-    background-color: white; /* matches your beige strip */
+    background-color: white;
+    /* matches your beige strip */
     padding: 50px 0;
 }
 
-    .store-benefits h6 {
-        font-weight: 600;
-        margin-top: 12px;
-    }
+.store-benefits h6 {
+    font-weight: 600;
+    margin-top: 12px;
+}
 
-    .store-benefits p {
-        font-size: 0.9rem;
-        color: #555;
-        margin-bottom: 0;
-    }
+.store-benefits p {
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 0;
+}
 
 .benefit-icon {
     font-size: 2rem;
@@ -847,40 +843,250 @@ body.dark-mode .footer-social a {
     color: #000;
     line-height: 1.6;
 }
-/* About Section - Right Column Alignment */
-.home-about-section .col-lg-6.ps-lg-5 {
-    padding-top: 45px; /* Adjust this value to match the heading height */
-}
 
+/* About Section - Right Column Alignment */
+/*.home-about-section .col-lg-6.ps-lg-5 {
+    padding-top: 45px;*/
+/* Adjust this value to match the heading height */
+/*}*/
 /* =========================
-   SECTION 7: MEET OUR LIBRARIANS
+   LIBRARIAN HORIZONTAL SCROLL
 ========================= */
 
-.librarian-section {
-    background-color: #f8f9fa;
+.librarian-scroll-wrapper {
+    display: flex;
+    gap: 24px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scroll-behavior: smooth;
 }
 
-.librarian-card {
-    background: #ffffff;
-    border-radius: 14px;
-    padding: 32px 20px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.06);
-    transition: all 0.3s ease;
+.librarian-scroll-wrapper::-webkit-scrollbar {
+    height: 6px;
 }
 
-    .librarian-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 18px 40px rgba(0,0,0,0.10);
-    }
+.librarian-scroll-wrapper::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
 
-.librarian-img {
-    width: 120px;
-    height: 120px;
+/* ==========================================================================
+   MINIMALIST LIBRARIAN SECTION
+   ========================================================================== */
+.librarian-minimal-card {
+    transition: transform 0.3s ease;
+    padding: 20px;
+}
+
+.librarian-minimal-card:hover {
+    transform: translateY(-5px);
+}
+
+.lib-image-wrapper {
+    width: 180px;
+    height: 180px;
+    position: relative;
+}
+
+.lib-img-circle {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     border-radius: 50%;
     border: 4px solid #fff;
-    box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+    background: #f8f9fa;
 }
+
+.lib-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    color: #1a1a1a;
+}
+
+.lib-role {
+    font-weight: 500;
+    letter-spacing: 1px;
+}
+
+.ls-1 {
+    letter-spacing: 1px;
+}
+
+/* ==========================================================================
+   REUSABLE BOOK CARD FIXES
+   ========================================================================== */
+/* Modern Book Card Styles */
+.book-card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.book-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+}
+
+.book-image-container {
+    position: relative;
+    overflow: hidden;
+    height: 300px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.book-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.book-card:hover .book-image {
+    transform: scale(1.05);
+}
+
+/* HOVER ICONS - Matching Landing Page Style */
+.hover-icons {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: 0.3s;
+}
+
+.book-card:hover .hover-icons {
+    opacity: 1;
+}
+
+.icon-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #dc3545;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.icon-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.wishlist-icon-btn i.bi-heart-fill {
+    color: #dc3545;
+}
+
+.availability-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 11px;
+    padding: 5px 10px;
+    z-index: 2;
+}
+
+.book-info {
+    padding: 15px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.book-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 40px;
+}
+
+.book-author {
+    font-size: 13px;
+    color: #718096;
+    margin-bottom: 12px;
+}
+
+.book-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 8px 0;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.book-price {
+    font-size: 18px;
+    font-weight: 700;
+    color: #48bb78;
+}
+
+.book-stock {
+    font-size: 12px;
+}
+
+.discover-btn {
+    display: inline-block;
+    padding: 12px 35px;
+    background: #e63946;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 700;
+    border-radius: 50px;
+    transition: background 0.3s ease, transform 0.3s ease;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+}
+
+.discover-btn:hover {
+    background: #c32f3a;
+    color: #fff;
+    transform: scale(1.05);
+}
+
+.librarian-card {
+    min-width: 280px;
+    max-width: 280px;
+    background: #fff;
+    border-radius: 14px;
+    padding: 24px 16px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease;
+}
+
+.librarian-card:hover {
+    transform: translateY(-6px);
+}
+
+.librarian-img {
+    width: 110px;
+    height: 110px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid #f1f1f1;
+}
+
 /* =========================
    CONTACT SECTION
 ========================= */
@@ -896,10 +1102,10 @@ body.dark-mode .footer-social a {
     margin-bottom: 18px;
 }
 
-    .contact-item i {
-        font-size: 22px;
-        color: #dc3545;
-    }
+.contact-item i {
+    font-size: 22px;
+    color: #dc3545;
+}
 
 .contact-social a {
     display: inline-flex;
@@ -914,10 +1120,11 @@ body.dark-mode .footer-social a {
     transition: all 0.3s ease;
 }
 
-    .contact-social a:hover {
-        background: #dc3545;
-        color: #fff;
-    }
+.contact-social a:hover {
+    background: #dc3545;
+    color: #fff;
+}
+
 /* =========================
    SMOOTH SCROLL
 ========================= */
@@ -928,5 +1135,6 @@ html {
 /* Offset for fixed navbar when scrolling to sections */
 #about-section,
 #contact-section {
-    scroll-margin-top: 80px; /* Adjust based on navbar height */
+    scroll-margin-top: 80px;
+    /* Adjust based on navbar height */
 }

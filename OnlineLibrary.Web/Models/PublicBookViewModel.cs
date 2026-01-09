@@ -11,5 +11,7 @@
 
         // ✅ MULTIPLE CATEGORIES
         public List<string> Categories { get; set; } = new();
+
+        public int AvailableCopies { get; set; }
     }
 }

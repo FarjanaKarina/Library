@@ -27,4 +27,8 @@
     <Folder Include="wwwroot\uploads\books\pdf\" />
   </ItemGroup>
 
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="taskkill /F /IM OnlineLibrary.Web.exe /T 2&gt;nul || exit 0" />
+  </Target>
+
 </Project>

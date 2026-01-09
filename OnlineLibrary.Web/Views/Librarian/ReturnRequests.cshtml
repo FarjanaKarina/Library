@@ -1,14 +1,16 @@
 ﻿@model IEnumerable<OnlineLibrary.Web.Models.ReturnRequestViewModel>
 
 @{
-    Layout = "_LibrarianLayout";
+    var currentRole = ViewBag.CurrentRole as string;
+    Layout = currentRole == "Admin" ? "_AdminLayout" : "_LibrarianLayout";
     ViewData["Title"] = "Return & Refund Management";
+    var dashboardUrl = currentRole == "Admin" ? Url.Action("Dashboard", "Admin") : Url.Action("Dashboard", "Librarian");
 }
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="bi bi-arrow-return-left me-2"></i>Return & Refund Management</h2>
-        <a asp-action="Dashboard" class="btn btn-outline-secondary">
+        <a href="@dashboardUrl" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
         </a>
     </div>
@@ -323,7 +325,7 @@
     <script>
         function approveReturn(orderItemId, bookTitle) {
             if (confirm(`Approve return for "${bookTitle}"?\n\nStudent will be notified to prepare the book for pickup.`)) {
-                $.post('@Url.Action("ApproveReturn", "Librarian")', { orderItemId: orderItemId }, function (res) {
+                $.post('@Url.Action("ApproveReturn", ViewContext.RouteData.Values["controller"].ToString())', { orderItemId: orderItemId }, function (res) {
                     if (res.success) {
                         showToast('Return approved! Student notified.', 'success');
                         setTimeout(() => location.reload(), 1000);
@@ -336,7 +338,7 @@
 
         function markAsReceived(orderItemId, bookTitle) {
             if (confirm(`Confirm book received: "${bookTitle}"?\n\n✓ Inventory will be updated\n✓ Ready for refund processing`)) {
-                $.post('@Url.Action("MarkAsReceived", "Librarian")', { orderItemId: orderItemId }, function (res) {
+                $.post('@Url.Action("MarkAsReceived", ViewContext.RouteData.Values["controller"].ToString())', { orderItemId: orderItemId }, function (res) {
                     if (res.success) {
                         showToast('Book received! Inventory updated.', 'success');
                         setTimeout(() => location.reload(), 1000);
@@ -349,7 +351,7 @@
 
         function processRefund(orderItemId, bookTitle, refundAmount) {
             if (confirm(`Process refund for "${bookTitle}"?\n\nAmount: ৳${refundAmount}\n\nStudent will be notified.`)) {
-                $.post('@Url.Action("ProcessRefund", "Librarian")', { orderItemId: orderItemId }, function (res) {
+                $.post('@Url.Action("ProcessRefund", ViewContext.RouteData.Values["controller"].ToString())', { orderItemId: orderItemId }, function (res) {
                     if (res.success) {
                         showToast(`Refund of ৳${res.refundAmount} processed!`, 'success');
                         setTimeout(() => location.reload(), 1500);

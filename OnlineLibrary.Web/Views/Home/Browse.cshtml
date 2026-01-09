@@ -1,0 +1,133 @@
+@model IEnumerable<OnlineLibrary.Web.Models.StudentBookViewModel>
+
+@{
+    ViewData["Title"] = "Explore Collection";
+    var categories = ViewBag.Categories as IEnumerable<OnlineLibrary.Infrastructure.Domain.Entities.Category>;
+    var selectedCategory = ViewBag.SelectedCategory as Guid?;
+}
+
+<div class="container mt-4">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold mb-1">Library Collection</h2>
+        <p class="text-muted">Explore thousands of titles across various genres</p>
+    </div>
+
+    <!-- HERO SEARCH (MATCHING LANDING PAGE) -->
+    <section class="hero-section text-center py-5 mb-4" style="background: transparent; padding: 0 !important; min-height: auto;">
+        
+        <!-- SEARCH BAR -->
+        <div class="hero-search mx-auto" style="position: relative; top: 0; transform: none; max-width: 700px;">
+            <form asp-action="Browse" method="get" class="search-box w-100 shadow-lg">
+                <input type="text"
+                       name="search"
+                       value="@ViewBag.Search"
+                       placeholder="Search by title, author, publisher or category" />
+                <button type="submit">
+                    <i class="bi bi-search"></i>
+                </button>
+                
+                <!-- Hidden Category Input if needed, or we can add a dropdown here too if space permits -->
+                @if (selectedCategory.HasValue)
+                {
+                    <input type="hidden" name="categoryId" value="@selectedCategory" />
+                }
+            </form>
+        </div>
+
+    </section>
+
+    <!-- Results Count -->
+    <div class="mb-4 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold m-0">@Model.Count() Books Found</h5>
+        @if (!string.IsNullOrEmpty(ViewBag.Search) || selectedCategory.HasValue)
+        {
+            <a href="@Url.Action("Browse")" class="text-danger text-decoration-none small">Clear All Filters <i class="bi bi-x"></i></a>
+        }
+    </div>
+
+    <!-- Book Grid -->
+    <div class="row g-4">
+        @if (!Model.Any())
+        {
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-search display-3 text-muted mb-3 d-block"></i>
+                <h4>No matching books found</h4>
+                <p class="text-muted">Try adjusting your filters or search terms.</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var book in Model)
+            {
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                    <div class="book-card">
+                        <!-- Book Image -->
+                        <div class="book-image-container">
+                            <img src="@(book.ImageUrl ?? "/images/no-book.png")"
+                                 alt="@book.Title"
+                                 class="book-image"
+                                 onerror="this.src='/images/no-book.png'" />
+
+                            <!-- Hover Icons - Matching Landing Page Style -->
+                            <div class="hover-icons">
+                                <button class="icon-btn"
+                                        onclick="addToCart('@book.BookId')"
+                                        title="Add to Cart">
+                                    <i class="bi bi-cart-plus"></i>
+                                </button>
+                                <button class="icon-btn wishlist-icon-btn"
+                                        onclick="toggleWishlist('@book.BookId', this)"
+                                        title="Add to Wishlist">
+                                    <i class="bi bi-heart"></i>
+                                </button>
+                            </div>
+
+                            <!-- Availability Badge -->
+                            @if (book.AvailableCopies > 0)
+                            {
+                                <span class="badge bg-success availability-badge">
+                                    <i class="bi bi-check-circle"></i> Available
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger availability-badge">
+                                    <i class="bi bi-x-circle"></i> Out of Stock
+                                </span>
+                            }
+                        </div>
+
+                        <!-- Book Info -->
+                        <div class="book-info">
+                            <h6 class="book-title" title="@book.Title">@book.Title</h6>
+                            <p class="book-author">
+                                <i class="bi bi-person"></i> @book.Author
+                            </p>
+
+                            <div class="book-meta">
+                                <div class="book-price">
+                                    <i class="bi bi-tag-fill"></i> ৳@book.Price.ToString("N0")
+                                </div>
+                                <div class="book-stock text-muted">
+                                    <i class="bi bi-box"></i> @book.AvailableCopies left
+                                </div>
+                            </div>
+
+                            <a asp-controller="Book"
+                               asp-action="Details"
+                               asp-route-id="@book.BookId"
+                               class="btn btn-outline-primary btn-sm w-100">
+                                <i class="bi bi-eye"></i> View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<style>
+    .rounded-4 { border-radius: 1.5rem !important; }
+    .ls-1 { letter-spacing: 1px; }
+</style>

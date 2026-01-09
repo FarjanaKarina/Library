@@ -1,0 +1,58 @@
+@model IEnumerable<OnlineLibrary.Web.Models.StudentBookViewModel>
+
+@{
+    ViewData["Title"] = "Best Sellers";
+}
+
+<div class="container mt-4">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold mb-1">Explore our best selling books</h2>
+        <p class="text-muted">The most popular reads in our community</p>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center py-5">
+            <i class="bi bi-info-circle display-4 d-block mb-3"></i>
+            <p class="h4">No best sellers found.</p>
+            <p>Check back later after more books are purchased!</p>
+            <a href="@Url.Action("Index", "Home")" class="btn btn-outline-danger mt-3">Back to Home</a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4 justify-content-center">
+            @foreach (var book in Model)
+            {
+                <div class="col-lg-3 col-md-4 col-sm-6 d-flex justify-content-center mb-4">
+                    <div class="best-book-card">
+                        <div class="best-book-img">
+                            <img src="@(book.ImageUrl ?? "/images/no-book.png")"
+                                 onerror="this.src='/images/no-book.png'" />
+
+                            <div class="hover-icons">
+                                <a asp-controller="Book"
+                                   asp-action="Details"
+                                   asp-route-id="@book.BookId"
+                                   class="icon-btn">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+
+                                <button class="icon-btn"
+                                        onclick="addToCart('@book.BookId')">
+                                    <i class="bi bi-cart-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="best-book-info">
+                            <h6 title="@book.Title">@book.Title</h6>
+                            <small>@book.Author</small>
+                            <div class="price">@book.Price.ToString("0.00") TK</div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
