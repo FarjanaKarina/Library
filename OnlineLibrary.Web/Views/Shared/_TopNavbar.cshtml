@@ -55,13 +55,13 @@
                         <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Home" asp-action="About">About</a>
+                        <a class="nav-link" href="/#about-section" onclick="scrollToSection(event, 'about-section')">About</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" asp-controller="Book" asp-action="Browse">Books</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Home" asp-action="Contact">Contact</a>
+                        <a class="nav-link" href="/#contact-section" onclick="scrollToSection(event, 'contact-section')">Contact</a>
                     </li>
                 </ul>
             }
@@ -186,6 +186,41 @@
         </div>
     </div>
 </nav>
+
+<script>
+    // Smooth scroll to section function
+    function scrollToSection(event, sectionId) {
+        // Check if we're on the home page
+        const currentPath = window.location.pathname;
+        if (currentPath === '/' || currentPath === '/Home' || currentPath === '/Home/Index') {
+            event.preventDefault();
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        }
+        // If not on home page, let the link navigate to /#section-id
+    }
+
+    // Handle scroll on page load if URL has hash
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.location.hash) {
+            const sectionId = window.location.hash.substring(1);
+            const section = document.getElementById(sectionId);
+            if (section) {
+                setTimeout(function() {
+                    section.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }, 100);
+            }
+        }
+    });
+</script>
 
 @section Scripts {
     <script>

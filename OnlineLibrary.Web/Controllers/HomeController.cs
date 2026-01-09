@@ -140,6 +140,42 @@ namespace OnlineLibrary.Web.Controllers
             ViewBag.Search = search;
 
             // =========================
+            // CATEGORIES (SECTION 5)
+            // =========================
+            var categories = _context.Categories
+                .Take(6)
+                .Select(c => new CategoryViewModel
+                {
+                    CategoryId = c.CategoryId,
+                    CategoryName = c.CategoryName ?? "Unknown",
+                    Icon = (c.CategoryName != null && c.CategoryName.Contains("Fiction")) ? "bi-rocket-takeoff" :
+                           (c.CategoryName != null && c.CategoryName.Contains("Science")) ? "bi-cpu" :
+                           (c.CategoryName != null && c.CategoryName.Contains("History")) ? "bi-bank" :
+                           (c.CategoryName != null && c.CategoryName.Contains("Arts")) ? "bi-palette" :
+                           (c.CategoryName != null && c.CategoryName.Contains("Children")) ? "bi-balloon" : "bi-bookmark-star"
+                })
+                .ToList();
+
+            // =========================
+            // LIBRARIANS (SECTION 7)
+            // =========================
+            var librarianRoleId = _context.Roles
+                .Where(r => r.RoleName == "Librarian")
+                .Select(r => r.RoleId)
+                .FirstOrDefault();
+
+            var librarians = _context.Users
+                .Where(u => u.RoleId == librarianRoleId && u.IsActive)
+                .Take(3)
+                .Select(u => new LibrarianViewModel
+                {
+                    FullName = u.FullName,
+                    Role = "Librarian",
+                    ImageUrl = "/images/librarian-placeholder.png"
+                })
+                .ToList();
+
+            // =========================
             // FINAL VIEW MODEL
             // =========================
             var model = new HomeIndexViewModel
@@ -147,7 +183,9 @@ namespace OnlineLibrary.Web.Controllers
                 FeaturedBooks = featuredBooks,
                 TopRatedBooks = topRatedBooks,
                 ExploreBooks = exploreBooks,
-                AllBooks = booksQuery.ToList()
+                AllBooks = booksQuery.ToList(),
+                Categories = categories,
+                Librarians = librarians
             };
 
             return View(model);
