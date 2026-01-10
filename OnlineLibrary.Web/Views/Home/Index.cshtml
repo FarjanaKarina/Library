@@ -297,7 +297,7 @@
 <!-- =========================
      SECTION: ABOUT BOOKNEST (HOME)
 ========================= -->
-<section class="home-about-section py-5" id="about-section">
+<section class="home-about-section py-5" id="about-section" style="background-color: #f7f4ef;">
     <div class="container">
 
         <div class="row align-items-start">
@@ -423,7 +423,7 @@
 <!-- =========================
      SECTION 7: MEET OUR LIBRARIANS (MINIMALIST)
 ========================= -->
-<section class="librarian-section py-5 bg-white">
+<section class="librarian-section py-5" style="background-color: #f7f4ef;">
     <div class="container text-center">
         <h2 class="section-title fw-bold mb-5">Meet Our Librarians</h2>
         
@@ -493,23 +493,32 @@
                 <div class="card shadow-sm border-0 p-4">
                     <h5 class="fw-bold mb-3">Send Us a Message</h5>
 
-                    <form>
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success">@TempData["Success"]</div>
+                    }
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger">@TempData["Error"]</div>
+                    }
+
+                    <form asp-action="Contact" asp-controller="Home" method="post">
                         <div class="mb-3">
-                            <input class="form-control" placeholder="Your Name" />
+                            <input name="Name" class="form-control" placeholder="Your Name" required />
                         </div>
 
                         <div class="mb-3">
-                            <input type="email" class="form-control" placeholder="Your Email" />
+                            <input type="email" name="Email" class="form-control" placeholder="Your Email" required />
                         </div>
 
                         <div class="mb-3">
-                            <input class="form-control" placeholder="Subject" />
+                            <input name="Subject" class="form-control" placeholder="Subject" required />
                         </div>
 
                         <div class="mb-3">
-                            <textarea class="form-control"
+                            <textarea name="Message" class="form-control"
                                       rows="4"
-                                      placeholder="Your Message"></textarea>
+                                      placeholder="Your Message" required></textarea>
                         </div>
 
                         <button type="submit" class="btn btn-danger px-4 rounded-pill">

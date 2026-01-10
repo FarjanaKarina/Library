@@ -32,5 +32,6 @@ namespace OnlineLibrary.Infrastructure.Data
         public DbSet<Wishlist> Wishlists { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<ContactMessage> ContactMessages { get; set; }
     }
 }

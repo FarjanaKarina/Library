@@ -1,5 +1,5 @@
 ﻿<div class="p-3">
-    <h5 class="mb-4">🔐 Admin Panel</h5>
+    <h5 class="mb-4">Admin Panel</h5>
 
     <ul class="nav flex-column gap-2">
         <li>
@@ -49,6 +49,12 @@
         </li>
 
         <li>
+            <a asp-controller="Admin" asp-action="Users" class="nav-link text-white">
+                <i class="bi bi-people me-2"></i> Manage Students
+            </a>
+        </li>
+
+        <li>
             <a asp-controller="Admin" asp-action="Reports" class="nav-link text-white">
                 <i class="bi bi-graph-up me-2"></i> Reports
             </a>
@@ -63,6 +69,12 @@
         <li>
             <a asp-controller="Admin" asp-action="AuditLogs" class="nav-link text-white">
                 <i class="bi bi-shield-check me-2"></i> Audit Logs
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Admin" asp-action="Messages" class="nav-link text-white">
+                <i class="bi bi-chat-left-text me-2"></i> Contact Messages
             </a>
         </li>
 

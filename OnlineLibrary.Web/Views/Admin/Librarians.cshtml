@@ -1,35 +1,113 @@
 ﻿@model IEnumerable<OnlineLibrary.Infrastructure.Domain.Entities.User>
 @{
+    ViewData["Title"] = "Manage Librarians";
     Layout = "_AdminLayout";
 }
 
-<h2>Librarians</h2>
+<div class="container-fluid p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Our Librarians</h2>
+            <p class="text-muted">Manage your library's dedicated staff members here.</p>
+        </div>
+        <a asp-action="CreateLibrarian" class="btn btn-danger rounded-pill px-4 shadow-sm">
+            <i class="bi bi-person-plus me-2"></i> Add Librarian
+        </a>
+    </div>
 
-<a asp-action="CreateLibrarian"
-   class="btn btn-primary mb-3">
-    + Add Librarian
-</a>
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">FullName</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var lib in Model)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-init me-3">@lib.FullName[0]</div>
+                                        <span class="fw-semibold">@lib.FullName</span>
+                                    </div>
+                                </td>
+                                <td>@lib.Email</td>
+                                <td>@lib.Phone</td>
+                                <td>
+                                    @if (lib.IsActive)
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success px-3 rounded-pill">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary px-3 rounded-pill">Inactive</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    <form asp-action="DeleteLibrarian" asp-route-id="@lib.UserId" method="post" 
+                                          onsubmit="return confirm('Are you sure you want to delete this librarian? This action cannot be undone.');" 
+                                          style="display: inline-block;">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle p-2" title="Delete Librarian">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <i class="bi bi-people display-4 text-light"></i>
+                                <p class="text-muted mt-2">No librarians found.</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
-<table class="table table-bordered">
-    <thead class="table-dark">
-        <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Status</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var lib in Model)
-        {
-            <tr>
-                <td>@lib.FullName</td>
-                <td>@lib.Email</td>
-                <td>@lib.Phone</td>
-                <td>
-                    @(lib.IsActive ? "Active" : "Inactive")
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<style>
+    .avatar-init {
+        width: 36px;
+        height: 36px;
+        background: #fdf2f2;
+        color: #dc3545;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        border: 1px solid #fee2e2;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #fcfcfc;
+    }
+
+    .btn-outline-danger {
+        width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+
+    .btn-outline-danger:hover {
+        background-color: #dc3545;
+        color: white;
+        transform: scale(1.1);
+    }
+</style>

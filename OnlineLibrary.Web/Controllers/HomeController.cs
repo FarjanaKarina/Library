@@ -307,6 +307,33 @@ namespace OnlineLibrary.Web.Controllers
         public IActionResult Contact() => View();
         public IActionResult About() => View();
 
+        [HttpPost]
+        public async Task<IActionResult> Contact(ContactMessageViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Please fill in all fields correctly.";
+                return RedirectToAction("Index", "Home", new { area = "" });
+            }
+
+            var contactMsg = new OnlineLibrary.Infrastructure.Domain.Entities.ContactMessage
+            {
+                MessageId = Guid.NewGuid(),
+                Name = model.Name,
+                Email = model.Email,
+                Subject = model.Subject,
+                Message = model.Message,
+                CreatedAt = DateTime.UtcNow,
+                IsRead = false
+            };
+
+            _context.ContactMessages.Add(contactMsg);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Your message has been sent successfully!";
+            return RedirectToAction("Index", "Home", new { area = "" });
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

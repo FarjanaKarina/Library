@@ -1,0 +1,125 @@
+@model IEnumerable<OnlineLibrary.Infrastructure.Domain.Entities.User>
+@{
+    ViewData["Title"] = "Manage Students";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Student Management</h2>
+            <p class="text-muted">Overview of all registered students in the BookNest system.</p>
+        </div>
+        <div class="stats-badge d-flex gap-3">
+            <span class="badge bg-primary-subtle text-primary border border-primary px-3 rounded-pill">Total: @Model.Count()</span>
+            <span class="badge bg-success-subtle text-success border border-success px-3 rounded-pill">Active: @Model.Count(u => u.IsActive)</span>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Student Name</th>
+                        <th>Email</th>
+                        <th>Registration Date</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var user in Model)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-init me-3 bg-soft-blue">@user.FullName[0]</div>
+                                        <div>
+                                            <div class="fw-semibold">@user.FullName</div>
+                                            <small class="text-muted">ID: @user.UserId.ToString().Substring(0, 8)...</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>@user.Email</td>
+                                <td>@user.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                <td>
+                                    @if (user.IsActive)
+                                    {
+                                        <span class="badge bg-success text-white px-3 rounded-pill">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger text-white px-3 rounded-pill">Blocked</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <form asp-action="ToggleUserStatus" asp-route-id="@user.UserId" method="post">
+                                            @if (user.IsActive)
+                                            {
+                                                <button type="submit" class="btn btn-sm btn-outline-warning rounded-pill px-3" title="Deactivate Account">
+                                                    <i class="bi bi-person-x me-1"></i> Block
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-3" title="Activate Account">
+                                                    <i class="bi bi-person-check me-1"></i> Unblock
+                                                </button>
+                                            }
+                                        </form>
+
+                                        <form asp-action="DeleteUser" asp-route-id="@user.UserId" method="post" 
+                                              onsubmit="return confirm('WARNING: Are you sure you want to PERMANENTLY delete this student? Account data will be lost.');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle p-2" title="Delete Account">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <i class="bi bi-people-fill display-4 text-light"></i>
+                                <p class="text-muted mt-2">No students found in the system.</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-init {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    .bg-soft-blue { background-color: #e3f2fd; color: #1976d2; }
+
+    .table-hover tbody tr:hover {
+        background-color: #fbfcfe;
+    }
+
+    .btn-outline-danger {
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>

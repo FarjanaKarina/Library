@@ -1,116 +1,291 @@
 ﻿@{
     ViewData["Title"] = "Admin Dashboard";
     Layout = "_AdminLayout";
+    var recentMessages = ViewBag.RecentMessages as List<OnlineLibrary.Infrastructure.Domain.Entities.ContactMessage>;
 }
 
-<div class="container mt-4">
+<div class="admin-dashboard-container p-4">
 
-    <h2 class="mb-4">Admin Dashboard</h2>
-
-    <div class="row">
-
-        <!-- Total Users -->
-        <div class="col-md-3 mb-3">
-            <div class="card text-white bg-primary shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Total Users</h5>
-                    <h3>@ViewBag.TotalUsers</h3>
-                </div>
-            </div>
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h2 class="dashboard-header-title mb-1">Welcome back, Admin!</h2>
+            <p class="text-muted">Here's what's happening in your library today.</p>
         </div>
-
-        <!-- Total Books -->
-        <div class="col-md-3 mb-3">
-            <div class="card text-white bg-success shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Total Books</h5>
-                    <h3>@ViewBag.TotalBooks</h3>
-                </div>
-            </div>
-        </div>
-
-        <!-- Total Categories -->
-        <div class="col-md-3 mb-3">
-            <div class="card text-white bg-black shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Categories</h5>
-                    <h3>@ViewBag.TotalCategories</h3>
-                </div>
-            </div>
-        </div>
-
-        <!-- Active Memberships -->
-        <div class="col-md-3 mb-3">
-            <div class="card text-white bg-info shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Active Memberships</h5>
-                    <h3>@ViewBag.ActiveMemberships</h3>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3 mb-3">
-            <div class="card text-white bg-warning shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Active Librarians</h5>
-                    <h3>@ViewBag.ActiveLibrarians</h3>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3 mb-3">
-            <div class="card text-white bg-danger shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Pending Memberships</h5>
-                    <h3>@ViewBag.PendingMemberships</h3>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3 mb-3">
-            <div class="card text-white bg-secondary shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Approved Memberships</h5>
-                    <h3>@ViewBag.ApprovedMemberships</h3>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <hr />
-
-    <!-- Quick Actions -->
-    <div class="row mt-3">
-        <div class="col-md-12">
-            <h5>Quick Actions</h5>
-
-            <a asp-controller="Category" asp-action="Index" class="btn btn-outline-primary me-2">
-                Manage Categories
-            </a>
-
-            <a asp-controller="Book" asp-action="Index" class="btn btn-outline-success me-2">
-                Manage Books
-            </a>
-
-            <a asp-controller="User" asp-action="Index" class="btn btn-outline-dark">
-                Manage Users
-            </a>
-            <a asp-action="Librarians"
-               class="btn btn-outline-info">
-                Manage Librarians
-            </a>
-
-            <a asp-action="Memberships"
-               class="btn btn-outline-warning">
-                Manage Requests
-            </a>
-            <a asp-action="AuditLogs"
-               class="btn btn-outline-secondary">
-                View Audit Logs
-            </a>
-
+        <div class="current-date-badge p-2 px-3 shadow-sm rounded-pill bg-white">
+            <i class="bi bi-calendar3 me-2 text-danger"></i>
+            <span class="fw-bold">@DateTime.Now.ToString("MMMM dd, yyyy")</span>
         </div>
     </div>
 
+    <!-- Stats Cards Grid -->
+    <div class="row g-4 mb-5">
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-glass-card gradient-blue">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <p class="stat-label">Total Students</p>
+                            <h3 class="stat-value">@ViewBag.TotalUsers</h3>
+                        </div>
+                        <div class="stat-icon-wrapper">
+                            <i class="bi bi-people"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-glass-card gradient-green">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <p class="stat-label">Total Books</p>
+                            <h3 class="stat-value">@ViewBag.TotalBooks</h3>
+                        </div>
+                        <div class="stat-icon-wrapper">
+                            <i class="bi bi-book"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-glass-card gradient-purple">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <p class="stat-label">Categories</p>
+                            <h3 class="stat-value">@ViewBag.TotalCategories</h3>
+                        </div>
+                        <div class="stat-icon-wrapper">
+                            <i class="bi bi-tags"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-glass-card gradient-orange">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <p class="stat-label">Active Librarians</p>
+                            <h3 class="stat-value">@ViewBag.ActiveLibrarians</h3>
+                        </div>
+                        <div class="stat-icon-wrapper">
+                            <i class="bi bi-person-badge"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Quick Actions -->
+        <div class="col-lg-8">
+            <div class="glass-section-card h-100">
+                <div class="section-card-header d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="section-title">Quick Actions</h5>
+                    <i class="bi bi-lightning-charge text-warning"></i>
+                </div>
+                <div class="action-grid">
+                    <a asp-controller="Category" asp-action="Index" class="action-item">
+                        <div class="action-icon bg-soft-primary"><i class="bi bi-grid"></i></div>
+                        <span>Manage Categories</span>
+                    </a>
+                    <a asp-controller="Book" asp-action="Index" class="action-item">
+                        <div class="action-icon bg-soft-success"><i class="bi bi-journal-plus"></i></div>
+                        <span>Manage Books</span>
+                    </a>
+                    <a asp-controller="Admin" asp-action="Users" class="action-item">
+                        <div class="action-icon bg-soft-dark"><i class="bi bi-person-gear"></i></div>
+                        <span>Manage Students</span>
+                    </a>
+                    <a asp-action="Librarians" class="action-item">
+                        <div class="action-icon bg-soft-info"><i class="bi bi-people-fill"></i></div>
+                        <span>Librarians</span>
+                    </a>
+                    <a asp-action="Reports" class="action-item">
+                        <div class="action-icon bg-soft-danger"><i class="bi bi-graph-up-arrow"></i></div>
+                        <span>Sales Reports</span>
+                    </a>
+                    <a asp-action="AuditLogs" class="action-item">
+                        <div class="action-icon bg-soft-secondary"><i class="bi bi-shield-check"></i></div>
+                        <span>Audit Logs</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Contact Messages -->
+        <div class="col-lg-4">
+            <div class="glass-section-card h-100">
+                <div class="section-card-header d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="section-title">Recent Messages</h5>
+                    <a asp-action="Messages" class="btn btn-sm btn-link text-decoration-none p-0 text-danger">View All</a>
+                </div>
+                <div class="message-feed">
+                    @if (recentMessages != null && recentMessages.Any())
+                    {
+                        @foreach (var msg in recentMessages)
+                        {
+                            <div class="message-item p-3 mb-2 rounded shadow-sm bg-white border-start border-4 @(msg.IsRead ? "border-secondary" : "border-danger")">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <h6 class="mb-0 text-truncate" style="max-width: 150px;">@msg.Name</h6>
+                                    <small class="text-muted">@msg.CreatedAt.ToString("MMM dd")</small>
+                                </div>
+                                <p class="small text-muted mb-0 text-truncate">@msg.Subject</p>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-chat-dots display-4 text-light"></i>
+                            <p class="text-muted mt-2">No new messages</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<style>
+    .admin-dashboard-container {
+        font-family: 'Inter', sans-serif;
+        background: #fdfdfd;
+        min-height: 100vh;
+    }
+
+    .dashboard-header-title {
+        font-weight: 800;
+        color: #1a202c;
+    }
+
+    /* Glass Effect Cards */
+    .stat-glass-card {
+        border: none;
+        border-radius: 20px;
+        color: white;
+        padding: 24px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    }
+
+    .stat-glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
+
+    .gradient-blue { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .gradient-green { background: linear-gradient(135deg, #0ba360 0%, #3cba92 100%); }
+    .gradient-purple { background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); }
+    .gradient-orange { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        margin-bottom: 4px;
+        font-weight: 500;
+    }
+
+    .stat-value {
+        font-weight: 800;
+        margin-bottom: 0;
+    }
+
+    .stat-icon-wrapper {
+        width: 48px;
+        height: 48px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    /* Section Cards */
+    .glass-section-card {
+        background: white;
+        border-radius: 25px;
+        padding: 30px;
+        border: 1px solid #f0f0f0;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    }
+
+    .section-title {
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 0;
+    }
+
+    /* Action Grid */
+    .action-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 20px;
+    }
+
+    .action-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        border-radius: 18px;
+        text-decoration: none;
+        color: #4a5568;
+        transition: all 0.2s ease;
+        text-align: center;
+    }
+
+    .action-item:hover {
+        background-color: #f7fafc;
+        transform: scale(1.05);
+        color: #2d3748;
+    }
+
+    .action-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 12px;
+    }
+
+    .bg-soft-primary { background: #ebf4ff; color: #4299e1; }
+    .bg-soft-success { background: #f0fff4; color: #48bb78; }
+    .bg-soft-dark { background: #edf2f7; color: #2d3748; }
+    .bg-soft-info { background: #e6fffa; color: #38b2ac; }
+    .bg-soft-danger { background: #fff5f5; color: #f56565; }
+    .bg-soft-secondary { background: #f3f4f6; color: #718096; }
+
+    .action-item span {
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    /* Message Item Custom Scroll */
+    .message-feed {
+        max-height: 400px;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+
+    .message-feed::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .message-feed::-webkit-scrollbar-thumb {
+        background: #e2e8f0;
+        border-radius: 10px;
+    }
+</style>

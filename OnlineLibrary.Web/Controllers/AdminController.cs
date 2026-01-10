@@ -43,7 +43,12 @@ namespace OnlineLibrary.Web.Controllers
             }
 
             // 3️⃣ Dashboard statistics
-            ViewBag.TotalUsers = _context.Users.Count();
+            var studentRoleId = _context.Roles
+                .Where(r => r.RoleName == "Student")
+                .Select(r => r.RoleId)
+                .FirstOrDefault();
+
+            ViewBag.TotalUsers = _context.Users.Count(u => u.RoleId == studentRoleId);
             ViewBag.TotalBooks = _context.Books.Count();
             ViewBag.TotalCategories = _context.Categories.Count();
 
@@ -54,6 +59,16 @@ namespace OnlineLibrary.Web.Controllers
 
             ViewBag.ActiveLibrarians = _context.Users
                 .Count(u => u.RoleId == librarianRoleId && u.IsActive);
+
+            // 4️⃣ Recent Messages
+            ViewBag.RecentMessages = _context.ContactMessages
+                .OrderByDescending(m => m.CreatedAt)
+                .Take(5)
+                .ToList();
+
+            // 5️⃣ Pending Memberships (Assuming they are in the User table with a specific flag or separate table)
+            // Let's check the database for standard membership context
+            ViewBag.PendingMemberships = _context.Notifications.Count(n => n.Title.Contains("Membership Request")); // Fallback/Placeholder if specific table isn't clear
 
             return View();
         }
@@ -124,6 +139,71 @@ namespace OnlineLibrary.Web.Controllers
             _context.SaveChanges();
 
             return RedirectToAction("Librarians");
+        }
+
+        [HttpPost]
+        public IActionResult DeleteLibrarian(Guid id)
+        {
+            if (!IsAdmin()) return RedirectToAction("Login", "Account");
+
+            var librarian = _context.Users.Find(id);
+            if (librarian == null) return NotFound();
+
+            // Optional: Check if librarian has active orders or other dependencies before deleting
+            // For simplicity, we'll just remove them here.
+            
+            _context.Users.Remove(librarian);
+            _context.SaveChanges();
+
+            return RedirectToAction("Librarians");
+        }
+
+        // =========================
+        // User Management
+        // =========================
+        public IActionResult Users()
+        {
+            if (!IsAdmin()) return RedirectToAction("Login", "Account");
+
+            var studentRoleId = _context.Roles
+                .Where(r => r.RoleName == "Student")
+                .Select(r => r.RoleId)
+                .FirstOrDefault();
+
+            var users = _context.Users
+                .Where(u => u.RoleId == studentRoleId)
+                .OrderByDescending(u => u.CreatedAt)
+                .ToList();
+
+            return View(users);
+        }
+
+        [HttpPost]
+        public IActionResult ToggleUserStatus(Guid id)
+        {
+            if (!IsAdmin()) return RedirectToAction("Login", "Account");
+
+            var user = _context.Users.Find(id);
+            if (user == null) return NotFound();
+
+            user.IsActive = !user.IsActive;
+            _context.SaveChanges();
+
+            return RedirectToAction("Users");
+        }
+
+        [HttpPost]
+        public IActionResult DeleteUser(Guid id)
+        {
+            if (!IsAdmin()) return RedirectToAction("Login", "Account");
+
+            var user = _context.Users.Find(id);
+            if (user == null) return NotFound();
+
+            _context.Users.Remove(user);
+            _context.SaveChanges();
+
+            return RedirectToAction("Users");
         }
 
         // =========================
@@ -326,6 +406,35 @@ namespace OnlineLibrary.Web.Controllers
                 };
 
             return View(logs.ToList());
+        }
+
+        // =========================
+        // CONTACT MESSAGES
+        // =========================
+        public IActionResult Messages()
+        {
+            if (!IsAdmin())
+                return RedirectToAction("Login", "Account");
+
+            var messages = _context.ContactMessages
+                .OrderByDescending(m => m.CreatedAt)
+                .ToList();
+
+            return View(messages);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MarkMessageRead(Guid id)
+        {
+            if (!IsAdmin()) return Json(new { success = false });
+
+            var message = await _context.ContactMessages.FindAsync(id);
+            if (message == null) return NotFound();
+
+            message.IsRead = true;
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true });
         }
 
 

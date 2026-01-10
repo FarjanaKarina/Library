@@ -1,0 +1,135 @@
+@model IEnumerable<OnlineLibrary.Infrastructure.Domain.Entities.ContactMessage>
+@{
+    ViewData["Title"] = "Contact Messages";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Contact Enquiries</h2>
+        <span class="badge bg-danger rounded-pill">@Model.Count(m => !m.IsRead) Unread</span>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Sender</th>
+                        <th>Subject</th>
+                        <th>Message</th>
+                        <th>Received</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var msg in Model)
+                    {
+                        <tr class="@(!msg.IsRead ? "fw-bold bg-light-subtle" : "text-muted")">
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle me-3">@msg.Name[0]</div>
+                                    <div>
+                                        <div class="text-dark">@msg.Name</div>
+                                        <small class="text-muted">@msg.Email</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@msg.Subject</td>
+                            <td>
+                                <div class="text-truncate" style="max-width: 300px;">@msg.Message</div>
+                            </td>
+                            <td>@msg.CreatedAt.ToString("MMM dd, yyyy HH:mm")</td>
+                            <td class="text-end pe-4">
+                                <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="viewMessage('@msg.MessageId')">
+                                    View
+                                </button>
+                                @if (!msg.IsRead)
+                                {
+                                    <button class="btn btn-sm btn-link text-decoration-none text-muted" onclick="markAsRead('@msg.MessageId', this)">
+                                        <i class="bi bi-check2-all"></i> Mark Read
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Message Detail Modal -->
+<div class="modal fade" id="messageModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="mSubject"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <div class="d-flex justify-content-between mb-3">
+                    <span id="mSender" class="text-danger fw-bold"></span>
+                    <small id="mDate" class="text-muted"></small>
+                </div>
+                <div id="mBody" class="p-3 bg-light rounded-3" style="min-height: 150px; white-space: pre-wrap;"></div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Close</button>
+                <a id="replyBtn" href="#" class="btn btn-danger rounded-pill px-4">Reply via Email</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-circle {
+        width: 38px;
+        height: 38px;
+        background: #f8d7da;
+        color: #842029;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+    .bg-light-subtle { background-color: #fff8f8; }
+</style>
+
+@section Scripts {
+    <script>
+        const messages = @Html.Raw(Json.Serialize(Model));
+
+        function viewMessage(id) {
+            const msg = messages.find(m => m.messageId == id);
+            if (msg) {
+                document.getElementById('mSubject').innerText = msg.subject;
+                document.getElementById('mSender').innerText = `${msg.name} (${msg.email})`;
+                document.getElementById('mDate').innerText = new Date(msg.createdAt).toLocaleString();
+                document.getElementById('mBody').innerText = msg.message;
+                document.getElementById('replyBtn').href = `mailto:${msg.email}?subject=Re: ${msg.subject}`;
+                
+                new bootstrap.Modal(document.getElementById('messageModal')).show();
+                
+                // If unread, mark it read on server
+                if (!msg.isRead) {
+                    markAsRead(id);
+                }
+            }
+        }
+
+        function markAsRead(id, btn) {
+            fetch(`/Admin/MarkMessageRead/${id}`, { method: 'POST' })
+                .then(res => {
+                    if (res.ok) {
+                        if (btn) {
+                            btn.closest('tr').classList.remove('fw-bold');
+                            btn.closest('tr').classList.add('text-muted');
+                            btn.remove();
+                        }
+                    }
+                });
+        }
+    </script>
+}
