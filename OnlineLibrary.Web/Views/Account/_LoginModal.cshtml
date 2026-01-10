@@ -1,8 +1,8 @@
 ﻿@model OnlineLibrary.Web.Models.LoginViewModel
 
-<div class="modal-header">
-    <h5 class="modal-title">Log in or create account</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div class="modal-header position-relative justify-content-center">
+    <h5 class="modal-title">Sign In</h5>
+    <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal"></button>
 </div>
 
 <div class="modal-body">
@@ -26,13 +26,13 @@
             <input asp-for="Password" type="password" class="form-control" />
         </div>
 
-        <button class="btn btn-primary w-100">
+        <button class="btn text-white w-100" style="background-color: #e63946; border-color: #e63946;">
             Sign In
         </button>
 
         <p class="text-center mt-3">
             Don’t have an account?
-            <a href="#" id="openRegisterModal">Sign Up</a>
+            <a href="#" onclick="openRegisterModal(); return false;">Sign Up</a>
         </p>
     </form>
 

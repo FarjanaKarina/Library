@@ -31,7 +31,9 @@
         <!-- LOGO -->
         <a class="navbar-brand fw-bold fs-4 d-flex align-items-center"
            asp-controller="Home"
-           asp-action="Index">
+           asp-action="Index"
+           asp-all-route-data='isLoggedIn ? new Dictionary<string, string> { { "noSidenav", "true" } } : null'
+           target='@(isLoggedIn ? "_blank" : "_self")'>
 @*             <img src="~/images/BookNestLogo.png" style="width:32px" class="me-2" />
  *@            <span class="text-danger">Book</span>Nest
         </a>
@@ -70,32 +72,7 @@
             <!-- RIGHT ICONS -->
             <ul class="navbar-nav ms-auto align-items-center gap-2 navbar-icons">
 
-                <!-- 🔍 SEARCH (ONLY GUEST + STUDENT) -->
-                @if (isStudent)
-                {
-                    <!-- Student → modal search -->
-                    <li class="nav-item">
-                        <button type="button"
-                                class="btn nav-link p-0"
-                                data-bs-toggle="modal"
-                                data-bs-target="#studentSearchModal">
-                            <i class="bi bi-search fs-4"></i>
-                        </button>
-                    </li>
-                }
-                else if (!isAdmin && !isLibrarian)
-                {
-                    <!-- Guest → landing page scroll search -->
-                    <li class="nav-item @(isStudent ? "" : "d-none")" id="navSearchIcon">
-                        <button type="button"
-                                class="btn nav-link p-0"
-                                id="navSearchBtn"
-                                aria-label="Search">
-                            <i class="bi bi-search fs-4"></i>
-                        </button>
-
-                    </li>
-                }
+                <!-- Search removed as requested -->
 
                 <!-- 🔔 NOTIFICATIONS (LOGGED IN USERS ONLY) -->
                 @if (isLoggedIn)

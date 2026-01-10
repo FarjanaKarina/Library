@@ -1,8 +1,8 @@
 ﻿@model OnlineLibrary.Web.Models.StudentRegisterViewModel
 
-<div class="modal-header">
+<div class="modal-header position-relative justify-content-center">
     <h5 class="modal-title">Create Account</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal"></button>
 </div>
 
 <div class="modal-body">
@@ -41,13 +41,13 @@
             <textarea asp-for="Address" class="form-control"></textarea>
         </div>
 
-        <button class="btn btn-success w-100">
+        <button class="btn text-white w-100" style="background-color: #e63946; border-color: #e63946;">
             Sign Up
         </button>
 
         <p class="text-center mt-3">
             Already have an account?
-            <a href="#" id="openLoginModal">Sign In</a>
+            <a href="#" onclick="openLoginModal(); return false;">Sign In</a>
         </p>
     </form>
 

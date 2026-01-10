@@ -266,26 +266,95 @@
     </div>
 </div>
 
+<!-- Return Request Modal -->
+<div class="modal fade" id="returnRequestModal" tabindex="-1" aria-labelledby="returnRequestModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title" id="returnRequestModalLabel"><i class="bi bi-arrow-return-left me-2"></i>Request Book Return</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info py-2">
+                    <small><i class="bi bi-info-circle me-1"></i> You will receive a <strong>50% refund</strong> once the book is received and verified.</small>
+                </div>
+                
+                <form id="returnForm">
+                    <input type="hidden" id="modalOrderItemId" name="orderItemId">
+                    <div class="mb-3">
+                        <label class="form-label">Book</label>
+                        <input type="text" id="modalBookTitle" class="form-control" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Refund Payment Method</label>
+                        <select class="form-select" id="refundPaymentMethod" name="paymentMethod" required>
+                            <option value="">Select Method</option>
+                            <option value="bKash">bKash</option>
+                            <option value="Nagad">Nagad</option>
+                            <option value="Rocket">Rocket</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Account Number / Wallet ID</label>
+                        <input type="text" class="form-control" id="refundAccountNumber" name="accountNumber" placeholder="e.g. 017XXXXXXXX" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="btnConfirmReturn">Submit Return Request</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="mb-5 pb-5"></div>
 
 @section Scripts {
     <script>
         $(document).ready(function () {
-            // Request Return
+            // Request Return - Open Modal
             $('.btn-request-return').click(function () {
                 const itemId = $(this).data('item-id');
                 const bookTitle = $(this).data('book-title');
+                
+                $('#modalOrderItemId').val(itemId);
+                $('#modalBookTitle').val(bookTitle);
+                
+                const returnModal = new bootstrap.Modal(document.getElementById('returnRequestModal'));
+                returnModal.show();
+            });
 
-                if (confirm(`Request return for "${bookTitle}"?\n\nYou will receive 50% refund after the book is picked up and received.`)) {
-                    $.post('@Url.Action("RequestReturn", "Order")', { orderItemId: itemId }, function (res) {
-                        if (res.success) {
-                            alert('Return requested! You will be notified when approved.');
-                            location.reload();
-                        } else {
-                            alert(res.message || 'Failed to request return.');
-                        }
-                    });
+            // Confirm Return Request
+            $('#btnConfirmReturn').click(function () {
+                const formData = {
+                    orderItemId: $('#modalOrderItemId').val(),
+                    accountNumber: $('#refundAccountNumber').val(),
+                    paymentMethod: $('#refundPaymentMethod').val()
+                };
+
+                if (!formData.paymentMethod || !formData.accountNumber) {
+                    alert('Please fill in all refund details.');
+                    return;
                 }
+
+                $(this).prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Submitting...');
+
+                $.post('@Url.Action("RequestReturn", "Order")', formData, function (res) {
+                    if (res.success) {
+                        alert('Return requested! You will be notified when approved.');
+                        location.reload();
+                    } else {
+                        alert(res.message || 'Failed to request return.');
+                        $('#btnConfirmReturn').prop('disabled', false).html('Submit Return Request');
+                    }
+                }).fail(function () {
+                    alert('Error: Server responded with an error. Please try again.');
+                    $('#btnConfirmReturn').prop('disabled', false).html('Submit Return Request');
+                });
             });
 
             // Cancel Return

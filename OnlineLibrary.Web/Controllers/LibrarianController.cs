@@ -164,6 +164,8 @@ namespace OnlineLibrary.Web.Controllers
                                   oi.ReceivedAt,
                                   oi.RefundedAt,
                                   oi.RefundAmount,
+                                  oi.RefundAccountNumber,
+                                  oi.RefundPaymentMethod,
                                   b.ImageUrl
                               }).ToList();
 
@@ -278,7 +280,9 @@ namespace OnlineLibrary.Web.Controllers
                      ReturnApprovedAt = oi.ReturnApprovedAt,
                      ReceivedAt = oi.ReceivedAt,
                      RefundedAt = oi.RefundedAt,
-                     ActualRefundAmount = oi.RefundAmount
+                     ActualRefundAmount = oi.RefundAmount,
+                     RefundAccountNumber = oi.RefundAccountNumber,
+                     RefundPaymentMethod = oi.RefundPaymentMethod
                  }).ToList();
 
             return View(requests);
@@ -367,10 +371,42 @@ namespace OnlineLibrary.Web.Controllers
         }
 
         // =========================
+        // PROCEED TO REFUND (SSLCommerz Style UI)
+        // =========================
+        public IActionResult ProceedToRefund(Guid orderItemId)
+        {
+            if (!IsAuthorized())
+                return RedirectToAction("Login", "Account");
+
+            var request = (from oi in _context.OrderItems
+                           join o in _context.Orders on oi.OrderId equals o.OrderId
+                           join u in _context.Users on o.UserId equals u.UserId
+                           where oi.OrderItemId == orderItemId && oi.Status == "Received"
+                           select new ReturnRequestViewModel
+                           {
+                               OrderItemId = oi.OrderItemId,
+                               OrderId = o.OrderId,
+                               TransactionId = o.TransactionId ?? "",
+                               StudentName = u.FullName,
+                               BookTitle = oi.BookTitle,
+                               Price = oi.Price,
+                               Quantity = oi.Quantity,
+                               Status = oi.Status,
+                               RefundAccountNumber = oi.RefundAccountNumber,
+                               RefundPaymentMethod = oi.RefundPaymentMethod
+                           }).FirstOrDefault();
+
+            if (request == null)
+                return NotFound();
+
+            return View(request);
+        }
+
+        // =========================
         // PROCESS REFUND
         // =========================
         [HttpPost]
-        public IActionResult ProcessRefund(Guid orderItemId)
+        public IActionResult ProcessRefund(Guid orderItemId, string refundMethod, string refundTransactionId)
         {
             if (!IsAuthorized())
                 return Json(new { success = false });
@@ -385,6 +421,7 @@ namespace OnlineLibrary.Web.Controllers
             orderItem.Status = "Refunded";
             orderItem.RefundedAt = DateTime.UtcNow;
             orderItem.RefundAmount = refundAmount;
+            orderItem.RefundPaymentMethod = refundMethod; // Librarian can override or confirm user's choice
 
             _context.SaveChanges();
 
@@ -411,7 +448,7 @@ namespace OnlineLibrary.Web.Controllers
                     Action = "Refund Processed",
                     EntityName = "OrderItem",
                     EntityId = orderItemId,
-                    Description = $"Refund of ৳{refundAmount:N0} processed for '{orderItem.BookTitle}'"
+                    Description = $"Refund of ৳{refundAmount:N0} processed via {refundMethod}. Ref TXN: {refundTransactionId}. Book: '{orderItem.BookTitle}'"
                 });
                 _context.SaveChanges();
             }
@@ -425,7 +462,7 @@ namespace OnlineLibrary.Web.Controllers
                     _context,
                     order.UserId,
                     "Refund Processed",
-                    $"Your refund of ৳{refundAmount:N0} for '{orderItem.BookTitle}' has been processed.",
+                    $"Your refund of ৳{refundAmount:N0} for '{orderItem.BookTitle}' has been processed via {refundMethod}.",
                     "success");
             }
 

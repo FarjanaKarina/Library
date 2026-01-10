@@ -23,5 +23,8 @@ namespace OnlineLibrary.Infrastructure.Domain.Entities
         public DateTime? RefundedAt { get; set; }
 
         public decimal? RefundAmount { get; set; }  // 50% of Price when refunded
+
+        public string? RefundAccountNumber { get; set; }
+        public string? RefundPaymentMethod { get; set; }
     }
 }

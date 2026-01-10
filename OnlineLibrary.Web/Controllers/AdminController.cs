@@ -504,6 +504,8 @@ namespace OnlineLibrary.Web.Controllers
                                   oi.ReceivedAt,
                                   oi.RefundedAt,
                                   oi.RefundAmount,
+                                  oi.RefundAccountNumber,
+                                  oi.RefundPaymentMethod,
                                   b.ImageUrl
                               }).ToList();
 
@@ -545,7 +547,9 @@ namespace OnlineLibrary.Web.Controllers
                      ReturnApprovedAt = oi.ReturnApprovedAt,
                      ReceivedAt = oi.ReceivedAt,
                      RefundedAt = oi.RefundedAt,
-                     ActualRefundAmount = oi.RefundAmount
+                     ActualRefundAmount = oi.RefundAmount,
+                     RefundAccountNumber = oi.RefundAccountNumber,
+                     RefundPaymentMethod = oi.RefundPaymentMethod
                  }).ToList();
 
             return View("~/Views/Librarian/ReturnRequests.cshtml", requests);
@@ -681,8 +685,36 @@ namespace OnlineLibrary.Web.Controllers
             return Json(new { success = true });
         }
 
+        public IActionResult ProceedToRefund(Guid orderItemId)
+        {
+            if (!IsAdmin()) return RedirectToAction("Login", "Account");
+
+            var request = (from oi in _context.OrderItems
+                           join o in _context.Orders on oi.OrderId equals o.OrderId
+                           join u in _context.Users on o.UserId equals u.UserId
+                           where oi.OrderItemId == orderItemId && oi.Status == "Received"
+                           select new ReturnRequestViewModel
+                           {
+                               OrderItemId = oi.OrderItemId,
+                               OrderId = o.OrderId,
+                               TransactionId = o.TransactionId ?? "N/A",
+                               StudentName = u.FullName,
+                               StudentEmail = u.Email,
+                               BookTitle = oi.BookTitle,
+                               Price = oi.Price,
+                               Quantity = oi.Quantity,
+                               Status = oi.Status,
+                               RefundAccountNumber = oi.RefundAccountNumber,
+                               RefundPaymentMethod = oi.RefundPaymentMethod
+                           }).FirstOrDefault();
+
+            if (request == null) return NotFound();
+
+            return View("~/Views/Librarian/ProceedToRefund.cshtml", request);
+        }
+
         [HttpPost]
-        public IActionResult ProcessRefund(Guid orderItemId)
+        public IActionResult ProcessRefund(Guid orderItemId, string refundMethod, string refundTransactionId)
         {
             if (!IsAdmin()) return Json(new { success = false });
 
@@ -694,6 +726,11 @@ namespace OnlineLibrary.Web.Controllers
             orderItem.Status = "Refunded";
             orderItem.RefundedAt = DateTime.UtcNow;
             orderItem.RefundAmount = refundAmount;
+            
+            // Log the librarian/admin choice and transaction ID
+            if (!string.IsNullOrEmpty(refundMethod))
+                orderItem.RefundPaymentMethod = refundMethod;
+            
             _context.SaveChanges();
 
             // Audit
@@ -708,7 +745,7 @@ namespace OnlineLibrary.Web.Controllers
                     Action = "Refund Processed",
                     EntityName = "OrderItem",
                     EntityId = orderItemId,
-                    Description = $"Refund of ৳{refundAmount:N0} processed for '{orderItem.BookTitle}'"
+                    Description = $"Refund of ৳{refundAmount:N0} processed for '{orderItem.BookTitle}' via {refundMethod} (Txn: {refundTransactionId})"
                 });
                 _context.SaveChanges();
             }
@@ -717,7 +754,7 @@ namespace OnlineLibrary.Web.Controllers
             if (order != null)
                 NotificationHelper.Send(_context, order.UserId, "Refund Processed", $"Refund of ৳{refundAmount:N0} for '{orderItem.BookTitle}' processed.", "success");
 
-            return Json(new { success = true, refundAmount });
+            return RedirectToAction("ReturnRequests");
         }
 
         // =========================

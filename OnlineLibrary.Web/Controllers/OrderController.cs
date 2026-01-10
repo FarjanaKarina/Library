@@ -104,7 +104,7 @@ namespace OnlineLibrary.Web.Controllers
         // REQUEST RETURN
         // =========================
         [HttpPost]
-        public IActionResult RequestReturn(Guid orderItemId)
+        public IActionResult RequestReturn(Guid orderItemId, string accountNumber, string paymentMethod)
         {
             if (!IsStudent())
                 return Json(new { success = false, message = "Unauthorized" });
@@ -126,9 +126,11 @@ namespace OnlineLibrary.Web.Controllers
             if (orderItem.Status != "Active")
                 return Json(new { success = false, message = "Return already requested or processed" });
 
-            // Update status
+            // Update status and refund info
             orderItem.Status = "ReturnRequested";
             orderItem.ReturnRequestedAt = DateTime.UtcNow;
+            orderItem.RefundAccountNumber = accountNumber;
+            orderItem.RefundPaymentMethod = paymentMethod;
             _context.SaveChanges();
 
             // Notify librarians

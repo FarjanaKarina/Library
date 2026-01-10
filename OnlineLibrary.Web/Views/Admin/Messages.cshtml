@@ -108,7 +108,9 @@
                 document.getElementById('mSender').innerText = `${msg.name} (${msg.email})`;
                 document.getElementById('mDate').innerText = new Date(msg.createdAt).toLocaleString();
                 document.getElementById('mBody').innerText = msg.message;
-                document.getElementById('replyBtn').href = `mailto:${msg.email}?subject=Re: ${msg.subject}`;
+                const subject = encodeURIComponent(`Re: ${msg.subject}`);
+                const email = encodeURIComponent(msg.email);
+                document.getElementById('replyBtn').href = `mailto:${msg.email}?subject=${subject}`;
                 
                 new bootstrap.Modal(document.getElementById('messageModal')).show();
                 

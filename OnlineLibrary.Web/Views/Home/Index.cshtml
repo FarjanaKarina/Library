@@ -5,7 +5,13 @@
 
     // Use StudentLayout if logged in as Student, otherwise use AppLayout
     var currentRole = ViewBag.CurrentRole as string;
-    if (currentRole == "Student")
+    var noSidenav = Context.Request.Query["noSidenav"] == "true";
+
+    if (noSidenav)
+    {
+        Layout = "_AppLayout";
+    }
+    else if (currentRole == "Student")
     {
         Layout = "_StudentLayout";
     }
@@ -179,19 +185,33 @@
                                 <img src="@book.ImageUrl"
                                      onerror="this.src='/images/no-book.png'" />
 
-                                <div class="hover-icons">
-                                    <a asp-controller="Book"
-                                       asp-action="Details"
-                                       asp-route-id="@book.BookId"
-                                       class="icon-btn">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
+                                @if (currentRole == "Student")
+                                {
+                                    <div class="hover-icons">
+                                        <a asp-controller="Book"
+                                           asp-action="Details"
+                                           asp-route-id="@book.BookId"
+                                           class="icon-btn">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
 
-                                    <button class="icon-btn"
-                                            onclick="addToCart('@book.BookId')">
-                                        <i class="bi bi-cart-plus"></i>
-                                    </button>
-                                </div>
+                                        <button class="icon-btn"
+                                                onclick="addToCart('@book.BookId')">
+                                            <i class="bi bi-cart-plus"></i>
+                                        </button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="hover-icons">
+                                        <a asp-controller="Book"
+                                           asp-action="Details"
+                                           asp-route-id="@book.BookId"
+                                           class="icon-btn">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </div>
+                                }
                             </div>
 
                             <div class="best-book-info">
@@ -230,18 +250,32 @@
                              onerror="this.src='/images/default-book.png'" />
 
                         <!-- Hover Icons - Matching Landing Page Style -->
-                        <div class="hover-icons">
-                            <button class="icon-btn"
-                                    onclick="addToCart('@book.BookId')"
-                                    title="Add to Cart">
-                                <i class="bi bi-cart-plus"></i>
-                            </button>
-                            <button class="icon-btn wishlist-icon-btn"
-                                    onclick="toggleWishlist('@book.BookId', this)"
-                                    title="Add to Wishlist">
-                                <i class="bi bi-heart"></i>
-                            </button>
-                        </div>
+                        @if (currentRole == "Student")
+                        {
+                            <div class="hover-icons">
+                                <button class="icon-btn"
+                                        onclick="addToCart('@book.BookId')"
+                                        title="Add to Cart">
+                                    <i class="bi bi-cart-plus"></i>
+                                </button>
+                                <button class="icon-btn wishlist-icon-btn"
+                                        onclick="toggleWishlist('@book.BookId', this)"
+                                        title="Add to Wishlist">
+                                    <i class="bi bi-heart"></i>
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="hover-icons">
+                                <a asp-controller="Book"
+                                   asp-action="Details"
+                                   asp-route-id="@book.BookId"
+                                   class="icon-btn">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </div>
+                        }
 
                         <!-- Availability Badge -->
                         @if (book.AvailableCopies > 0)

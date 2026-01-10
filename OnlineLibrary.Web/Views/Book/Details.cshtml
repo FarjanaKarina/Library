@@ -24,9 +24,14 @@
                         <!-- === MODIFIED: Corrected logic for all roles === -->
                         @if (ViewBag.CurrentRole == "Student")
                         {
-                            <button class="btn btn-success btn-lg w-100" onclick="addToCart('@Model.BookId')">
-                                <i class="bi bi-cart-plus me-2"></i>Add to Cart
-                            </button>
+                            <div class="d-flex gap-2 mb-2">
+                                <button class="btn btn-success btn-lg flex-grow-1" onclick="addToCart('@Model.BookId')">
+                                    <i class="bi bi-cart-plus me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-lg px-3" onclick="toggleWishlist('@Model.BookId', this)">
+                                    <i class="bi bi-heart" id="wishlistIcon"></i>
+                                </button>
+                            </div>
                         }
                         else if (ViewBag.IsLoggedIn != true)
                         {
@@ -131,6 +136,37 @@
             error: function () { Swal.fire({ title: 'Error', text: 'An unexpected error occurred.', icon: 'error' }); }
         });
     }
+
+    function toggleWishlist(bookId, button) {
+        fetch('/Wishlist/Toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bookId)
+        })
+        .then(res => res.json())
+        .then(data => {
+            const icon = document.getElementById('wishlistIcon');
+            if (icon) {
+                icon.classList.toggle('bi-heart-fill', data.added);
+                icon.classList.toggle('bi-heart', !data.added);
+            }
+        });
+    }
+
+    // Initialize wishlist icon state
+    document.addEventListener('DOMContentLoaded', function() {
+        if ('@ViewBag.CurrentRole' === 'Student') {
+            fetch('/Wishlist/GetUserWishlistIds')
+                .then(res => res.json())
+                .then(ids => {
+                    const icon = document.getElementById('wishlistIcon');
+                    if (icon && ids.includes('@Model.BookId')) {
+                        icon.classList.remove('bi-heart');
+                        icon.classList.add('bi-heart-fill');
+                    }
+                });
+        }
+    });
 
     // PDF rendering and security scripts
     document.addEventListener('DOMContentLoaded', function () {

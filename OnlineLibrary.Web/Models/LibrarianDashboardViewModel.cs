@@ -37,6 +37,8 @@
         public DateTime? ReceivedAt { get; set; }
         public DateTime? RefundedAt { get; set; }
         public decimal? ActualRefundAmount { get; set; }
+        public string? RefundAccountNumber { get; set; }
+        public string? RefundPaymentMethod { get; set; }
 
         // Calculated refund amount (50%)
         public decimal RefundAmount => Price * Quantity * 0.5m;

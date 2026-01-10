@@ -58,6 +58,8 @@ namespace OnlineLibrary.Web.Models
         public DateTime? ReceivedAt { get; set; }
         public DateTime? RefundedAt { get; set; }
         public decimal? RefundAmount { get; set; }
+        public string? RefundAccountNumber { get; set; }
+        public string? RefundPaymentMethod { get; set; }
 
         // Actions
         public bool CanRequestReturn => Status == "Active";

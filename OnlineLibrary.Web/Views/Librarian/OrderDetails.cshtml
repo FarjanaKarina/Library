@@ -164,6 +164,13 @@
                                                 };
                                             }
                                             <span class="badge @itemStatusClass">@item.Status</span>
+                                            @if (!string.IsNullOrEmpty(item.RefundAccountNumber))
+                                            {
+                                                <div class="mt-1 small text-muted">
+                                                    <i class="bi bi-wallet2 me-1"></i>@item.RefundPaymentMethod<br>
+                                                    <i class="bi bi-person-badge me-1"></i>@item.RefundAccountNumber
+                                                </div>
+                                            }
                                         </td>
                                     </tr>
                                 }

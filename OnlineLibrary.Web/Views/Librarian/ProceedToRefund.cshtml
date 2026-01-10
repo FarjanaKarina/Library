@@ -1,0 +1,243 @@
+@model OnlineLibrary.Web.Models.ReturnRequestViewModel
+
+@{
+    Layout = null; // No layout for SSLCommerz style
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SSLCommerz - Refund to @Model.RefundPaymentMethod</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f4f7f6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+        .ssl-header {
+            background-color: #fff;
+            padding: 15px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+        .ssl-logo {
+            font-weight: 800;
+            color: #ff3366;
+            font-size: 24px;
+        }
+        .ssl-logo span {
+            color: #2c3e50;
+        }
+        .payment-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            overflow: hidden;
+            border: none;
+        }
+        .payment-header {
+            background: #2c3e50;
+            color: #fff;
+            padding: 25px;
+            text-align: center;
+        }
+        .merchant-name {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+        .amount {
+            font-size: 32px;
+            font-weight: 700;
+        }
+        .payment-body {
+            padding: 30px;
+        }
+        .method-selector {
+            border: 2px solid #eee;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        .method-selector:hover {
+            border-color: #ff3366;
+            background: #fff5f7;
+        }
+        .method-selector.active {
+            border-color: #ff3366;
+            background: #fff5f7;
+        }
+        .method-icon {
+            width: 50px;
+            height: 50px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 24px;
+            color: #ff3366;
+        }
+        .method-info h6 {
+            margin-bottom: 2px;
+            font-weight: 600;
+        }
+        .btn-pay {
+            background: #ff3366;
+            color: #fff;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 18px;
+            width: 100%;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+        .btn-pay:hover {
+            background: #e62e5c;
+            color: white;
+        }
+        .footer-text {
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            margin-top: 30px;
+        }
+        .refund-info-box {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-left: 4px solid #ff3366;
+        }
+    </style>
+</head>
+<body>
+
+<div class="ssl-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="ssl-logo">SSL<span>Commerz</span></div>
+            <div class="secure-badge">
+                <i class="bi bi-shield-lock-fill text-success"></i>
+                <small class="text-muted">100% Secure Transaction</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="payment-card shadow">
+                <div class="payment-header">
+                    <div class="merchant-name">Refund From: BookNest Library</div>
+                    <div class="amount">৳@Model.RefundAmount.ToString("N2")</div>
+                </div>
+                <div class="payment-body">
+                    <div class="refund-info-box mb-4">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted small">Recipient</span>
+                            <span class="small fw-bold">@Model.StudentName</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted small">Transaction ID</span>
+                            <span class="small fw-bold">@Model.TransactionId</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted small">Refund ID</span>
+                            <span class="small fw-bold text-uppercase">RFND-@Guid.NewGuid().ToString("N").Substring(0, 8)</span>
+                        </div>
+                    </div>
+
+                    <h6 class="mb-3">Select Refund Method</h6>
+                    
+                    <div class="method-selector active" data-method="@Model.RefundPaymentMethod">
+                        <div class="method-icon">
+                            @if (Model.RefundPaymentMethod == "bKash") { <i class="bi bi-phone"></i> }
+                            else if (Model.RefundPaymentMethod == "Nagad") { <i class="bi bi-wallet2"></i> }
+                            else { <i class="bi bi-credit-card"></i> }
+                        </div>
+                        <div class="method-info">
+                            <h6>@Model.RefundPaymentMethod</h6>
+                            <small class="text-muted">To: @Model.RefundAccountNumber</small>
+                        </div>
+                        <div class="ms-auto">
+                            <i class="bi bi-check-circle-fill text-danger"></i>
+                        </div>
+                    </div>
+
+                    <form id="refundForm" method="post" action="@Url.Action("ProcessRefund", ViewContext.RouteData.Values["controller"].ToString())">
+                        <input type="hidden" name="orderItemId" value="@Model.OrderItemId" />
+                        <input type="hidden" name="refundMethod" value="@Model.RefundPaymentMethod" />
+                        <input type="hidden" id="refundTransactionId" name="refundTransactionId" value="" />
+                        
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="confirmCheck" required>
+                            <label class="form-check-label small text-muted" for="confirmCheck">
+                                I verify that the refund account details are correct and the money will be transferred to @Model.StudentName via @Model.RefundPaymentMethod.
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-pay" id="btnProcess">
+                            Confirm Refund
+                        </button>
+                    </form>
+
+                    <a href="@Url.Action("ReturnRequests", ViewContext.RouteData.Values["controller"].ToString())" class="btn btn-link w-100 text-muted mt-3 small text-decoration-none">
+                        <i class="bi bi-x-circle me-1"></i>Cancel Refund
+                    </a>
+                </div>
+            </div>
+            
+            <div class="footer-text">
+                <p>&copy; 2026 SSLCOMMERZ. All rights reserved.<br>Powering BookNest Library Refund Gateway</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Generate a random refund transaction ID
+        const rfndId = 'SSL-REF-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        $('#refundTransactionId').val(rfndId);
+
+        $('#refundForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            if (!$('#confirmCheck').is(':checked')) {
+                alert('Please confirm the refund details.');
+                return;
+            }
+
+            $('#btnProcess').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Processing...');
+
+            $.post($(this).attr('action'), $(this).serialize(), function(res) {
+                if (res.success) {
+                    alert('Refund Processed Successfully!\n\nTransaction ID: ' + rfndId);
+                    window.location.href = '@Url.Action("ReturnRequests", ViewContext.RouteData.Values["controller"].ToString())';
+                } else {
+                    alert('Error: ' + (res.message || 'Failed to process refund.'));
+                    $('#btnProcess').prop('disabled', false).html('Confirm Refund');
+                }
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
