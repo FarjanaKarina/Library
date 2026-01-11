@@ -714,49 +714,59 @@ namespace OnlineLibrary.Web.Controllers
         }
 
         [HttpPost]
-        public IActionResult ProcessRefund(Guid orderItemId, string refundMethod, string refundTransactionId)
+public IActionResult ProcessRefund(Guid orderItemId, string refundMethod, string refundTransactionId)
+{
+    if (!IsAdmin()) return Json(new { success = false });
+
+    var orderItem = _context.OrderItems.Find(orderItemId);
+    if (orderItem == null || orderItem.Status != "Received")
+        return Json(new { success = false, message = "Invalid request" });
+
+    var refundAmount = orderItem.Price * orderItem.Quantity * 0.5m;
+    orderItem.Status = "Refunded";
+    orderItem.RefundedAt = DateTime.UtcNow;
+    orderItem.RefundAmount = refundAmount;
+    
+    if (!string.IsNullOrEmpty(refundMethod))
+        orderItem.RefundPaymentMethod = refundMethod;
+
+    // Add audit log
+    var userIdStr = HttpContext.Session.GetString("UserId");
+    if (userIdStr != null)
+    {
+        _context.AuditLogs.Add(new AuditLog
         {
-            if (!IsAdmin()) return Json(new { success = false });
+            AuditLogId = Guid.NewGuid(),
+            ActorUserId = Guid.Parse(userIdStr),
+            ActorRole = "Admin",
+            Action = "Refund Processed",
+            EntityName = "OrderItem",
+            EntityId = orderItemId,
+            Description = $"Refund of ৳{refundAmount:N0} processed for '{orderItem.BookTitle}' via {refundMethod} (Txn: {refundTransactionId})"
+        });
+    }
 
-            var orderItem = _context.OrderItems.Find(orderItemId);
-            if (orderItem == null || orderItem.Status != "Received")
-                return Json(new { success = false, message = "Invalid request" });
+    // Add notification
+    var order = _context.Orders.Find(orderItem.OrderId);
+    if (order != null)
+    {
+        _context.Notifications.Add(new Notification
+        {
+            NotificationId = Guid.NewGuid(),
+            UserId = order.UserId,
+            Title = "Refund Processed",
+            Message = $"Refund of ৳{refundAmount:N0} for '{orderItem.BookTitle}' processed.",
+            Type = "success",
+            IsRead = false,
+            CreatedAt = DateTime.UtcNow
+        });
+    }
 
-            var refundAmount = orderItem.Price * orderItem.Quantity * 0.5m;
-            orderItem.Status = "Refunded";
-            orderItem.RefundedAt = DateTime.UtcNow;
-            orderItem.RefundAmount = refundAmount;
-            
-            // Log the librarian/admin choice and transaction ID
-            if (!string.IsNullOrEmpty(refundMethod))
-                orderItem.RefundPaymentMethod = refundMethod;
-            
-            _context.SaveChanges();
+    // Single SaveChanges for all operations
+    _context.SaveChanges();
 
-            // Audit
-            var userIdStr = HttpContext.Session.GetString("UserId");
-            if (userIdStr != null)
-            {
-                _context.AuditLogs.Add(new AuditLog
-                {
-                    AuditLogId = Guid.NewGuid(),
-                    ActorUserId = Guid.Parse(userIdStr),
-                    ActorRole = "Admin",
-                    Action = "Refund Processed",
-                    EntityName = "OrderItem",
-                    EntityId = orderItemId,
-                    Description = $"Refund of ৳{refundAmount:N0} processed for '{orderItem.BookTitle}' via {refundMethod} (Txn: {refundTransactionId})"
-                });
-                _context.SaveChanges();
-            }
-
-            var order = _context.Orders.Find(orderItem.OrderId);
-            if (order != null)
-                NotificationHelper.Send(_context, order.UserId, "Refund Processed", $"Refund of ৳{refundAmount:N0} for '{orderItem.BookTitle}' processed.", "success");
-
-            return RedirectToAction("ReturnRequests");
-        }
-
+    return Json(new { success = true, refundAmount });
+}
         // =========================
         // Helper: Is Admin
         // =========================

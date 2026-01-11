@@ -166,7 +166,12 @@
                 }
             }).fail(function (xhr) {
                 if (xhr.status === 401) {
-                    alert('Please log in to add books to your wishlist');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Login Required',
+                        text: 'Please log in to add books to your wishlist',
+                        confirmButtonColor: '#e63946'
+                    });
                 }
             });
         }
@@ -176,16 +181,32 @@
             $.post('/Cart/Add', { bookId: bookId, quantity: 1 }, function (res) {
                 if (res.success) {
                     // Show toast notification
-                    alert('✓ ' + res.message);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Added to Cart',
+                        text: res.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
                     // Update cart count in navbar (if you have one)
                     if (res.cartCount) {
                         $('.cart-count').text(res.cartCount);
                     }
                 } else {
-                    alert(res.message);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: res.message,
+                        confirmButtonColor: '#e63946'
+                    });
                 }
             }).fail(function () {
-                alert('Please log in to add items to cart');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Login Required',
+                    text: 'Please log in to add items to cart',
+                    confirmButtonColor: '#e63946'
+                });
             });
         }
     </script>

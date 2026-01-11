@@ -301,25 +301,55 @@
             const newStatus = $('#newStatusSelect').val();
 
             if (!newStatus) {
-                alert('Please select a new status');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Select Status',
+                    text: 'Please select a new status',
+                    confirmButtonColor: '#e63946'
+                });
                 return;
             }
 
-            if (confirm(`Update order status to "${newStatus}"?`)) {
-                $.post('@Url.Action("UpdateOrderStatus", ViewContext.RouteData.Values["controller"].ToString())', {
-                    orderId: orderId,
-                    newStatus: newStatus
-                }, function (res) {
-                    if (res.success) {
-                        alert('✓ Order status updated successfully!');
-                        location.reload();
-                    } else {
-                        alert('Error: ' + (res.message || 'Failed to update status'));
-                    }
-                }).fail(function () {
-                    alert('Error: Failed to update order status');
-                });
-            }
+            Swal.fire({
+                title: 'Update Status?',
+                text: `Update order status to "${newStatus}"?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#198754',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, Update'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('@Url.Action("UpdateOrderStatus", ViewContext.RouteData.Values["controller"].ToString())', {
+                        orderId: orderId,
+                        newStatus: newStatus
+                    }, function (res) {
+                        if (res.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Updated!',
+                                text: 'Order status updated successfully!',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => location.reload());
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: res.message || 'Failed to update status',
+                                confirmButtonColor: '#e63946'
+                            });
+                        }
+                    }).fail(function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to update order status',
+                            confirmButtonColor: '#e63946'
+                        });
+                    });
+                }
+            });
         }
     </script>
 }

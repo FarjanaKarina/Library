@@ -398,7 +398,6 @@ namespace OnlineLibrary.Web.Controllers
 
             if (request == null)
                 return NotFound();
-
             return View(request);
         }
 
@@ -406,7 +405,7 @@ namespace OnlineLibrary.Web.Controllers
         // PROCESS REFUND
         // =========================
         [HttpPost]
-        public IActionResult ProcessRefund(Guid orderItemId, string refundMethod, string refundTransactionId)
+        public IActionResult ProcessRefund(Guid orderItemId, string refundMethod, string refundTransactionId, string outcome)
         {
             if (!IsAuthorized())
                 return Json(new { success = false });
@@ -415,22 +414,25 @@ namespace OnlineLibrary.Web.Controllers
             if (orderItem == null || orderItem.Status != "Received")
                 return Json(new { success = false, message = "Invalid request" });
 
+            // If outcome is failure, simulate gateway rejection
+            if (outcome == "failure")
+            {
+                return Json(new { success = false, message = "Refund gateway rejected the transaction. Please try again." });
+            }
+
+            // Process successful refund
             // Calculate 50% refund
             var refundAmount = orderItem.Price * orderItem.Quantity * 0.5m;
 
             orderItem.Status = "Refunded";
             orderItem.RefundedAt = DateTime.UtcNow;
             orderItem.RefundAmount = refundAmount;
-            orderItem.RefundPaymentMethod = refundMethod; // Librarian can override or confirm user's choice
-
-            _context.SaveChanges();
+            orderItem.RefundPaymentMethod = refundMethod;
 
             // Get order for notification
             var order = _context.Orders.Find(orderItem.OrderId);
 
-            // =========================
-            // AUDIT LOG
-            // =========================
+            // Add audit log
             var userIdStr = HttpContext.Session.GetString("UserId");
             var roleIdStr = HttpContext.Session.GetString("RoleId");
             if (userIdStr != null && roleIdStr != null)
@@ -450,21 +452,25 @@ namespace OnlineLibrary.Web.Controllers
                     EntityId = orderItemId,
                     Description = $"Refund of ৳{refundAmount:N0} processed via {refundMethod}. Ref TXN: {refundTransactionId}. Book: '{orderItem.BookTitle}'"
                 });
-                _context.SaveChanges();
             }
 
-            // =========================
-            // NOTIFY STUDENT
-            // =========================
+            // Add notification
             if (order != null)
             {
-                NotificationHelper.Send(
-                    _context,
-                    order.UserId,
-                    "Refund Processed",
-                    $"Your refund of ৳{refundAmount:N0} for '{orderItem.BookTitle}' has been processed via {refundMethod}.",
-                    "success");
+                _context.Notifications.Add(new Notification
+                {
+                    NotificationId = Guid.NewGuid(),
+                    UserId = order.UserId,
+                    Title = "Refund Processed",
+                    Message = $"Your refund of ৳{refundAmount:N0} for '{orderItem.BookTitle}' has been processed via {refundMethod}.",
+                    Type = "success",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                });
             }
+
+            // Single SaveChanges call for all operations
+            _context.SaveChanges();
 
             return Json(new { success = true, refundAmount });
         }

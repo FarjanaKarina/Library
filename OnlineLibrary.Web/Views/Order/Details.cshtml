@@ -337,7 +337,12 @@
                 };
 
                 if (!formData.paymentMethod || !formData.accountNumber) {
-                    alert('Please fill in all refund details.');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Missing Details',
+                        text: 'Please fill in all refund details.',
+                        confirmButtonColor: '#e63946'
+                    });
                     return;
                 }
 
@@ -345,14 +350,29 @@
 
                 $.post('@Url.Action("RequestReturn", "Order")', formData, function (res) {
                     if (res.success) {
-                        alert('Return requested! You will be notified when approved.');
-                        location.reload();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Return Requested',
+                            text: 'You will be notified when approved.',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => location.reload());
                     } else {
-                        alert(res.message || 'Failed to request return.');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Failed',
+                            text: res.message || 'Failed to request return.',
+                            confirmButtonColor: '#e63946'
+                        });
                         $('#btnConfirmReturn').prop('disabled', false).html('Submit Return Request');
                     }
                 }).fail(function () {
-                    alert('Error: Server responded with an error. Please try again.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Server Error',
+                        text: 'Server responded with an error. Please try again.',
+                        confirmButtonColor: '#e63946'
+                    });
                     $('#btnConfirmReturn').prop('disabled', false).html('Submit Return Request');
                 });
             });
@@ -361,16 +381,33 @@
             $('.btn-cancel-return').click(function () {
                 const itemId = $(this).data('item-id');
 
-                if (confirm('Cancel this return request?')) {
-                    $.post('@Url.Action("CancelReturn", "Order")', { orderItemId: itemId }, function (res) {
-                        if (res.success) {
-                            alert('Return request cancelled.');
-                            location.reload();
-                        } else {
-                            alert(res.message || 'Failed to cancel.');
-                        }
-                    });
-                }
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "Do you want to cancel this return request?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#e63946',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, cancel it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.post('@Url.Action("CancelReturn", "Order")', { orderItemId: itemId }, function (res) {
+                            if (res.success) {
+                                Swal.fire(
+                                    'Cancelled!',
+                                    'Return request cancelled.',
+                                    'success'
+                                ).then(() => location.reload());
+                            } else {
+                                Swal.fire(
+                                    'Error!',
+                                    res.message || 'Failed to cancel.',
+                                    'error'
+                                );
+                            }
+                        });
+                    }
+                });
             });
         });
     </script>

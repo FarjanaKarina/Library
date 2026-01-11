@@ -163,7 +163,7 @@
      BEST SELLING / TOP RATED
 ========================= -->
     <section class="best-selling-section">
-        <div class="container my-5">
+        <div class="container-fluid my-5 px-3">
 
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h3 class="fw-bold">Best Selling Books</h3>
@@ -185,18 +185,20 @@
                                 <img src="@book.ImageUrl"
                                      onerror="this.src='/images/no-book.png'" />
 
-                                @if (currentRole == "Student")
+                                @if (string.IsNullOrEmpty(currentRole) || currentRole == "Student")
                                 {
                                     <div class="hover-icons">
                                         <a asp-controller="Book"
                                            asp-action="Details"
                                            asp-route-id="@book.BookId"
-                                           class="icon-btn">
+                                           class="icon-btn"
+                                           title="View Details">
                                             <i class="bi bi-eye"></i>
                                         </a>
 
                                         <button class="icon-btn"
-                                                onclick="addToCart('@book.BookId')">
+                                                onclick="addToCart('@book.BookId')"
+                                                title="Add to Cart">
                                             <i class="bi bi-cart-plus"></i>
                                         </button>
                                     </div>
@@ -250,7 +252,7 @@
                              onerror="this.src='/images/default-book.png'" />
 
                         <!-- Hover Icons - Matching Landing Page Style -->
-                        @if (currentRole == "Student")
+                        @if (string.IsNullOrEmpty(currentRole) || currentRole == "Student")
                         {
                             <div class="hover-icons">
                                 <button class="icon-btn"
@@ -654,16 +656,76 @@
         }
 
         function toggleWishlist(bookId, button) {
-            fetch('/Wishlist/Toggle', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(bookId)
-            })
-            .then(res => res.json())
-            .then(data => {
-                const icon = button.querySelector('i');
-                icon.classList.toggle('bi-heart-fill', data.added);
-                icon.classList.toggle('bi-heart', !data.added);
+            $.post('/Wishlist/Toggle', { bookId: bookId }, function (res) {
+                const icon = $(button).find('i');
+                if (res.added) {
+                    icon.removeClass('bi-heart').addClass('bi-heart-fill');
+                } else {
+                    icon.removeClass('bi-heart-fill').addClass('bi-heart');
+                }
+            }).fail(function (xhr) {
+                if (xhr.status === 401) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Login Required',
+                        text: 'Please log in to add books to your wishlist',
+                        showCancelButton: true,
+                        confirmButtonText: 'Login',
+                        cancelButtonText: 'Cancel',
+                        confirmButtonColor: '#e63946'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            openLoginModal();
+                        }
+                    });
+                }
+            });
+        }
+
+        function addToCart(bookId) {
+            $.post('/Cart/Add', { bookId: bookId, quantity: 1 }, function (res) {
+                if (res.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Added to Cart',
+                        text: res.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    if (res.cartCount) {
+                        $('.cart-count').text(res.cartCount);
+                    }
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: res.message,
+                        confirmButtonColor: '#e63946'
+                    });
+                }
+            }).fail(function (xhr) {
+                if (xhr.status === 401) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Login Required',
+                        text: 'Please log in to add items to cart',
+                        showCancelButton: true,
+                        confirmButtonText: 'Login',
+                        cancelButtonText: 'Cancel',
+                        confirmButtonColor: '#e63946'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            openLoginModal();
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Something went wrong',
+                        confirmButtonColor: '#e63946'
+                    });
+                }
             });
         }
     </script>

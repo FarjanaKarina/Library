@@ -12,6 +12,7 @@
     <title>SSLCommerz - Refund to @Model.RefundPaymentMethod</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
             background-color: #f4f7f6;
@@ -179,22 +180,18 @@
                         </div>
                     </div>
 
-                    <form id="refundForm" method="post" action="@Url.Action("ProcessRefund", ViewContext.RouteData.Values["controller"].ToString())">
-                        <input type="hidden" name="orderItemId" value="@Model.OrderItemId" />
-                        <input type="hidden" name="refundMethod" value="@Model.RefundPaymentMethod" />
-                        <input type="hidden" id="refundTransactionId" name="refundTransactionId" value="" />
-                        
-                        <div class="form-check mb-4">
-                            <input class="form-check-input" type="checkbox" id="confirmCheck" required>
-                            <label class="form-check-label small text-muted" for="confirmCheck">
-                                I verify that the refund account details are correct and the money will be transferred to @Model.StudentName via @Model.RefundPaymentMethod.
-                            </label>
-                        </div>
+                    <input type="hidden" id="orderItemId" value="@Model.OrderItemId" />
+                    <input type="hidden" id="refundMethod" value="@Model.RefundPaymentMethod" />
+                    <input type="hidden" id="refundTransactionId" value="" />
+                    
+                    <div class="alert alert-info mb-4">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <small>Click "Process Refund" to initiate the refund transaction through the payment gateway.</small>
+                    </div>
 
-                        <button type="submit" class="btn btn-pay" id="btnProcess">
-                            Confirm Refund
-                        </button>
-                    </form>
+                    <button type="button" class="btn btn-pay" id="btnProcessRefund">
+                        <i class="bi bi-arrow-repeat me-2"></i>Process Refund
+                    </button>
 
                     <a href="@Url.Action("ReturnRequests", ViewContext.RouteData.Values["controller"].ToString())" class="btn btn-link w-100 text-muted mt-3 small text-decoration-none">
                         <i class="bi bi-x-circle me-1"></i>Cancel Refund
@@ -216,26 +213,68 @@
         const rfndId = 'SSL-REF-' + Math.random().toString(36).substr(2, 9).toUpperCase();
         $('#refundTransactionId').val(rfndId);
 
-        $('#refundForm').on('submit', function(e) {
-            e.preventDefault();
+        // Handle Process Refund button click
+        $('#btnProcessRefund').on('click', function() {
+            const btn = $(this);
+            btn.prop('disabled', true);
+            btn.html('<span class="spinner-border spinner-border-sm me-2"></span>Processing...');
             
-            if (!$('#confirmCheck').is(':checked')) {
-                alert('Please confirm the refund details.');
-                return;
-            }
+            processRefund();
+        });
 
-            $('#btnProcess').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Processing...');
-
-            $.post($(this).attr('action'), $(this).serialize(), function(res) {
-                if (res.success) {
-                    alert('Refund Processed Successfully!\n\nTransaction ID: ' + rfndId);
-                    window.location.href = '@Url.Action("ReturnRequests", ViewContext.RouteData.Values["controller"].ToString())';
-                } else {
-                    alert('Error: ' + (res.message || 'Failed to process refund.'));
-                    $('#btnProcess').prop('disabled', false).html('Confirm Refund');
+        function processRefund() {
+            console.log('Sending refund request');
+            
+            $.ajax({
+                url: '@Url.Action("ProcessRefund", ViewContext.RouteData.Values["controller"].ToString())',
+                type: 'POST',
+                data: {
+                    orderItemId: $('#orderItemId').val(),
+                    refundMethod: $('#refundMethod').val(),
+                    refundTransactionId: $('#refundTransactionId').val(),
+                    outcome: 'success'
+                },
+                success: function(res) {
+                    console.log('Response received:', res);
+                    if (res.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Refund Successful!',
+                            text: 'Transaction ID: ' + rfndId,
+                            confirmButtonColor: '#198754'
+                        }).then(() => {
+                            window.location.href = '@Url.Action("ReturnRequests", ViewContext.RouteData.Values["controller"].ToString())';
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Refund Failed',
+                            text: res.message || 'The refund gateway rejected the transaction. Please try again.',
+                            confirmButtonColor: '#e63946'
+                        }).then(() => {
+                            $('#btnProcessRefund').prop('disabled', false).html('<i class="bi bi-arrow-repeat me-2"></i>Process Refund');
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', status, error, xhr.responseText);
+                    let errorMsg = 'The server could not process the request.';
+                    if (status === 'timeout') {
+                        errorMsg = 'Request timed out. The server is taking too long to respond.';
+                    } else if (xhr.status === 500) {
+                        errorMsg = 'Server error occurred. Check the server logs.';
+                    }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'System Error',
+                        text: errorMsg,
+                        confirmButtonColor: '#e63946'
+                    }).then(() => {
+                        $('#btnProcessRefund').prop('disabled', false).html('<i class="bi bi-arrow-repeat me-2"></i>Process Refund');
+                    });
                 }
             });
-        });
+        }
     });
 </script>
 
