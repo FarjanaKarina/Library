@@ -8,7 +8,7 @@ namespace OnlineLibrary.Infrastructure.Domain.Entities
         public Guid PaymentId { get; set; }
 
         public Guid UserId { get; set; }
-        public string Purpose { get; set; } = ""; // Membership / Fine / BookPurchase
+        public string Purpose { get; set; } = ""; 
         public string? TransactionId { get; set; }
         public string? SessionKey { get; set; }
         public string? ValidatorId { get; set; }

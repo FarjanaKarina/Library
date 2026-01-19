@@ -47,6 +47,14 @@
         </div>
     </div>
 
+    <!-- SEARCH RESULTS CONTAINER (Ideally Absolute or Pushed) -->
+    <!-- SEARCH RESULTS CONTAINER -->
+    <div class="container mt-4">
+        <div id="searchResults" class="row g-4 text-start d-none">
+            <!-- Results will be injected here -->
+        </div>
+    </div>
+
     <!-- FEATURED CAROUSEL -->
     <div id="featuredCarousel"
          class="carousel slide hero-carousel"
@@ -232,14 +240,15 @@
 <!-- =========================
        EXPLORE OUR COLLECTION
   ========================= -->
-<section class="container my-5 text-center">
+<section class="container my-5 text-center" id="explore-collection">
 
     <h2 class="fw-bold mb-1">Explore Our Collection</h2>
     <p class="text-muted mb-4">
         Discover a wide range of books from our library collection
     </p>
 
-    <div class="row g-4 text-start">
+    <!-- Default Explore Collection -->
+    <div id="defaultBooks" class="row g-4 text-start">
         @foreach (var book in Model.ExploreBooks)
         {
             <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
@@ -574,44 +583,74 @@
 
         function loadSearch() {
             clearTimeout(timer);
-
             timer = setTimeout(function () {
-
                 const search = $("#searchInput").val();
+                const $results = $("#searchResults");
 
-                if (search.trim().length === 0) {
-                    $("#searchResults").empty();
-                    $("#defaultBooks").show();
+                if (!search || search.trim().length === 0) {
+                    $results.addClass("d-none").empty();
+                    $("#featuredCarousel, .store-benefits, .best-selling-section, #explore-collection, .home-about-section, .librarian-section, .contact-section").show();
                     return;
                 }
 
-                $("#defaultBooks").hide();
+                // Hide other sections to focus on search
+                $("#featuredCarousel, .store-benefits, .best-selling-section, #explore-collection, .home-about-section, .librarian-section, .contact-section").hide();
+                $results.removeClass("d-none");
 
                 $.get("/Home/Search", { search: search }, function (data) {
-
                     let html = "";
 
                     if (data.length === 0) {
-                        html = `
-                            <div class="col-12">
-                                <div class="alert alert-warning text-center">
-                                    No books found.
-                                </div>
-                            </div>`;
+                        html = `<div class="col-12 text-center py-5">
+                                    <div class="py-5">
+                                        <i class="bi bi-search text-muted" style="font-size: 4rem;"></i>
+                                        <h3 class="mt-4 fw-bold">No results found</h3>
+                                        <p class="text-muted">We couldn't find any books matching "${search}".<br/>Check your spelling or try different keywords.</p>
+                                        <button class="btn btn-outline-danger btn-sm rounded-pill px-4 mt-3" 
+                                                onclick="$('#searchInput').val('').trigger('keyup')">
+                                            Clear Search
+                                        </button>
+                                    </div>
+                                </div>`;
                     } else {
+                        // Header for results
+                        html += `<div class="col-12 d-flex justify-content-between align-items-center mb-4">
+                                    <h3 class="fw-bold mb-0">Search Results for "${search}"</h3>
+                                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" 
+                                            onclick="$('#searchResults').addClass('d-none'); $('#searchInput').val(''); $('#featuredCarousel, .store-benefits, .best-selling-section, #explore-collection, .home-about-section, .librarian-section, .contact-section').show();">
+                                        <i class="bi bi-x-lg"></i> Close
+                                    </button>
+                                 </div>`;
+                        
                         data.forEach(b => {
                             html += `
-                            <div class="col-md-3 mb-4">
-                                <div class="card shadow-sm h-100">
-                                    <img src="${b.imageUrl}"
-                                         class="card-img-top"
-                                         style="height:220px;object-fit:cover;">
-                                    <div class="card-body">
-                                        <h6>${b.title}</h6>
-                                        <p class="text-muted">${b.author}</p>
-                                        <a href="/Book/Details/${b.bookId}"
-                                           class="btn btn-sm btn-secondary w-100">
-                                            View Details
+                            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                                <div class="book-card border shadow-sm">
+                                    <div class="book-image-container">
+                                        <img src="${b.imageUrl || '/images/default-book.png'}" 
+                                             class="book-image" 
+                                             alt="${b.title}"
+                                             onerror="this.src='/images/default-book.png'">
+                                        <div class="hover-icons">
+                                            <button class="icon-btn" onclick="addToCart('${b.bookId}')" title="Add to Cart">
+                                                <i class="bi bi-cart-plus"></i>
+                                            </button>
+                                            <button class="icon-btn wishlist-icon-btn" onclick="toggleWishlist('${b.bookId}', this)" title="Add to Wishlist">
+                                                <i class="bi bi-heart"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="book-info">
+                                        <h6 class="book-title" title="${b.title}">${b.title}</h6>
+                                        <p class="book-author"><i class="bi bi-person"></i> ${b.author}</p>
+                                        <div class="book-meta">
+                                            <div class="book-price">৳${b.price}</div>
+                                            <div class="book-stock text-muted small">
+                                                <i class="bi bi-box"></i> ${b.availableCopies} left
+                                            </div>
+                                        </div>
+                                        <a href="/Book/Details/${b.bookId}" class="btn btn-outline-primary btn-sm w-100">
+                                            <i class="bi bi-eye"></i> View Details
                                         </a>
                                     </div>
                                 </div>
@@ -619,16 +658,14 @@
                         });
                     }
 
-                    $("#searchResults").html(html);
+                    $results.html(html);
                 });
-
             }, 400);
         }
 
         $("#searchInput").on("keyup", loadSearch);
 
         document.addEventListener("DOMContentLoaded", function () {
-
             const searchBtn = document.getElementById("navSearchBtn");
             const searchInput = document.getElementById("searchInput");
             const searchSection = document.getElementById("topSearch");
@@ -636,23 +673,20 @@
             if (!searchBtn || !searchInput || !searchSection) return;
 
             searchBtn.addEventListener("click", function () {
-                // Scroll to search bar
                 searchSection.scrollIntoView({
                     behavior: "smooth",
                     block: "center"
                 });
-
-                // Focus input after scroll
+                
                 setTimeout(() => {
                     searchInput.focus();
                 }, 500);
             });
-
         });
 
         function slideBooks(direction) {
             const slider = document.getElementById("bestSlider");
-            slider.scrollBy({ left: direction * 450, behavior: 'smooth' });
+            if(slider) slider.scrollBy({ left: direction * 450, behavior: 'smooth' });
         }
 
         function toggleWishlist(bookId, button) {
@@ -660,6 +694,12 @@
                 const icon = $(button).find('i');
                 if (res.added) {
                     icon.removeClass('bi-heart').addClass('bi-heart-fill');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Added to Wishlist',
+                        timer: 1000,
+                        showConfirmButton: false
+                    });
                 } else {
                     icon.removeClass('bi-heart-fill').addClass('bi-heart');
                 }

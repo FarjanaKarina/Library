@@ -279,6 +279,8 @@ namespace OnlineLibrary.Web.Controllers
                     Title = b.Title,
                     Author = b.Author,
                     Publisher = b.Publisher,
+                    Price = b.Price,
+                    AvailableCopies = b.TotalCopies,
                     ImageUrl = b.ImageUrl,
                     Categories =
                         (from bc in _context.BookCategories
