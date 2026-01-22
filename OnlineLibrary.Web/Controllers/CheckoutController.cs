@@ -174,6 +174,13 @@ namespace OnlineLibrary.Web.Controllers
 
             try
             {
+                // Check if response is HTML (error page) instead of JSON
+                if (string.IsNullOrWhiteSpace(responseString) || responseString.Trim().StartsWith("<"))
+                {
+                    TempData["Error"] = "Payment gateway is temporarily unavailable. Please try again in a few minutes.";
+                    return RedirectToAction("Index");
+                }
+
                 var json = System.Text.Json.JsonDocument.Parse(responseString);
                 var status = json.RootElement.GetProperty("status").GetString();
 
@@ -196,9 +203,9 @@ namespace OnlineLibrary.Web.Controllers
                 TempData["Error"] = $"Payment initiation failed: {failedReason}";
                 return RedirectToAction("Index");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                TempData["Error"] = $"Error processing payment: {ex.Message}";
+                TempData["Error"] = "Payment gateway is temporarily unavailable. Please try again later.";
                 return RedirectToAction("Index");
             }
         }
