@@ -164,7 +164,14 @@ namespace OnlineLibrary.Web.Controllers
                 ["shipping_method"] = "Courier",
                 ["product_name"] = productNames,
                 ["product_category"] = "Books",
-                ["product_profile"] = "physical-goods",
+                ["product_profile"] = "general",
+                ["ship_name"] = model.ShippingName,
+                ["ship_add1"] = model.ShippingAddress,
+                ["ship_add2"] = model.ShippingAddress,
+                ["ship_city"] = "Dhaka",
+                ["ship_state"] = "Dhaka",
+                ["ship_postcode"] = "1000",
+                ["ship_country"] = "Bangladesh",
                 ["num_of_item"] = cartItems.Count.ToString()
             };
 

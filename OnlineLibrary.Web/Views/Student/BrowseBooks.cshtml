@@ -117,13 +117,18 @@
                                 </div>`;
                     } else {
                         data.forEach(b => {
+                            const availabilityBadge = b.availableCopies > 0 
+                                ? `<span class="badge bg-success availability-badge"><i class="bi bi-check-circle"></i> Available</span>`
+                                : `<span class="badge bg-danger availability-badge"><i class="bi bi-x-circle"></i> Out of Stock</span>`;
+
                             html += `
                             <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
                                 <div class="book-card">
                                     <div class="book-image-container">
                                         <img src="${b.imageUrl || '/images/default-book.png'}"
                                              class="book-image"
-                                             alt="${b.title}">
+                                             alt="${b.title}"
+                                             onerror="this.src='/images/default-book.png'">
                                         <div class="hover-icons">
                                             <button class="icon-btn" onclick="addToCart('${b.bookId}')" title="Add to Cart">
                                                 <i class="bi bi-cart-plus"></i>
@@ -132,12 +137,16 @@
                                                 <i class="bi bi-heart"></i>
                                             </button>
                                         </div>
+                                        ${availabilityBadge}
                                     </div>
                                     <div class="book-info">
-                                        <h6 class="book-title">${b.title}</h6>
+                                        <h6 class="book-title" title="${b.title}">${b.title}</h6>
                                         <p class="book-author"><i class="bi bi-person"></i> ${b.author}</p>
                                         <div class="book-meta">
-                                            <div class="book-price">৳${b.price}</div>
+                                            <div class="book-price"><i class="bi bi-tag-fill"></i> ৳${b.price}</div>
+                                            <div class="book-stock text-muted small">
+                                                <i class="bi bi-box"></i> ${b.availableCopies} left
+                                            </div>
                                         </div>
                                         <a href="/Book/Details/${b.bookId}" class="btn btn-outline-primary btn-sm w-100">
                                             <i class="bi bi-eye"></i> View Details

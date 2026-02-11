@@ -623,6 +623,10 @@
                                  </div>`;
                         
                         data.forEach(b => {
+                            const availabilityBadge = b.availableCopies > 0 
+                                ? `<span class="badge bg-success availability-badge"><i class="bi bi-check-circle"></i> Available</span>`
+                                : `<span class="badge bg-danger availability-badge"><i class="bi bi-x-circle"></i> Out of Stock</span>`;
+
                             html += `
                             <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
                                 <div class="book-card border shadow-sm">
@@ -639,12 +643,13 @@
                                                 <i class="bi bi-heart"></i>
                                             </button>
                                         </div>
+                                        ${availabilityBadge}
                                     </div>
                                     <div class="book-info">
                                         <h6 class="book-title" title="${b.title}">${b.title}</h6>
                                         <p class="book-author"><i class="bi bi-person"></i> ${b.author}</p>
                                         <div class="book-meta">
-                                            <div class="book-price">৳${b.price}</div>
+                                            <div class="book-price"><i class="bi bi-tag-fill"></i> ৳${b.price}</div>
                                             <div class="book-stock text-muted small">
                                                 <i class="bi bi-box"></i> ${b.availableCopies} left
                                             </div>
